@@ -1,2 +1,2 @@
 # cgbeacon2
-An updated beacon supporting GAfGH API 1.0
+An updated beacon supporting GA4GH API 1.0
