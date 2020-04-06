@@ -14,10 +14,10 @@ from setuptools import find_packages, setup, Command
 # Package meta-data.
 NAME = 'cgbeacon2'
 DESCRIPTION = 'An updated beacon supporting GA4GH API 1.0'
-URL = 'https://github.com/Clinical-Genomics/patientMatcher'
+URL = 'https://github.com/Clinical-Genomics/cgbeacon2'
 EMAIL = 'chiara.rasi@scilifelab.se'
 AUTHOR = 'Chiara Rasi'
-KEYWORDS = ['matchmaker exchange', 'genes', 'matchmaker', 'rare diseases', 'genomics', 'genotype', 'phenotype', 'patients', 'genetic disease']
+KEYWORDS = ['rare diseases', 'genomics', 'variants', 'beacon', 'genetic disease']
 LICENSE = 'MIT'
 
 here = os.path.abspath(os.path.dirname(__file__))
@@ -124,7 +124,7 @@ setup(
 
     entry_points={
         'console_scripts': [
-            'pmatcher = patientMatcher.cli.commands:cli'
+            'beacon2 = cgbeacon2.cli.commands:cli'
         ],
     },
 
