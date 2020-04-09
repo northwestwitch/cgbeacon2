@@ -10,7 +10,7 @@ ap1_bp = Blueprint(
     __name__,
 )
 
-@ap1_bp.route('/', methods=['GET'])
+@ap1_bp.route('/apiv1.0/', methods=['GET'])
 def info():
     """Returns Beacon info data as a json object"""
 
