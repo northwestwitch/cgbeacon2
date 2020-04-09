@@ -1,0 +1,4 @@
+# testing & coverage
+pytest
+pytest-cov
+coveralls

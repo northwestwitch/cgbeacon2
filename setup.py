@@ -8,7 +8,7 @@ import io
 import os
 import sys
 from shutil import rmtree
-from patientMatcher import __version__ as version
+from cgbeacon2 import __version__ as version
 from setuptools import find_packages, setup, Command
 
 # Package meta-data.
@@ -126,7 +126,7 @@ setup(
 
     entry_points={
         'console_scripts': [
-            'beacon2 = cgbeacon2.cli.commands:cli'
+            'cgbeacon2 = cgbeacon2.cli.commands:cli'
         ],
     },
 
