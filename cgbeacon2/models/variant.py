@@ -16,5 +16,3 @@ class Variant:
         self.variantType = parsed_variant["variantType"] # is used to denote e.g. structural variants.
         self.assemblyId = genome_assembly # str
         self.datasetIds = datasetIds # list
-
-        
