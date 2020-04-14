@@ -4,6 +4,15 @@ DEBUG = True
 #secret key:
 SECRET_KEY = 'MySuperSecretKey'
 
+# Database connection parameters
+DB_USERNAME = 'testuser'
+DB_PASSWORD = 'testpassw'
+DB_HOST = '127.0.0.1'
+DB_PORT = 27017
+DB_NAME = 'cgbeacon2'
+DB_URI = f"mongodb://{DB_HOST}:{DB_PORT}/{DB_NAME}"
+
+
 ORGANISATION = dict(
     id = "scilifelab", # mandatory
     name = "Clinical Genomics, SciLifeLab", # mandatory

@@ -2,6 +2,7 @@
 from flask import Flask
 import logging
 import os
+from pymongo import MongoClient
 
 from .blueprints import api_v1
 
@@ -30,6 +31,13 @@ def create_app():
         app = Flask(__name__, instance_path=instance_path, instance_relative_config=True)
         app.config.from_pyfile('config.py')
 
+    if app.config.get("DB_URI") is None:
+        LOG.warning("Please add database settings param in your config file.")
+        quit()
+
+    client = MongoClient(app.config['DB_URI'])
+    app.db = client[app.config['DB_NAME']]
+    LOG.info('database connection info:{}'.format(app.db))
 
     app.register_blueprint(api_v1.ap1_bp)
 
