@@ -3,8 +3,10 @@
 
 import click
 import datetime
+from flask.cli import with_appcontext, current_app
 
 from cgbeacon2.constants import CONSENT_CODES
+from cgbeacon2.utils.add import add_dataset
 
 @click.group()
 def add():
@@ -14,12 +16,13 @@ def add():
 @add.command()
 @click.option('-id', type=click.STRING, nargs=1, required=True, help="dataset ID")
 @click.option('-name', type=click.STRING, nargs=1, required=True, help="dataset name")
-@click.option('-build', type=click.STRING, nargs=1, required=True, help="Genome assembly", default="GRCh37")
+@click.option('-build', type=click.Choice(['GRCh37', 'GRCh38']), nargs=1, required=True, help="Genome assembly", default="GRCh37")
 @click.option('-desc', type=click.STRING, nargs=1, required=False, help="dataset description")
 @click.option('-version', type=click.FLOAT, nargs=1, required=False, help="dataset version, i.e. 1.0")
 @click.option('-url', type=click.STRING, nargs=1, required=False, help="external url")
 @click.option('-info', type=click.STRING, nargs=1, required=False, help="key-value pair of args. i.e.: FOO 1 BAR 2")
 @click.option('-cc', type=click.STRING, nargs=1, required=False, help="consent code key. i.e. HMB")
+@with_appcontext
 def dataset(id, name, build, desc, version, url, info, cc):
     """Creates a dataset object in the database
 
@@ -70,4 +73,9 @@ def dataset(id, name, build, desc, version, url, info, cc):
         else:
             dataset_obj["consent_code"] = cc
 
-    click.echo(dataset_obj)
+    result = inserted_id, collection = add_dataset(mongo_db=current_app.db, dataset_dict=dataset_obj)
+
+    if inserted_id:
+        click.echo('Inserted dataset with ID "{1}" into database collection {2}'.format(inserted_id, collection))
+    else:
+        click.echo('Aborted')
