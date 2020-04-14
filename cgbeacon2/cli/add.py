@@ -62,18 +62,18 @@ def dataset(id, name, build, desc, version, url, cc, info, ):
             info_dict[info_tuple[0]] = info_tuple[1]
         dataset_obj["info"] = info_dict
 
-    if cc is not None and cc not in CONSENT_CODES:
+    if cc is not None:
         # This can be improved, doesn't consider Codes with XX yet
         # Make sure consent code is among is an official consent code
+        if cc not in CONSENT_CODES:
+            click.echo("Consent code seem to have a non-standard value. Accepted consent code values:")
+            count = 1
+            for code, item in  CONSENT_CODES.items():
+                click.echo(f'{count})\t{item["abbr"]}\t{item["name"]}\t{item["description"]}')
+                count += 1
+            raise click.Abort()
 
-        click.echo("Consent code seem to have a non-standard value. Accepted consent code values:")
-        count = 1
-        for code, item in  CONSENT_CODES.items():
-            click.echo(f'{count})\t{item["abbr"]}\t{item["name"]}\t{item["description"]}')
-            count += 1
-        click.Abort()
-
-    dataset_obj["consent_code"] = cc
+        dataset_obj["consent_code"] = cc
 
     inserted_id, collection = add_dataset(mongo_db=current_app.db, dataset_dict=dataset_obj)
 

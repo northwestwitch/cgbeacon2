@@ -101,3 +101,35 @@ def test_add_dataset_complete(test_dataset_cli, mock_app, database):
     assert new_dataset["info"]["BAR"] == 'XYZ'
     assert new_dataset["consent_code"] == dataset["consent_code"]
     assert new_dataset["created"]
+
+
+def test_add_dataset_wrong_consent(test_dataset_cli, mock_app, database):
+    """Test the cli command which adds a dataset to db without a valid consent code"""
+
+    # test add a dataset_obj using the app cli
+    runner = mock_app.test_cli_runner()
+
+    dataset = test_dataset_cli
+
+    # When invoking the command providing all params + non valid consent code
+    result =  runner.invoke(cli, [
+       'add',
+       'dataset',
+       '-id', dataset["_id"],
+       '-name', dataset["name"],
+       '-build', dataset["build"],
+       '-desc', dataset["description"],
+       '-version', dataset["version"],
+       '-url', dataset["url"],
+       '-cc', 'MEH', # Non valid consent code
+       '-info', 'FOO', '7',
+       '-info', 'BAR', 'XYZ',
+       ])
+
+    # Then the command should print error
+    assert result.exit_code == 1
+    assert "Consent code seem to have a non-standard value" in result.output
+
+    # and no dataset should be saved to database
+    new_dataset = database["dataset"].find_one()
+    assert new_dataset is None
