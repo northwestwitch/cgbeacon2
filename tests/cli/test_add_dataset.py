@@ -2,13 +2,13 @@
 from cgbeacon2.cli.commands import cli
 
 
-def test_add_dataset_no_id(test_dataset, mock_app):
-    """Test the cli command which adds a dataset to db"""
+def test_add_dataset_no_id(test_dataset_cli, mock_app):
+    """Test the cli command which adds a dataset to db without a required param"""
 
      # test add a dataset_obj using the app cli
     runner = mock_app.test_cli_runner()
 
-    dataset = test_dataset
+    dataset = test_dataset_cli
 
     # When invoking the command without the -id parameter
     result =  runner.invoke(cli, [
@@ -21,13 +21,13 @@ def test_add_dataset_no_id(test_dataset, mock_app):
     assert "Missing option '-id'" in result.output
 
 
-def test_add_dataset_no_name(test_dataset, mock_app):
-    """Test the cli command which adds a dataset to db"""
+def test_add_dataset_no_name(test_dataset_cli, mock_app):
+    """Test the cli command which adds a dataset to db without a required param"""
 
      # test add a dataset_obj using the app cli
     runner = mock_app.test_cli_runner()
 
-    dataset = test_dataset
+    dataset = test_dataset_cli
 
     # When invoking the command without the -name parameter
     result =  runner.invoke(cli, [
@@ -40,13 +40,13 @@ def test_add_dataset_no_name(test_dataset, mock_app):
     assert "Missing option '-name'" in result.output
 
 
-def test_add_dataset_wrong_build(test_dataset, mock_app):
-    """Test the cli command which adds a dataset to db"""
+def test_add_dataset_wrong_build(test_dataset_cli, mock_app):
+    """Test the cli command which adds a dataset to db without a required param"""
 
      # test add a dataset_obj using the app cli
     runner = mock_app.test_cli_runner()
 
-    dataset = test_dataset
+    dataset = test_dataset_cli
 
     # When invoking the command without a valid genome build
     result =  runner.invoke(cli, [
@@ -59,3 +59,45 @@ def test_add_dataset_wrong_build(test_dataset, mock_app):
     # Then the command should return error
     assert result.exit_code == 2
     assert "Invalid value for '-build': invalid choice" in result.output
+
+
+def test_add_dataset_complete(test_dataset_cli, mock_app, database):
+    """Test the cli command which adds a dataset to db with all available params"""
+
+    # test add a dataset_obj using the app cli
+    runner = mock_app.test_cli_runner()
+
+    dataset = test_dataset_cli
+
+    # When invoking the command providing all parameters
+    result =  runner.invoke(cli, [
+       'add',
+       'dataset',
+       '-id', dataset["_id"],
+       '-name', dataset["name"],
+       '-build', dataset["build"],
+       '-desc', dataset["description"],
+       '-version', dataset["version"],
+       '-url', dataset["url"],
+       '-cc', dataset["consent_code"],
+       '-info', 'FOO', '7',
+       '-info', 'BAR', 'XYZ',
+       ])
+
+    # Then the command should be successful
+    assert result.exit_code == 0
+
+    # And the new dataset should have been inserted
+    new_dataset = database["dataset"].find_one()
+
+    # And it should have the provided key/values
+    assert new_dataset["_id"] == dataset["_id"]
+    assert new_dataset["name"] == dataset["name"]
+    assert new_dataset["assembly_id"] == dataset["build"]
+    assert new_dataset["description"] == dataset["description"]
+    assert new_dataset["version"] == dataset["version"]
+    assert new_dataset["external_url"] == dataset["url"]
+    assert new_dataset["info"]["FOO"] == '7'
+    assert new_dataset["info"]["BAR"] == 'XYZ'
+    assert new_dataset["consent_code"] == dataset["consent_code"]
+    assert new_dataset["created"]

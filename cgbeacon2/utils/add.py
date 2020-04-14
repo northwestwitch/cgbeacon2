@@ -1,4 +1,7 @@
 # -*- coding: utf-8 -*-
+import logging
+
+LOG = logging.getLogger(__name__)
 
 def add_dataset(mongo_db, dataset_dict):
     """Add/modify a dataset
@@ -15,8 +18,10 @@ def add_dataset(mongo_db, dataset_dict):
     collection = "dataset"
 
     try:
-        inserted_id = mongo_db[collection].insert_one(obj).inserted_id
-    except Exception as err:
-        LOG.fatal('Error while inserting a new client/server node to database:{}'.format(err))
+        result = mongo_db[collection].insert_one(dataset_dict)
 
-    return inserted_id, collection
+    except Exception as err:
+        LOG.fatal('Error while inserting a new dataset to database:{}'.format(err))
+        quit()
+
+    return result.inserted_id, collection

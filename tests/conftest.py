@@ -22,24 +22,22 @@ def database(request, pymongo_client):
     return database
 
 @pytest.fixture
-def mock_app():
+def mock_app(database):
     """Create a test app to be used in the tests"""
     app = create_app()
+    app.db = database
     return app
 
 @pytest.fixture
-def test_dataset():
+def test_dataset_cli():
     """A test dataset dictionary"""
     dataset = dict(
         _id = "test-dataset",
         name = "Test dataset",
+        build = "GRCh37",
         description = "Test dataset description",
         version = 1.0,
-        external_url = "external_url.url",
-        info = {
-            "bar" : 6,
-            "foo" : "b"
-        },
+        url = "external_url.url",
         consent_code = "HMB"
     )
     return dataset
