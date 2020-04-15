@@ -133,3 +133,72 @@ def test_add_dataset_wrong_consent(test_dataset_cli, mock_app, database):
     # and no dataset should be saved to database
     new_dataset = database["dataset"].find_one()
     assert new_dataset is None
+
+
+def test_update_non_existent_dataset(test_dataset_cli, mock_app, database):
+    """Test try to update a dataset that doesn't exist. Should return error"""
+
+    # test add a dataset_obj using the app cli
+    runner = mock_app.test_cli_runner()
+
+    dataset = test_dataset_cli
+
+    # Having an empty dataset collection
+    result = database["dataset"].find_one()
+    assert result is None
+
+    # When invoking the add command with the update flag to update a dataset
+    result =  runner.invoke(cli, [
+       'add',
+       'dataset',
+       '-id', dataset["_id"],
+       '-name', dataset["name"],
+       '-build', dataset["build"],
+       '-desc', dataset["description"],
+       '-version', dataset["version"],
+       '-url', dataset["url"],
+       '-cc', dataset["consent_code"],
+       '-info', 'FOO', '7',
+       '-info', 'BAR', 'XYZ',
+       '--update'
+       ])
+    # Then the command should print error
+    assert result.exit_code == 0
+    assert "An error occurred while updating dataset collection" in result.output
+
+
+def test_update_dataset(test_dataset_cli, mock_app, database):
+    """Test try to update a dataset that exists."""
+
+    # test add a dataset_obj using the app cli
+    runner = mock_app.test_cli_runner()
+
+    dataset = test_dataset_cli
+
+    # Having a database dataset collection with one item
+    result = database["dataset"].insert_one(dataset)
+    assert result is not None
+
+    # When invoking the add command with the update flag to update a dataset
+    result =  runner.invoke(cli, [
+       'add',
+       'dataset',
+       '-id', dataset["_id"],
+       '-name', dataset["name"],
+       '-build', dataset["build"],
+       '-desc', dataset["description"],
+       '-version', 2.0, # update to version 2
+       '-url', dataset["url"],
+       '-cc', dataset["consent_code"],
+       '-info', 'FOO', '7',
+       '-info', 'BAR', 'XYZ',
+       '--update'
+       ])
+
+    # Then the command should NOT print error
+    assert result.exit_code == 0
+    assert "Dataset collection was successfully updated" in result.output
+
+    # And the dataset should be updated
+    updated_dataset = database["dataset"].find_one({"_id": dataset["_id"]})
+    assert updated_dataset["version"] == 2

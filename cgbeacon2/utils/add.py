@@ -3,7 +3,7 @@ import logging
 
 LOG = logging.getLogger(__name__)
 
-def add_dataset(mongo_db, dataset_dict):
+def add_dataset(mongo_db, dataset_dict, update=False):
     """Add/modify a dataset
 
     Accepts:
@@ -11,17 +11,31 @@ def add_dataset(mongo_db, dataset_dict):
         dataset_dict(dict)
 
     Returns:
-        inserted_id(str), collection(str): a tuple with values inserted_id and collection name
+        inserted_id(str): the _id of the added/updated dataset
     """
 
     inserted_id = None
     collection = "dataset"
 
+    if update is True: # update an existing dataset
+        #LOG.info(f"Updating dataset collection with dataset id: {id}..")
+        old_dataset = mongo_db[collection].find_one({'_id': dataset_dict['_id']})
+
+        if old_dataset is None:
+            LOG.fatal("Couldn't find any dataset with id '{}' in the database".format(dataset_dict['_id']))
+            return
+
+        result = mongo_db[collection].replace_one({'_id': dataset_dict['_id']}, dataset_dict)
+        if result.modified_count > 0:
+            return dataset_dict['_id']
+        else:
+            return
+
     try:
         result = mongo_db[collection].insert_one(dataset_dict)
 
     except Exception as err:
-        LOG.fatal('Error while inserting a new dataset to database:{}'.format(err))
-        quit()
+        LOG.error(err)
+        return
 
-    return result.inserted_id, collection
+    return result.inserted_id
