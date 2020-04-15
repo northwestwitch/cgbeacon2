@@ -30,7 +30,7 @@ def test_delete_existing_dataset(test_dataset_cli, mock_app, database):
 
     dataset = test_dataset_cli
 
-    # When a dataset is inserted intp database
+    # When a dataset is inserted into database
     result =  runner.invoke(cli, [
        'add',
        'dataset',
@@ -41,7 +41,7 @@ def test_delete_existing_dataset(test_dataset_cli, mock_app, database):
     new_dataset = database["dataset"].find_one()
     assert new_dataset is not None
 
-    # If the dataset delete command is invoved providing the right database id
+    # If the dataset delete command is invoked providing the right database id
     result =  runner.invoke(cli, [
        'delete',
        'dataset',
@@ -52,6 +52,6 @@ def test_delete_existing_dataset(test_dataset_cli, mock_app, database):
     assert result.exit_code == 0
     assert "Dataset was successfully deleted" in result.output
 
-    # And the dataset should have been removed from the database
+    # And the dataset should be removed from the database
     new_dataset = database["dataset"].find_one()
     assert new_dataset is None
