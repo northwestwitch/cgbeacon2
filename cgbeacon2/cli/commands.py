@@ -6,6 +6,7 @@ from flask.cli import FlaskGroup
 
 from cgbeacon2.server import create_app
 from .add import add
+from .delete import delete
 
 @click.version_option(__version__)
 @click.group(cls=FlaskGroup, create_app=create_app, invoke_without_command=False, add_default_commands=True,
@@ -16,3 +17,4 @@ def cli(**_):
 
 
 cli.add_command(add)
+cli.add_command(delete)

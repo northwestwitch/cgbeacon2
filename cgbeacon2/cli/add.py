@@ -42,9 +42,14 @@ def dataset(id, name, build, desc, version, url, cc, info, update):
     dataset_obj = {
         '_id' : id,
         'name' : name,
-        'assembly_id' : build,
-        'created' : datetime.datetime.now(),
+        'assembly_id' : build
     }
+
+    if update is True:
+        dataset_obj["updated"] = datetime.datetime.now()
+    else:
+        dataset_obj["created"] = datetime.datetime.now()
+
     if desc is not None:
         dataset_obj["description"] = desc
 

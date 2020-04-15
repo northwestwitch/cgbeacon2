@@ -1,11 +1,12 @@
 # -*- coding: utf-8 -*-
-from cgbeacon2.cli.commands import cli
+import datetime
 
+from cgbeacon2.cli.commands import cli
 
 def test_add_dataset_no_id(test_dataset_cli, mock_app):
     """Test the cli command which adds a dataset to db without a required param"""
 
-     # test add a dataset_obj using the app cli
+    # test add a dataset_obj using the app cli
     runner = mock_app.test_cli_runner()
 
     dataset = test_dataset_cli
@@ -174,6 +175,7 @@ def test_update_dataset(test_dataset_cli, mock_app, database):
     runner = mock_app.test_cli_runner()
 
     dataset = test_dataset_cli
+    dataset["created"] = datetime.datetime.now()
 
     # Having a database dataset collection with one item
     result = database["dataset"].insert_one(dataset)
@@ -202,3 +204,4 @@ def test_update_dataset(test_dataset_cli, mock_app, database):
     # And the dataset should be updated
     updated_dataset = database["dataset"].find_one({"_id": dataset["_id"]})
     assert updated_dataset["version"] == 2
+    assert updated_dataset["updated"] is not None

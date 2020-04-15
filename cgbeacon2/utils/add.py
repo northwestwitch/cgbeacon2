@@ -24,13 +24,12 @@ def add_dataset(mongo_db, dataset_dict, update=False):
         if old_dataset is None:
             LOG.fatal("Couldn't find any dataset with id '{}' in the database".format(dataset_dict['_id']))
             return
-
+        dataset_dict["created"] = old_dataset["created"]
         result = mongo_db[collection].replace_one({'_id': dataset_dict['_id']}, dataset_dict)
         if result.modified_count > 0:
             return dataset_dict['_id']
         else:
             return
-
     try:
         result = mongo_db[collection].insert_one(dataset_dict)
 
