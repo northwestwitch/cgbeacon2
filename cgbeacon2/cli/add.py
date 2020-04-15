@@ -22,9 +22,10 @@ def add():
 @click.option('-url', type=click.STRING, nargs=1, required=False, help="external url")
 @click.option('-cc', type=click.STRING, nargs=1, required=False, help="consent code key. i.e. HMB")
 @click.option('-info', type=(str, str), multiple=True, required=False, help="key-value pair of args. i.e.: FOO 1")
+@click.option('--update', is_flag=True)
 @with_appcontext
-def dataset(id, name, build, desc, version, url, cc, info, ):
-    """Creates a dataset object in the database
+def dataset(id, name, build, desc, version, url, cc, info, update):
+    """Creates a dataset object in the database or updates a pre-existing one
 
     Accepts:
         id(str): dataset unique ID (mandatory)
@@ -35,9 +36,8 @@ def dataset(id, name, build, desc, version, url, cc, info, ):
         url(): URL to an external system providing more dataset information (RFC 3986 format).
         cc(str): https://journals.plos.org/plosgenetics/article?id=10.1371/journal.pgen.1005772
         info(list of tuples): Additional structured metadata, key-value pairs
+        update(bool): Update a dataset already present in the database with the same id
     """
-
-    click.echo("Adding a new dataset to database")
 
     dataset_obj = {
         '_id' : id,
@@ -75,9 +75,9 @@ def dataset(id, name, build, desc, version, url, cc, info, ):
 
         dataset_obj["consent_code"] = cc
 
-    inserted_id, collection = add_dataset(mongo_db=current_app.db, dataset_dict=dataset_obj)
+    inserted_id= add_dataset(mongo_db=current_app.db, dataset_dict=dataset_obj, update=update)
 
     if inserted_id:
-        click.echo(f"Inserted dataset with ID '{inserted_id}' into database collection '{collection}'")
+        click.echo(f"Dataset collection was successfully updated for dataset '{inserted_id}'")
     else:
-        click.echo('Aborted')
+        click.echo(f"An error occurred while updating dataset collection")
