@@ -20,7 +20,7 @@ def create_app():
         app.config.from_envvar('CGBEACON2_CONFIG')
         LOG.info("Starting app envirironmental variable CGBEACON2_CONFIG")
     except RuntimeError:
-        LOG.warning('Environment variable settings not found, configuring from instance file.')
+        LOG.info('Environment variable settings not found, configuring from instance file.')
         app_root=os.path.abspath(__file__).split('cgbeacon2')[0]
 
          # check if config file exists under ../instance:

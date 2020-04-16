@@ -6,7 +6,8 @@ import datetime
 from flask.cli import with_appcontext, current_app
 
 from cgbeacon2.constants import CONSENT_CODES
-from cgbeacon2.utils.add import add_dataset
+from cgbeacon2.utils.add import add_dataset, add_variants
+from cgbeacon2.utils.parse import extract_variants
 
 @click.group()
 def add():
@@ -83,6 +84,47 @@ def dataset(id, name, build, desc, version, url, cc, info, update):
     inserted_id= add_dataset(mongo_db=current_app.db, dataset_dict=dataset_obj, update=update)
 
     if inserted_id:
-        click.echo(f"Dataset collection was successfully updated for dataset '{inserted_id}'")
+        click.echo(f"Dataset collection was successfully updated with dataset '{inserted_id}'")
     else:
         click.echo(f"An error occurred while updating dataset collection")
+
+
+@add.command()
+@click.option('-ds', type=click.STRING, nargs=1, required=True, help="dataset ID")
+@click.option('-vcf', type=click.Path(exists=True), required=True)
+@click.option('-type', type=click.Choice(['snv', 'sv']), nargs=1, required=True, help="type of variants (snv, sv)")
+@click.option('-sample', type=click.STRING, multiple=True, required=True, help="one or more samples to save variants for")
+@click.option('--update', is_flag=True)
+@with_appcontext
+def variants(ds, vcf, type, update, sample):
+    """Add variants from a VCF file to a dataset
+
+    Accepts:
+        ds(str): id of a dataset already existing in the database
+        vcf(str): path to a VCF file
+        type(str): type of variants (SNVs or SVs)
+        sample(str) sample name as it's written in the VCF file, option repeated for each sample
+        update(bool): replace variants from this case in the dataset
+    """
+    # make sure dataset id corresponds to a dataset in the database
+    dataset = current_app.db["dataset"].find_one({"_id":ds})
+    if dataset is None:
+        click.echo(f"Couldn't find any dataset with id '{ds}' in the database")
+        raise click.Abort()
+
+    vcf_obj = extract_variants(vcf_file=vcf)
+    click.echo(vcf_obj)
+    if vcf_obj is None:
+        click.echo(f"Coundn't extract any variant from the provided file")
+        raise click.Abort()
+
+    # check if provided samples names correspond to those in the VCF file
+    vcf_samples = set(vcf_obj.samples) # set of samples contained in VCF file
+    custom_samples = set(sample) # set of samples provided by users
+    if len(custom_samples & vcf_samples) < len(custom_samples):
+        click.echo(f"Error. One or more provided samples are not contained in the VCF file")
+        raise click.Abort()
+
+    # Parse VCF variants
+    added = add_variants(vcf_obj, type, dataset["assembly_id"], ds)
+    click.echo(f"{added} variants loaded into the database")

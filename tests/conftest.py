@@ -34,7 +34,7 @@ def test_dataset_cli():
     dataset = dict(
         _id = "test-dataset",
         name = "Test dataset",
-        build = "GRCh37",
+        assembly_id = "GRCh37",
         description = "Test dataset description",
         version = 1.0,
         url = "external_url.url",
