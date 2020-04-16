@@ -8,5 +8,5 @@ click
 flask
 
 # utils
+pyOpenSSL
 cyvcf2
-htslib
