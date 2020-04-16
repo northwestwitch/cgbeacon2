@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 import logging
 from cyvcf2 import VCF
-from cgbeacon2.models.variant import Variant
-from cgbeacon2.constants import CHROMOSOMES
 
 LOG = logging.getLogger(__name__)
 
@@ -22,19 +20,3 @@ def extract_variants(vcf_file):
         return
 
     return vcf_obj
-
-
-def parse_variants(vcf_obj, type, assembly):
-    """Build variant objects from a cyvcf2 VCF iterator
-
-    Accepts:
-        vcf_obj(cyvcf2.VCF): a VCF object
-        type(str): snv or sv
-        assembly(str): chromosome build
-
-    Returns:
-
-    """
-
-    #for variant in vcf_obj:
-    #    chrom = variant.CHROM

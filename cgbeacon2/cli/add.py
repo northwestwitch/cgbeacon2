@@ -6,8 +6,8 @@ import datetime
 from flask.cli import with_appcontext, current_app
 
 from cgbeacon2.constants import CONSENT_CODES
-from cgbeacon2.utils.add import add_dataset
-from cgbeacon2.utils.parse import extract_variants, parse_variants
+from cgbeacon2.utils.add import add_dataset, add_variants
+from cgbeacon2.utils.parse import extract_variants
 
 @click.group()
 def add():
@@ -122,9 +122,8 @@ def variants(ds, vcf, type, update, sample):
     vcf_samples = set(vcf_obj.samples) # set of samples contained in VCF file
     custom_samples = set(sample) # set of samples provided by users
     if len(custom_samples & vcf_samples) < len(custom_samples):
-        click.echo(f"One or more provided samples are not contained in the VCF file")
+        click.echo(f"Error. One or more provided samples are not contained in the VCF file")
         raise click.Abort()
 
-
-
-    #parse_variants(variant_iterator, type, dataset["assembly_id"])
+    # Parse VCF variants
+    add_variants(vcf_obj, type, dataset["assembly_id"], ds)

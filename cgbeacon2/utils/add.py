@@ -1,6 +1,9 @@
 # -*- coding: utf-8 -*-
 import logging
 
+from cgbeacon2.constants import CHROMOSOMES
+from cgbeacon2.models.variant import Variant
+
 LOG = logging.getLogger(__name__)
 
 def add_dataset(mongo_db, dataset_dict, update=False):
@@ -38,3 +41,34 @@ def add_dataset(mongo_db, dataset_dict, update=False):
         return
 
     return result.inserted_id
+
+
+def add_variants(vcf_obj, type, assembly, dataset_id):
+    """Build variant objects from a cyvcf2 VCF iterator
+
+    Accepts:
+        vcf_obj(cyvcf2.VCF): a VCF object
+        type(str): snv or sv
+        assembly(str): chromosome build
+        dataset_id(str): dataset id
+    Returns:
+
+    """
+    LOG.info("Parsing variants..\n")
+    for nr_variants, vcf_variant in enumerate(vcf_obj):
+        LOG.info(nr_variants)
+        if vcf_variant.CHROM not in CHROMOSOMES:
+            LOG.warning(f"chromosome '{vcf_variant.CHROM}' not included in canonical chromosome list, skipping it.")
+            continue
+
+        parsed_variant = dict(
+            chromosome = vcf_variant.CHROM,
+            start = vcf_variant.start,
+            end = vcf_variant.end,
+            reference_bases = vcf_variant.REF,
+            alternate_bases = vcf_variant.ALT,
+        )
+        if vcf_variant.var_type == "sv": #otherwise snp or indel
+            parsed_variant["variant_type"] = "sv" #fix later
+
+        variant = Variant(parsed_variant, [dataset_id], assembly)

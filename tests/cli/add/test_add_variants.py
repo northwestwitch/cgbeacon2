@@ -70,7 +70,7 @@ def test_add_variants_wrong_samples(mock_app, test_dataset_cli, database):
     # Then the command should return error
     assert result.exit_code == 1
     # And a specific error message
-    assert f"One or more provided samples are not contained in the VCF file" in result.output
+    assert f"Error. One or more provided samples are not contained in the VCF file" in result.output
 
 """
 def test_add_variants_snv_vcf(mock_app, test_dataset_cli, database):
