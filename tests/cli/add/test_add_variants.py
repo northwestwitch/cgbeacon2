@@ -72,9 +72,9 @@ def test_add_variants_wrong_samples(mock_app, test_dataset_cli, database):
     # And a specific error message
     assert f"Error. One or more provided samples are not contained in the VCF file" in result.output
 
-"""
+
 def test_add_variants_snv_vcf(mock_app, test_dataset_cli, database):
-    Test the cli command to add SNV variants from VCF file
+    """Test the cli command to add SNV variants from VCF file"""
 
     runner = mock_app.test_cli_runner()
 
@@ -82,17 +82,19 @@ def test_add_variants_snv_vcf(mock_app, test_dataset_cli, database):
     dataset = test_dataset_cli
     database["dataset"].insert_one(dataset)
 
-    # When invoking the add variants with an existing but empty VCF file
+    # When invoking the add variants from a VCF file
     result =  runner.invoke(cli, [
         'add',
         'variants',
         '-ds', dataset["_id"],
         '-vcf', test_snv_vcf_path,
-        '-sample', 'a_sample',
+        '-sample', 'ADM1059A1',
         '-type', 'snv'
     ])
 
     # Then the command should NOT return error
     assert result.exit_code == 0
+    assert f"variants loaded into the database" in result.output
 
-"""
+
+    #

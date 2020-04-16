@@ -126,4 +126,5 @@ def variants(ds, vcf, type, update, sample):
         raise click.Abort()
 
     # Parse VCF variants
-    add_variants(vcf_obj, type, dataset["assembly_id"], ds)
+    added = add_variants(vcf_obj, type, dataset["assembly_id"], ds)
+    click.echo(f"{added} variants loaded into the database")

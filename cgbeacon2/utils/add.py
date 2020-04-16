@@ -56,7 +56,6 @@ def add_variants(vcf_obj, type, assembly, dataset_id):
     """
     LOG.info("Parsing variants..\n")
     for nr_variants, vcf_variant in enumerate(vcf_obj):
-        LOG.info(nr_variants)
         if vcf_variant.CHROM not in CHROMOSOMES:
             LOG.warning(f"chromosome '{vcf_variant.CHROM}' not included in canonical chromosome list, skipping it.")
             continue
@@ -72,3 +71,5 @@ def add_variants(vcf_obj, type, assembly, dataset_id):
             parsed_variant["variant_type"] = "sv" #fix later
 
         variant = Variant(parsed_variant, [dataset_id], assembly)
+
+    return nr_variants

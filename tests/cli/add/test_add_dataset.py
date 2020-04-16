@@ -76,7 +76,7 @@ def test_add_dataset_complete(test_dataset_cli, mock_app, database):
        'dataset',
        '-id', dataset["_id"],
        '-name', dataset["name"],
-       '-build', dataset["build"],
+       '-build', dataset["assembly_id"],
        '-desc', dataset["description"],
        '-version', dataset["version"],
        '-url', dataset["url"],
@@ -94,7 +94,7 @@ def test_add_dataset_complete(test_dataset_cli, mock_app, database):
     # And it should have the provided key/values
     assert new_dataset["_id"] == dataset["_id"]
     assert new_dataset["name"] == dataset["name"]
-    assert new_dataset["assembly_id"] == dataset["build"]
+    assert new_dataset["assembly_id"] == dataset["assembly_id"]
     assert new_dataset["description"] == dataset["description"]
     assert new_dataset["version"] == dataset["version"]
     assert new_dataset["external_url"] == dataset["url"]
@@ -118,7 +118,7 @@ def test_add_dataset_wrong_consent(test_dataset_cli, mock_app, database):
        'dataset',
        '-id', dataset["_id"],
        '-name', dataset["name"],
-       '-build', dataset["build"],
+       '-build', dataset["assembly_id"],
        '-desc', dataset["description"],
        '-version', dataset["version"],
        '-url', dataset["url"],
@@ -154,7 +154,7 @@ def test_update_non_existent_dataset(test_dataset_cli, mock_app, database):
        'dataset',
        '-id', dataset["_id"],
        '-name', dataset["name"],
-       '-build', dataset["build"],
+       '-build', dataset["assembly_id"],
        '-desc', dataset["description"],
        '-version', dataset["version"],
        '-url', dataset["url"],
@@ -187,7 +187,7 @@ def test_update_dataset(test_dataset_cli, mock_app, database):
        'dataset',
        '-id', dataset["_id"],
        '-name', dataset["name"],
-       '-build', dataset["build"],
+       '-build', dataset["assembly_id"],
        '-desc', dataset["description"],
        '-version', 2.0, # update to version 2
        '-url', dataset["url"],
