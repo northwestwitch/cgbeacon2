@@ -6,3 +6,6 @@ click
 
 # server
 flask
+
+# utils
+cyvcf2
