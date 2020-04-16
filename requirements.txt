@@ -9,4 +9,4 @@ flask
 
 # utils
 cyvcf2
-pyOpenSSL
+htslib
