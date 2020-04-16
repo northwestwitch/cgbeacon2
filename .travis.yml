@@ -8,7 +8,7 @@ env:
     - TRAVIS=1
 
 before_install:
-  - sudo apt-get -y install libcrypto libssl
+  - sudo apt-get -y install libcurl4-openssl-dev libssl-dev
 
 install:
     - pip install --upgrade pip
