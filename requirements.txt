@@ -10,4 +10,4 @@ flask
 # utils
 Cython
 pyOpenSSL
-cyvcf2<0.10.0
+cyvcf2
