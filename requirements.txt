@@ -8,6 +8,6 @@ click
 flask
 
 # utils
-pyOpenSSL
 cython
+pyOpenSSL
 cyvcf2<0.10.0
