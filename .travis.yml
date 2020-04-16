@@ -7,6 +7,9 @@ python:
 env:
     - TRAVIS=1
 
+before_install:
+  - sudo apt-get -y install libcrypto libssl
+
 install:
     - pip install --upgrade pip
     - pip install -r requirements.txt -r requirements-dev.txt .
