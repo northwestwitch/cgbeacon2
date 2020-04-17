@@ -50,7 +50,6 @@ def variant_called(vcf_samples, gt_positions, g_types):
     samples_with_call = []
 
     for i, g_type in enumerate(g_types):
-        #LOG.info(f"%%%%%%%%%%{i}\t{g_type}%%%%%%%")
         if i not in gt_positions: # this sampple should not be considered, skip
             continue
 
