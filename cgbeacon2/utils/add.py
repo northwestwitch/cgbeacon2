@@ -8,6 +8,7 @@ from cgbeacon2.utils.parse import variant_called
 
 LOG = logging.getLogger(__name__)
 
+
 def add_dataset(database, dataset_dict, update=False):
     """Add/modify a dataset
 
@@ -22,17 +23,23 @@ def add_dataset(database, dataset_dict, update=False):
     inserted_id = None
     collection = "dataset"
 
-    if update is True: # update an existing dataset
-        #LOG.info(f"Updating dataset collection with dataset id: {id}..")
-        old_dataset = database[collection].find_one({'_id': dataset_dict['_id']})
+    if update is True:  # update an existing dataset
+        # LOG.info(f"Updating dataset collection with dataset id: {id}..")
+        old_dataset = database[collection].find_one({"_id": dataset_dict["_id"]})
 
         if old_dataset is None:
-            LOG.fatal("Couldn't find any dataset with id '{}' in the database".format(dataset_dict['_id']))
+            LOG.fatal(
+                "Couldn't find any dataset with id '{}' in the database".format(
+                    dataset_dict["_id"]
+                )
+            )
             return
         dataset_dict["created"] = old_dataset["created"]
-        result = database[collection].replace_one({'_id': dataset_dict['_id']}, dataset_dict)
+        result = database[collection].replace_one(
+            {"_id": dataset_dict["_id"]}, dataset_dict
+        )
         if result.modified_count > 0:
-            return dataset_dict['_id']
+            return dataset_dict["_id"]
         else:
             return
     try:
@@ -69,39 +76,42 @@ def add_variants(database, vcf_obj, samples, assembly, dataset_id, nr_variants):
     vcf_samples = vcf_obj.samples
 
     inserted_vars = 0
-    with Bar('Processing', max=nr_variants) as bar:
+    with Bar("Processing", max=nr_variants) as bar:
         for vcf_variant in vcf_obj:
             if vcf_variant.CHROM not in CHROMOSOMES:
-                LOG.warning(f"chromosome '{vcf_variant.CHROM}' not included in canonical chromosome list, skipping it.")
+                LOG.warning(
+                    f"chromosome '{vcf_variant.CHROM}' not included in canonical chromosome list, skipping it."
+                )
                 continue
 
             # Check if variant was called in provided samples
-            sample_calls = variant_called(vcf_samples, gt_positions, vcf_variant.gt_types)
-
-            if len(sample_calls) == 0:
-                continue # variant was not called in samples of interest
-
-            if vcf_variant.var_type == "sv": #otherwise snp or indel
-                parsed_variant["variant_type"] = "sv" #fix later, this is not OK yet
-
-            parsed_variant = dict(
-                chromosome = vcf_variant.CHROM,
-                start = vcf_variant.start,
-                end = vcf_variant.end,
-                reference_bases = vcf_variant.REF,
-                alternate_bases = vcf_variant.ALT,
-                sample_ids = sample_calls
+            sample_calls = variant_called(
+                vcf_samples, gt_positions, vcf_variant.gt_types
             )
 
+            if len(sample_calls) == 0:
+                continue  # variant was not called in samples of interest
+
+            if vcf_variant.var_type == "sv":  # otherwise snp or indel
+                parsed_variant["variant_type"] = "sv"  # fix later, this is not OK yet
+
+            parsed_variant = dict(
+                chromosome=vcf_variant.CHROM,
+                start=vcf_variant.start,
+                end=vcf_variant.end,
+                reference_bases=vcf_variant.REF,
+                alternate_bases=vcf_variant.ALT,
+            )
+            dataset_dict = [{dataset_id: {"samples": sample_calls}}]
             # Create standard variant object with specific _id
-            variant = Variant(parsed_variant, [dataset_id], assembly)
+            variant = Variant(parsed_variant, dataset_dict, assembly)
 
             # Load variant into database or update an existing one with new samples and dataset
             result = add_variant(database=database, variant=variant)
-
+            if result:
+                inserted_vars += 1
 
             bar.next()
-            inserted_vars += 1
 
     return inserted_vars
 
@@ -118,13 +128,11 @@ def add_variant(database, variant):
 
     """
     # check if variant already exists
-    old_variant = database["variant"].find_one(
-        { "_id":  variant._id }
-    )
-    if old_variant is None: # if it doesn't exist
+    old_variant = database["variant"].find_one({"_id": variant._id})
+    if old_variant is None:  # if it doesn't exist
         # insert variant into database
         result = database["variant"].insert_one(variant.__dict__)
-    else: # update pre-existing variant
+    else:  # update pre-existing variant
         return None
 
     return result.inserted_id

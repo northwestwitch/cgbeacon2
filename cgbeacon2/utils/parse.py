@@ -4,6 +4,7 @@ from cyvcf2 import VCF
 
 LOG = logging.getLogger(__name__)
 
+
 def extract_variants(vcf_file):
     """Parse a VCF file and return its variants as cyvcf2.VCF objects
 
@@ -35,6 +36,7 @@ def count_variants(vcf_obj):
 
     return nr_variants
 
+
 def variant_called(vcf_samples, gt_positions, g_types):
     """Return a list of samples where variant was called
 
@@ -50,7 +52,7 @@ def variant_called(vcf_samples, gt_positions, g_types):
     samples_with_call = []
 
     for i, g_type in enumerate(g_types):
-        if i not in gt_positions: # this sampple should not be considered, skip
+        if i not in gt_positions:  # this sampple should not be considered, skip
             continue
 
         if g_type in [1, 3]:

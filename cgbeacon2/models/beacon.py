@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from cgbeacon2 import __version__
 
+
 class Beacon:
     """Represents a general beacon object"""
 
