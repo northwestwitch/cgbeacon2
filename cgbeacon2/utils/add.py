@@ -71,5 +71,4 @@ def add_variants(vcf_obj, type, assembly, dataset_id):
             parsed_variant["variant_type"] = "sv" #fix later
 
         variant = Variant(parsed_variant, [dataset_id], assembly)
-
     return nr_variants

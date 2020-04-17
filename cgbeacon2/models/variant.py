@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import hashlib
 
 class Variant:
     """A variant object"""
@@ -17,3 +18,25 @@ class Variant:
             self.variantType = parsed_variant["variant_type"] # is used to denote structural variants: 'INS', 'DUP', 'DEL', 'INV'
         self.assemblyId = genome_assembly # str
         self.datasetIds = datasetIds # list
+        self._id = self._md5_key(self.referenceName, self.start, self.end, self.referenceBases, self.alternateBases, genome_assembly)
+
+
+    def _md5_key(self, chrom, start, end, ref, alt, assembly):
+        """Generate a md5 key representing uniquely the variant
+
+        Accepts:
+            chrom(str): chromosome
+            start(int): variant start
+            end(int): variant end
+            ref(str): references bases
+            alt(str): alternative bases
+            assembly(str) genome assembly (GRCh37 or GRCh38)
+
+        Returns:
+            md5_key(str): md5 unique key
+
+        """
+        hash = hashlib.md5()
+        hash.update((" ".join([chrom, str(start), str(end), str(ref), str(alt), assembly])).encode("utf-8"))
+        md5_key = hash.hexdigest()
+        return md5_key
