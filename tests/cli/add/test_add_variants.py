@@ -14,8 +14,7 @@ def test_add_variants_no_dataset(mock_app):
         'variants',
         '-ds', 'a_dataset',
         '-vcf', test_snv_vcf_path,
-        '-sample', 'a_sample',
-        '-type', 'snv'
+        '-sample', 'a_sample'
     ])
 
     # Then the command should return error
@@ -39,8 +38,7 @@ def test_add_variants_empty_vcf(mock_app, test_dataset_cli, database):
         'variants',
         '-ds', dataset["_id"],
         '-vcf', test_empty_vcf_path,
-        '-sample', 'ADM1059A2',
-        '-type', 'sv'
+        '-sample', 'ADM1059A2'
     ])
 
     # Then the command should return error
@@ -64,8 +62,7 @@ def test_add_variants_wrong_samples(mock_app, test_dataset_cli, database):
         'variants',
         '-ds', dataset["_id"],
         '-vcf', test_snv_vcf_path,
-        '-sample', 'a_sample',
-        '-type', 'snv'
+        '-sample', 'a_sample'
     ])
     # Then the command should return error
     assert result.exit_code == 1
@@ -88,8 +85,7 @@ def test_add_variants_snv_vcf(mock_app, test_dataset_cli, database):
         'variants',
         '-ds', dataset["_id"],
         '-vcf', test_snv_vcf_path,
-        '-sample', 'ADM1059A1',
-        '-type', 'snv'
+        '-sample', 'ADM1059A1'
     ])
 
     # Then the command should NOT return error

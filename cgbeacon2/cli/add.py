@@ -92,17 +92,15 @@ def dataset(id, name, build, desc, version, url, cc, info, update):
 @add.command()
 @click.option('-ds', type=click.STRING, nargs=1, required=True, help="dataset ID")
 @click.option('-vcf', type=click.Path(exists=True), required=True)
-@click.option('-type', type=click.Choice(['snv', 'sv']), nargs=1, required=True, help="type of variants (snv, sv)")
 @click.option('-sample', type=click.STRING, multiple=True, required=True, help="one or more samples to save variants for")
 @click.option('--update', is_flag=True)
 @with_appcontext
-def variants(ds, vcf, type, update, sample):
+def variants(ds, vcf, sample, update):
     """Add variants from a VCF file to a dataset
 
     Accepts:
         ds(str): id of a dataset already existing in the database
         vcf(str): path to a VCF file
-        type(str): type of variants (SNVs or SVs)
         sample(str) sample name as it's written in the VCF file, option repeated for each sample
         update(bool): replace variants from this case in the dataset
     """
@@ -126,5 +124,5 @@ def variants(ds, vcf, type, update, sample):
         raise click.Abort()
 
     # Parse VCF variants
-    added = add_variants(vcf_obj, type, dataset["assembly_id"], ds)
+    added = add_variants(vcf_obj=vcf_obj, samples=custom_samples, assembly=dataset["assembly_id"], dataset_id=ds)
     click.echo(f"{added} variants loaded into the database")

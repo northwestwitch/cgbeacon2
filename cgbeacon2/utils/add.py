@@ -43,12 +43,12 @@ def add_dataset(mongo_db, dataset_dict, update=False):
     return result.inserted_id
 
 
-def add_variants(vcf_obj, type, assembly, dataset_id):
+def add_variants(vcf_obj, samples, assembly, dataset_id):
     """Build variant objects from a cyvcf2 VCF iterator
 
     Accepts:
         vcf_obj(cyvcf2.VCF): a VCF object
-        type(str): snv or sv
+        samples(set): set of samples to add variants for
         assembly(str): chromosome build
         dataset_id(str): dataset id
     Returns:
@@ -70,5 +70,8 @@ def add_variants(vcf_obj, type, assembly, dataset_id):
         if vcf_variant.var_type == "sv": #otherwise snp or indel
             parsed_variant["variant_type"] = "sv" #fix later
 
+        # Create standard variant object with specific _id
         variant = Variant(parsed_variant, [dataset_id], assembly)
+
+        #
     return nr_variants
