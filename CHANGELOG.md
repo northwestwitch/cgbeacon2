@@ -6,3 +6,4 @@
 - Update existing datasets using the command line
 - Delete a dataset using the command line
 - Code to parse VCF files (SNVs) and create Variant objects
+- Save SNV variants from parsed VCF files

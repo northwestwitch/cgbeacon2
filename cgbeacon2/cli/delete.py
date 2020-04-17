@@ -5,14 +5,16 @@ from flask.cli import with_appcontext, current_app
 
 from cgbeacon2.utils.delete import delete_dataset
 
+
 @click.group()
 def delete():
     """Delete items from database using the CLI"""
     pass
 
+
 @delete.command()
 @with_appcontext
-@click.option('-id', type=click.STRING, nargs=1, required=True, help="dataset ID")
+@click.option("-id", type=click.STRING, nargs=1, required=True, help="dataset ID")
 def dataset(id):
     """Delete a dataset using its _id key
 

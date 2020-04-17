@@ -3,6 +3,7 @@ import datetime
 
 from cgbeacon2.cli.commands import cli
 
+
 def test_add_dataset_no_id(test_dataset_cli, mock_app):
     """Test the cli command which adds a dataset to db without a required param"""
 
@@ -12,11 +13,7 @@ def test_add_dataset_no_id(test_dataset_cli, mock_app):
     dataset = test_dataset_cli
 
     # When invoking the command without the -id parameter
-    result =  runner.invoke(cli, [
-        'add',
-        'dataset',
-        '-name', dataset["name"]
-        ])
+    result = runner.invoke(cli, ["add", "dataset", "-name", dataset["name"]])
     # Then the command should return error
     assert result.exit_code == 2
     assert "Missing option '-id'" in result.output
@@ -25,17 +22,13 @@ def test_add_dataset_no_id(test_dataset_cli, mock_app):
 def test_add_dataset_no_name(test_dataset_cli, mock_app):
     """Test the cli command which adds a dataset to db without a required param"""
 
-     # test add a dataset_obj using the app cli
+    # test add a dataset_obj using the app cli
     runner = mock_app.test_cli_runner()
 
     dataset = test_dataset_cli
 
     # When invoking the command without the -name parameter
-    result =  runner.invoke(cli, [
-        'add',
-        'dataset',
-        '-id', dataset["_id"]
-        ])
+    result = runner.invoke(cli, ["add", "dataset", "-id", dataset["_id"]])
     # Then the command should return error
     assert result.exit_code == 2
     assert "Missing option '-name'" in result.output
@@ -44,19 +37,25 @@ def test_add_dataset_no_name(test_dataset_cli, mock_app):
 def test_add_dataset_wrong_build(test_dataset_cli, mock_app):
     """Test the cli command which adds a dataset to db without a required param"""
 
-     # test add a dataset_obj using the app cli
+    # test add a dataset_obj using the app cli
     runner = mock_app.test_cli_runner()
 
     dataset = test_dataset_cli
 
     # When invoking the command without a valid genome build
-    result =  runner.invoke(cli, [
-        'add',
-        'dataset',
-        '-id', dataset["_id"],
-        '-name', dataset["name"],
-        '-build', "meh"
-        ])
+    result = runner.invoke(
+        cli,
+        [
+            "add",
+            "dataset",
+            "-id",
+            dataset["_id"],
+            "-name",
+            dataset["name"],
+            "-build",
+            "meh",
+        ],
+    )
     # Then the command should return error
     assert result.exit_code == 2
     assert "Invalid value for '-build': invalid choice" in result.output
@@ -71,19 +70,33 @@ def test_add_dataset_complete(test_dataset_cli, mock_app, database):
     dataset = test_dataset_cli
 
     # When invoking the command providing all parameters
-    result =  runner.invoke(cli, [
-       'add',
-       'dataset',
-       '-id', dataset["_id"],
-       '-name', dataset["name"],
-       '-build', dataset["assembly_id"],
-       '-desc', dataset["description"],
-       '-version', dataset["version"],
-       '-url', dataset["url"],
-       '-cc', dataset["consent_code"],
-       '-info', 'FOO', '7',
-       '-info', 'BAR', 'XYZ',
-       ])
+    result = runner.invoke(
+        cli,
+        [
+            "add",
+            "dataset",
+            "-id",
+            dataset["_id"],
+            "-name",
+            dataset["name"],
+            "-build",
+            dataset["assembly_id"],
+            "-desc",
+            dataset["description"],
+            "-version",
+            dataset["version"],
+            "-url",
+            dataset["url"],
+            "-cc",
+            dataset["consent_code"],
+            "-info",
+            "FOO",
+            "7",
+            "-info",
+            "BAR",
+            "XYZ",
+        ],
+    )
 
     # Then the command should be successful
     assert result.exit_code == 0
@@ -98,8 +111,8 @@ def test_add_dataset_complete(test_dataset_cli, mock_app, database):
     assert new_dataset["description"] == dataset["description"]
     assert new_dataset["version"] == dataset["version"]
     assert new_dataset["external_url"] == dataset["url"]
-    assert new_dataset["info"]["FOO"] == '7'
-    assert new_dataset["info"]["BAR"] == 'XYZ'
+    assert new_dataset["info"]["FOO"] == "7"
+    assert new_dataset["info"]["BAR"] == "XYZ"
     assert new_dataset["consent_code"] == dataset["consent_code"]
     assert new_dataset["created"]
 
@@ -113,19 +126,33 @@ def test_add_dataset_wrong_consent(test_dataset_cli, mock_app, database):
     dataset = test_dataset_cli
 
     # When invoking the command providing all params + non valid consent code
-    result =  runner.invoke(cli, [
-       'add',
-       'dataset',
-       '-id', dataset["_id"],
-       '-name', dataset["name"],
-       '-build', dataset["assembly_id"],
-       '-desc', dataset["description"],
-       '-version', dataset["version"],
-       '-url', dataset["url"],
-       '-cc', 'MEH', # Non valid consent code
-       '-info', 'FOO', '7',
-       '-info', 'BAR', 'XYZ',
-       ])
+    result = runner.invoke(
+        cli,
+        [
+            "add",
+            "dataset",
+            "-id",
+            dataset["_id"],
+            "-name",
+            dataset["name"],
+            "-build",
+            dataset["assembly_id"],
+            "-desc",
+            dataset["description"],
+            "-version",
+            dataset["version"],
+            "-url",
+            dataset["url"],
+            "-cc",
+            "MEH",  # Non valid consent code
+            "-info",
+            "FOO",
+            "7",
+            "-info",
+            "BAR",
+            "XYZ",
+        ],
+    )
 
     # Then the command should print error
     assert result.exit_code == 1
@@ -149,20 +176,34 @@ def test_update_non_existent_dataset(test_dataset_cli, mock_app, database):
     assert result is None
 
     # When invoking the add command with the update flag to update a dataset
-    result =  runner.invoke(cli, [
-       'add',
-       'dataset',
-       '-id', dataset["_id"],
-       '-name', dataset["name"],
-       '-build', dataset["assembly_id"],
-       '-desc', dataset["description"],
-       '-version', dataset["version"],
-       '-url', dataset["url"],
-       '-cc', dataset["consent_code"],
-       '-info', 'FOO', '7',
-       '-info', 'BAR', 'XYZ',
-       '--update'
-       ])
+    result = runner.invoke(
+        cli,
+        [
+            "add",
+            "dataset",
+            "-id",
+            dataset["_id"],
+            "-name",
+            dataset["name"],
+            "-build",
+            dataset["assembly_id"],
+            "-desc",
+            dataset["description"],
+            "-version",
+            dataset["version"],
+            "-url",
+            dataset["url"],
+            "-cc",
+            dataset["consent_code"],
+            "-info",
+            "FOO",
+            "7",
+            "-info",
+            "BAR",
+            "XYZ",
+            "--update",
+        ],
+    )
     # Then the command should print error
     assert result.exit_code == 0
     assert "An error occurred while updating dataset collection" in result.output
@@ -182,20 +223,34 @@ def test_update_dataset(test_dataset_cli, mock_app, database):
     assert result is not None
 
     # When invoking the add command with the update flag to update a dataset
-    result =  runner.invoke(cli, [
-       'add',
-       'dataset',
-       '-id', dataset["_id"],
-       '-name', dataset["name"],
-       '-build', dataset["assembly_id"],
-       '-desc', dataset["description"],
-       '-version', 2.0, # update to version 2
-       '-url', dataset["url"],
-       '-cc', dataset["consent_code"],
-       '-info', 'FOO', '7',
-       '-info', 'BAR', 'XYZ',
-       '--update'
-       ])
+    result = runner.invoke(
+        cli,
+        [
+            "add",
+            "dataset",
+            "-id",
+            dataset["_id"],
+            "-name",
+            dataset["name"],
+            "-build",
+            dataset["assembly_id"],
+            "-desc",
+            dataset["description"],
+            "-version",
+            2.0,  # update to version 2
+            "-url",
+            dataset["url"],
+            "-cc",
+            dataset["consent_code"],
+            "-info",
+            "FOO",
+            "7",
+            "-info",
+            "BAR",
+            "XYZ",
+            "--update",
+        ],
+    )
 
     # Then the command should NOT print error
     assert result.exit_code == 0

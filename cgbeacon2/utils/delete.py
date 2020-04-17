@@ -3,6 +3,7 @@ import logging
 
 LOG = logging.getLogger(__name__)
 
+
 def delete_dataset(mongo_db, id):
     """Delete a dataset from dataset collection
 
@@ -16,7 +17,7 @@ def delete_dataset(mongo_db, id):
     collection = "dataset"
 
     try:
-        result = mongo_db[collection].delete_one({"_id":id})
+        result = mongo_db[collection].delete_one({"_id": id})
     except Exception as err:
         LOG.error(err)
         return
