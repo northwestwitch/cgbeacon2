@@ -12,8 +12,8 @@ class Variant:
         self.end = parsed_variant["end"] # int
         self.endMin = parsed_variant["end"]  # int, for for querying imprecise positions
         self.endMax = parsed_variant["end"] # int, for for querying imprecise positions
-        self.referenceBases = parsed_variant["reference_bases"] # str, '^([ACGT]+|N)$'
-        self.alternateBases = parsed_variant["alternate_bases"] # str, '^([ACGT]+|N)$'
+        self.referenceBases = ''.join(parsed_variant["reference_bases"]) # str, '^([ACGT]+|N)$'
+        self.alternateBases = ''.join(parsed_variant["alternate_bases"]) # str, '^([ACGT]+|N)$'
         if parsed_variant.get("variant_type"):
             self.variantType = parsed_variant["variant_type"] # is used to denote structural variants: 'INS', 'DUP', 'DEL', 'INV'
         self.assemblyId = genome_assembly # str

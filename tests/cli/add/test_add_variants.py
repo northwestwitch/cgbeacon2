@@ -78,6 +78,7 @@ def test_add_variants_snv_vcf(mock_app, test_dataset_cli, database):
     # Having a database containing a dataset
     dataset = test_dataset_cli
     database["dataset"].insert_one(dataset)
+    sample = 'ADM1059A1'
 
     # When invoking the add variants from a VCF file
     result =  runner.invoke(cli, [
@@ -85,12 +86,24 @@ def test_add_variants_snv_vcf(mock_app, test_dataset_cli, database):
         'variants',
         '-ds', dataset["_id"],
         '-vcf', test_snv_vcf_path,
-        '-sample', 'ADM1059A1'
+        '-sample', sample
     ])
 
     # Then the command should NOT return error
     assert result.exit_code == 0
     assert f"variants loaded into the database" in result.output
 
-
-    #
+    # and variants parsed correctly have been saved to database
+    test_variant = database["variant"].find_one()
+    assert isinstance(test_variant["referenceName"], str)
+    assert isinstance(test_variant["start"], int)
+    assert isinstance(test_variant["startMin"], int)
+    assert isinstance(test_variant["startMax"], int)
+    assert isinstance(test_variant["end"], int)
+    assert isinstance(test_variant["endMin"], int)
+    assert isinstance(test_variant["endMax"], int)
+    assert isinstance(test_variant["referenceBases"], str)
+    assert isinstance(test_variant["alternateBases"], str)
+    assert test_variant["assemblyId"] == "GRCh37"
+    assert test_variant["datasetIds"] == [dataset["_id"]]
+    assert test_variant["sampleIds"] == [sample]
