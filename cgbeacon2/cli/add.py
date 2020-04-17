@@ -81,7 +81,7 @@ def dataset(id, name, build, desc, version, url, cc, info, update):
 
         dataset_obj["consent_code"] = cc
 
-    inserted_id= add_dataset(mongo_db=current_app.db, dataset_dict=dataset_obj, update=update)
+    inserted_id= add_dataset(database=current_app.db, dataset_dict=dataset_obj, update=update)
 
     if inserted_id:
         click.echo(f"Dataset collection was successfully updated with dataset '{inserted_id}'")
@@ -128,5 +128,5 @@ def variants(ds, vcf, sample):
     vcf_obj = extract_variants(vcf_file=vcf)
 
     # Parse VCF variants
-    added = add_variants(vcf_obj=vcf_obj, samples=custom_samples, assembly=dataset["assembly_id"], dataset_id=ds, nr_variants=nr_variants)
+    added = add_variants(database=current_app.db, vcf_obj=vcf_obj, samples=custom_samples, assembly=dataset["assembly_id"], dataset_id=ds, nr_variants=nr_variants)
     click.echo(f"{added} variants loaded into the database")
