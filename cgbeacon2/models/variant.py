@@ -18,6 +18,7 @@ class Variant:
             self.variantType = parsed_variant["variant_type"] # is used to denote structural variants: 'INS', 'DUP', 'DEL', 'INV'
         self.assemblyId = genome_assembly # str
         self.datasetIds = datasetIds # list
+        self.sampleIds = parsed_variant["sample_ids"]
         self._id = self._md5_key(self.referenceName, self.start, self.end, self.referenceBases, self.alternateBases, genome_assembly)
 
 

@@ -4,6 +4,7 @@ from progress.bar import Bar
 
 from cgbeacon2.constants import CHROMOSOMES
 from cgbeacon2.models.variant import Variant
+from cgbeacon2.utils.parse import variant_called
 
 LOG = logging.getLogger(__name__)
 
@@ -58,12 +59,29 @@ def add_variants(vcf_obj, samples, assembly, dataset_id, nr_variants):
     """
     LOG.info("Parsing variants..\n")
 
-    with Bar('Processing', max=nr_variants) as bar:
+    # Collect position to check genotypes for (only samples provided by user)
+    gt_positions = []
+    for i, sample in enumerate(vcf_obj.samples):
+        if sample in samples:
+            gt_positions.append(i)
 
+    vcf_samples = vcf_obj.samples
+
+    inserted_vars = 0
+    with Bar('Processing', max=nr_variants) as bar:
         for vcf_variant in vcf_obj:
             if vcf_variant.CHROM not in CHROMOSOMES:
                 LOG.warning(f"chromosome '{vcf_variant.CHROM}' not included in canonical chromosome list, skipping it.")
                 continue
+
+            # Check if variant was called in provided samples
+            sample_calls = variant_called(vcf_samples, gt_positions, vcf_variant.gt_types)
+
+            if len(sample_calls) == 0:
+                continue # variant was not called in samples of interest
+
+            if vcf_variant.var_type == "sv": #otherwise snp or indel
+                parsed_variant["variant_type"] = "sv" #fix later
 
             parsed_variant = dict(
                 chromosome = vcf_variant.CHROM,
@@ -71,12 +89,13 @@ def add_variants(vcf_obj, samples, assembly, dataset_id, nr_variants):
                 end = vcf_variant.end,
                 reference_bases = vcf_variant.REF,
                 alternate_bases = vcf_variant.ALT,
+                sample_ids = sample_calls
             )
-            if vcf_variant.var_type == "sv": #otherwise snp or indel
-                parsed_variant["variant_type"] = "sv" #fix later
 
             # Create standard variant object with specific _id
             variant = Variant(parsed_variant, [dataset_id], assembly)
-            bar.next()
 
-    return nr_variants
+            bar.next()
+            inserted_vars += 1
+
+    return inserted_vars
