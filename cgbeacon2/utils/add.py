@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import logging
+from progress.bar import Bar
 
 from cgbeacon2.constants import CHROMOSOMES
 from cgbeacon2.models.variant import Variant
@@ -43,7 +44,7 @@ def add_dataset(mongo_db, dataset_dict, update=False):
     return result.inserted_id
 
 
-def add_variants(vcf_obj, samples, assembly, dataset_id):
+def add_variants(vcf_obj, samples, assembly, dataset_id, nr_variants):
     """Build variant objects from a cyvcf2 VCF iterator
 
     Accepts:
@@ -51,27 +52,31 @@ def add_variants(vcf_obj, samples, assembly, dataset_id):
         samples(set): set of samples to add variants for
         assembly(str): chromosome build
         dataset_id(str): dataset id
+        nr_variant(int): number of variants contained in VCF file
     Returns:
 
     """
     LOG.info("Parsing variants..\n")
-    for nr_variants, vcf_variant in enumerate(vcf_obj):
-        if vcf_variant.CHROM not in CHROMOSOMES:
-            LOG.warning(f"chromosome '{vcf_variant.CHROM}' not included in canonical chromosome list, skipping it.")
-            continue
 
-        parsed_variant = dict(
-            chromosome = vcf_variant.CHROM,
-            start = vcf_variant.start,
-            end = vcf_variant.end,
-            reference_bases = vcf_variant.REF,
-            alternate_bases = vcf_variant.ALT,
-        )
-        if vcf_variant.var_type == "sv": #otherwise snp or indel
-            parsed_variant["variant_type"] = "sv" #fix later
+    with Bar('Processing', max=nr_variants) as bar:
 
-        # Create standard variant object with specific _id
-        variant = Variant(parsed_variant, [dataset_id], assembly)
+        for vcf_variant in vcf_obj:
+            if vcf_variant.CHROM not in CHROMOSOMES:
+                LOG.warning(f"chromosome '{vcf_variant.CHROM}' not included in canonical chromosome list, skipping it.")
+                continue
 
-        #
+            parsed_variant = dict(
+                chromosome = vcf_variant.CHROM,
+                start = vcf_variant.start,
+                end = vcf_variant.end,
+                reference_bases = vcf_variant.REF,
+                alternate_bases = vcf_variant.ALT,
+            )
+            if vcf_variant.var_type == "sv": #otherwise snp or indel
+                parsed_variant["variant_type"] = "sv" #fix later
+
+            # Create standard variant object with specific _id
+            variant = Variant(parsed_variant, [dataset_id], assembly)
+            bar.next()
+
     return nr_variants

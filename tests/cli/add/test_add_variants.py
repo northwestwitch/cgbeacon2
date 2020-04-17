@@ -44,7 +44,7 @@ def test_add_variants_empty_vcf(mock_app, test_dataset_cli, database):
     # Then the command should return error
     assert result.exit_code == 1
     # And a specific error message
-    assert f"Coundn't extract any variant from the provided file" in result.output
+    assert f"Provided VCF file doesn't contain any variant" in result.output
 
 
 def test_add_variants_wrong_samples(mock_app, test_dataset_cli, database):

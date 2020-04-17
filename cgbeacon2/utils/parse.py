@@ -13,10 +13,24 @@ def extract_variants(vcf_file):
     """
     try:
         vcf_obj = VCF(vcf_file)
-        # Check if there are any variants in file
-        var = next(vcf_obj)
     except Exception as err:
         LOG.error(f"Error while creating VCF iterator from variant file:{err}")
         return
 
     return vcf_obj
+
+
+def count_variants(vcf_obj):
+    """Count how many variants are contained in a VCF object
+
+    Accepts:
+        vcf_obj(cyvcf2.VCF): a VCF object
+
+    Returns:
+        nr_variants(int): number of variants
+    """
+    nr_variants = 0
+    for vcf_variant in vcf_obj:
+        nr_variants += 1
+
+    return nr_variants

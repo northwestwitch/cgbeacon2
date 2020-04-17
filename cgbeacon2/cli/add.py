@@ -7,7 +7,7 @@ from flask.cli import with_appcontext, current_app
 
 from cgbeacon2.constants import CONSENT_CODES
 from cgbeacon2.utils.add import add_dataset, add_variants
-from cgbeacon2.utils.parse import extract_variants
+from cgbeacon2.utils.parse import extract_variants, count_variants
 
 @click.group()
 def add():
@@ -111,9 +111,13 @@ def variants(ds, vcf, sample, update):
         raise click.Abort()
 
     vcf_obj = extract_variants(vcf_file=vcf)
-    click.echo(vcf_obj)
     if vcf_obj is None:
-        click.echo(f"Coundn't extract any variant from the provided file")
+        click.echo(f"Coundn't parse provided VCF file")
+        raise click.Abort()
+
+    nr_variants = count_variants(vcf_obj)
+    if nr_variants == 0:
+        click.echo(f"Provided VCF file doesn't contain any variant")
         raise click.Abort()
 
     # check if provided samples names correspond to those in the VCF file
@@ -123,6 +127,8 @@ def variants(ds, vcf, sample, update):
         click.echo(f"Error. One or more provided samples are not contained in the VCF file")
         raise click.Abort()
 
+    vcf_obj = extract_variants(vcf_file=vcf)
+
     # Parse VCF variants
-    added = add_variants(vcf_obj=vcf_obj, samples=custom_samples, assembly=dataset["assembly_id"], dataset_id=ds)
+    added = add_variants(vcf_obj=vcf_obj, samples=custom_samples, assembly=dataset["assembly_id"], dataset_id=ds, nr_variants=nr_variants)
     click.echo(f"{added} variants loaded into the database")

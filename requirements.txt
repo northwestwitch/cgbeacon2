@@ -3,6 +3,7 @@ pymongo
 
 # command line
 click
+progress
 
 # server
 flask
