@@ -36,7 +36,7 @@ def delete_variants(database, ds_id, samples):
     Returns:
         n_removed(int): number of variants removed from database
     """
-    n_removed = None
+    n_removed = 0
     sample_list = list(samples)
     query = {
         ".".join(["datasetIds", ds_id, "samples"]) :{
@@ -46,7 +46,41 @@ def delete_variants(database, ds_id, samples):
     results = database["variant"].find(query)
 
     for res in results:
-        LOG.info(f"Found variant:{res}")
-        n_removed += 1
+        updated_item = delete_variant(database, ds_id, res, sample_list)
+        if updated_item is not None:
+            n_removed += 1
 
     return n_removed
+
+
+def delete_variant(database, dataset_id, variant, samples):
+    """Delete one variant from database or just update the samples having it
+
+    Accepts:
+        database(pymongo.database.Database)
+        dataset_id(str): dataset id
+        variant(dict): one variant
+        samples(list) : list of samples to remove this variant for
+
+    """
+    updated = None
+    dataset_samples = variant["datasetIds"][dataset_id].get("samples", [])
+    for sample in samples: #loop over the samples to remove
+        dataset_samples.remove(sample)
+
+    # If there are still samples in database with this variant
+    # Keep variant and update the list of samples
+    if len(dataset_samples)>0:
+        updated = database["variant"].find_one_and_update(
+            {"_id" : dataset_id},
+            {"$set": {
+                ".".join("datasetIds", dataset_id, "samples") : dataset_samples
+            }}
+        )
+        return updated.modified_count
+    else: # No samples in database with this variant, remove it
+        updated = database["variant"].find_one_and_delete({
+            "_id" : dataset_id
+        })
+        return updated
+    return

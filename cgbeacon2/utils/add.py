@@ -169,7 +169,7 @@ def add_variant(database, variant, dataset_id):
         if len(updated_samples) > 0:
             old_datasets_dict[dataset_id]["samples"] = updated_samples
             # update variant with new samples
-            result = database["variant"].update_one(
+            result = database["variant"].find_one_and_update(
                 {"_id": old_variant["_id"]}, {"$set": {"datasetIds": old_datasets_dict}}
             )
             return result.modified_count

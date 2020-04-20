@@ -67,3 +67,4 @@ def variants(ds, sample):
             raise click.Abort()
 
     removed = delete_variants(current_app.db, ds, sample)
+    click.echo(f"Number of variants removed/updated:{removed}")
