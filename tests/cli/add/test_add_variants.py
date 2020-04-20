@@ -99,6 +99,7 @@ def test_add_variants_snv_vcf(mock_app, test_dataset_cli, database):
     # Having a database containing a dataset
     dataset = test_dataset_cli
     database["dataset"].insert_one(dataset)
+
     sample = "ADM1059A1"
 
     # When invoking the add variants from a VCF file
@@ -132,4 +133,116 @@ def test_add_variants_snv_vcf(mock_app, test_dataset_cli, database):
     assert isinstance(test_variant["referenceBases"], str)
     assert isinstance(test_variant["alternateBases"], str)
     assert test_variant["assemblyId"] == "GRCh37"
-    assert test_variant["datasetIds"] == [{dataset["_id"]: {"samples": [sample]}}]
+    assert test_variant["datasetIds"] == {dataset["_id"]: {"samples": [sample]}}
+
+
+def test_add_variants_twice(mock_app, test_dataset_cli, database):
+    """Test to add variants from the same sample twice"""
+
+    runner = mock_app.test_cli_runner()
+
+    # Having a database containing a dataset
+    dataset = test_dataset_cli
+    database["dataset"].insert_one(dataset)
+
+    sample = "ADM1059A1"
+
+    # When invoking the add variants from a VCF file for the first time
+    result = runner.invoke(
+        cli,
+        [
+            "add",
+            "variants",
+            "-ds",
+            dataset["_id"],
+            "-vcf",
+            test_snv_vcf_path,
+            "-sample",
+            sample,
+        ],
+    )
+
+    # Then a number of variants should have been saved to database
+    saved_vars = sum(1 for i in database["variant"].find())
+
+    # WHEN the variants for the same sample are added again
+    result = runner.invoke(
+        cli,
+        [
+            "add",
+            "variants",
+            "-ds",
+            dataset["_id"],
+            "-vcf",
+            test_snv_vcf_path,
+            "-sample",
+            sample,
+        ],
+    )
+
+    # Then the number of total variants in the database should NOT increase
+    assert saved_vars == sum(1 for i in database["variant"].find())
+
+    # And test sample should be the only sample with variants present for this dataset
+    dataset_obj = database["dataset"].find_one({"_id": dataset["_id"]})
+    assert dataset_obj["samples"] == [sample]
+
+
+def test_add_other_sample_variants(mock_app, test_dataset_cli, database):
+    """Test adding variants for another sample, same VCF file"""
+
+    runner = mock_app.test_cli_runner()
+
+    # Having a database containing a dataset
+    dataset = test_dataset_cli
+    database["dataset"].insert_one(dataset)
+
+    # AND 2 samples to add
+    sample = "ADM1059A1"
+    sample2 = "ADM1059A2"
+
+    # When invoking the add variants from a VCF file for the first time
+    result = runner.invoke(
+        cli,
+        [
+            "add",
+            "variants",
+            "-ds",
+            dataset["_id"],
+            "-vcf",
+            test_snv_vcf_path,
+            "-sample",
+            sample,
+        ],
+    )
+
+    # Then a number of variants should have been saved to database
+    saved_vars = sum(1 for i in database["variant"].find())
+
+    # WHEN the variants for the other sample are added
+    result = runner.invoke(
+        cli,
+        [
+            "add",
+            "variants",
+            "-ds",
+            dataset["_id"],
+            "-vcf",
+            test_snv_vcf_path,
+            "-sample",
+            sample2,
+        ],
+    )
+
+    # Then the number of total variants in the database should increase
+    assert saved_vars < sum(1 for i in database["variant"].find())
+
+    # There should be variants called for both samples
+    shared_var = database["variant"].find_one(
+        {".".join(["datasetIds", dataset["_id"]]): [sample, sample2]}
+    )
+
+    # And the samples saved for the dataset should be 2
+    dataset_obj = database["dataset"].find_one({"_id": dataset["_id"]})
+    assert sample in dataset_obj["samples"]
+    assert sample2 in dataset_obj["samples"]
