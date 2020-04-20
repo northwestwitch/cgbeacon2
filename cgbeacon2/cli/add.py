@@ -8,6 +8,7 @@ from flask.cli import with_appcontext, current_app
 from cgbeacon2.constants import CONSENT_CODES
 from cgbeacon2.utils.add import add_dataset, add_variants
 from cgbeacon2.utils.parse import extract_variants, count_variants
+from cgbeacon2.utils.update import update_dataset_samples
 
 
 @click.group()
@@ -174,3 +175,12 @@ def variants(ds, vcf, sample):
         nr_variants=nr_variants,
     )
     click.echo(f"{added} variants loaded into the database")
+
+    if added > 0:
+        # update list of samples in beacon for this dataset
+        result = update_dataset_samples(database=current_app.db, dataset_id=ds, samples=custom_samples, add=True)
+
+        if result is not None:
+            click.echo(f"Samples {custom_samples} were successfully added to dataset list of samples")
+        else:
+            click.echo(f"List of dataset samples was left unchanged")

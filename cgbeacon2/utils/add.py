@@ -63,9 +63,11 @@ def add_variants(database, vcf_obj, samples, assembly, dataset_id, nr_variants):
         dataset_id(str): dataset id
         nr_variant(int): number of variants contained in VCF file
     Returns:
+        inserted_vars, samples(tuple): (int,list)
 
     """
     LOG.info("Parsing variants..\n")
+    new_samples = set()
 
     # Collect position to check genotypes for (only samples provided by user)
     gt_positions = []
@@ -107,7 +109,9 @@ def add_variants(database, vcf_obj, samples, assembly, dataset_id, nr_variants):
             variant = Variant(parsed_variant, dataset_dict, assembly)
 
             # Load variant into database or update an existing one with new samples and dataset
-            result = add_variant(database=database, variant=variant, dataset_id=dataset_id)
+            result = add_variant(
+                database=database, variant=variant, dataset_id=dataset_id
+            )
             if result is not None:
                 inserted_vars += 1
 
@@ -136,15 +140,21 @@ def add_variant(database, variant, dataset_id):
         return result.inserted_id
 
     else:  # update pre-existing variant
-        current_samples = variant.__dict__["datasetIds"][dataset_id]["samples"] # list of current samples
+        current_samples = variant.__dict__["datasetIds"][dataset_id][
+            "samples"
+        ]  # list of current samples
         updated_samples = []
 
-        old_datasets_dict = old_variant["datasetIds"] # dictionary where dataset ids are keys
-        if dataset_id in old_datasets_dict: # variant was already found in this dataset
+        old_datasets_dict = old_variant[
+            "datasetIds"
+        ]  # dictionary where dataset ids are keys
 
+        if dataset_id in old_datasets_dict:  # variant was already found in this dataset
             # check if any sample should be added to the dataset list of samples
-            datasets_samples = set(old_datasets_dict[dataset_id]["samples"]) # old samples
-            datasets_samples_size = len(datasets_samples) # length of old samples list
+            datasets_samples = set(
+                old_datasets_dict[dataset_id]["samples"]
+            )  # old samples
+            datasets_samples_size = len(datasets_samples)  # length of old samples list
 
             for sample in current_samples:
                 datasets_samples.add(sample)
@@ -159,15 +169,9 @@ def add_variant(database, variant, dataset_id):
             updated_samples = current_samples
 
         if len(updated_samples) > 0:
-            old_datasets_dict[dataset_id] = updated_samples
+            old_datasets_dict[dataset_id]["samples"] = updated_samples
             # update variant with new samples
             result = database["variant"].update_one(
-                {"_id" : old_variant["_id"]},
-                {"$set" :
-                    {
-                        "datasetIds" : old_datasets_dict
-
-                    }
-                }
+                {"_id": old_variant["_id"]}, {"$set": {"datasetIds": old_datasets_dict}}
             )
             return result.modified_count
