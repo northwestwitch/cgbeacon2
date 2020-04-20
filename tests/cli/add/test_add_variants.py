@@ -244,4 +244,5 @@ def test_add_other_sample_variants(mock_app, test_dataset_cli, database):
 
     # And the samples saved for the dataset should be 2
     dataset_obj = database["dataset"].find_one({"_id": dataset["_id"]})
-    assert dataset_obj["samples"] == [sample, sample2]
+    assert sample in dataset_obj["samples"]
+    assert sample2 in dataset_obj["samples"]
