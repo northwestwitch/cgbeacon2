@@ -32,3 +32,24 @@ def dataset(id):
         click.echo(f"Coundn't find a dataset with id '{id}' in database.")
     elif deleted == 1:
         click.echo("Dataset was successfully deleted")
+
+
+@delete.command()
+@with_appcontext
+@click.option("-ds", type=click.STRING, nargs=1, required=True, help="dataset ID")
+@click.option(
+    "-sample",
+    type=click.STRING,
+    multiple=True,
+    required=True,
+    help="one or more samples to save variants for",
+)
+def variants(ds, sample):
+    """Remove variants for one or more samples for a dataset
+
+    Accepts:
+        ds(str): id of a dataset already existing in the database
+        sample(str) sample name as it's written in the VCF file, option repeated for each sample
+    """
+
+    click.confirm(f"Deleting variants for sample {sample}, dataset '{ds}'. Do you want to continue?", abort=True)
