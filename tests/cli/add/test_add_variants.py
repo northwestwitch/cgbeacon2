@@ -186,6 +186,7 @@ def test_add_variants_twice(mock_app, test_dataset_cli, database):
     # And test sample should be the only sample with variants present for this dataset
     dataset_obj = database["dataset"].find_one({"_id": dataset["_id"]})
     assert dataset_obj["samples"] == [sample]
+    assert "updated" in dataset_obj
 
 
 def test_add_other_sample_variants(mock_app, test_dataset_cli, database):
@@ -246,3 +247,4 @@ def test_add_other_sample_variants(mock_app, test_dataset_cli, database):
     dataset_obj = database["dataset"].find_one({"_id": dataset["_id"]})
     assert sample in dataset_obj["samples"]
     assert sample2 in dataset_obj["samples"]
+    assert "updated" in dataset_obj

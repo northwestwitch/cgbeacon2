@@ -42,10 +42,10 @@ def dataset(id):
     type=click.STRING,
     multiple=True,
     required=True,
-    help="one or more samples to save variants for",
+    help="one or more samples to remove variants for",
 )
 def variants(ds, sample):
-    """Remove variants for one or more samples for a dataset
+    """Remove variants for one or more samples of a dataset
 
     Accepts:
         ds(str): id of a dataset already existing in the database
@@ -53,3 +53,15 @@ def variants(ds, sample):
     """
 
     click.confirm(f"Deleting variants for sample {sample}, dataset '{ds}'. Do you want to continue?", abort=True)
+
+    # Make sure dataset exists and contains the provided sample(s)
+    dataset = current_app.db["dataset"].find_one({"_id": ds})
+    if dataset is None:
+        click.echo(f"Couldn't find any dataset with id '{ds}' in the database")
+        raise click.Abort()
+
+    click.echo(f"Samples:{sample}, type:{type(sample)}")
+    for s in sample:
+        if s not in dataset.get("samples", []):
+            click.echo(f"Couldn't find any sample '{s}' in the sample list of dataset 'dataset'")
+            raise click.Abort()

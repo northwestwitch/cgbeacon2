@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import datetime
 import logging
 
 LOG = logging.getLogger(__name__)
@@ -32,6 +33,13 @@ def update_dataset_samples(database, dataset_id, samples, add=True):
     if len(datasets_samples) > datasets_samples_size:
         # update dataset with new samples
         result = database["dataset"].find_one_and_update(
-            {"_id": dataset_id}, {"$set": {"samples": list(datasets_samples)}}
+            {"_id": dataset_id},
+            {"$set":
+                {
+                    "samples": list(datasets_samples),
+                    "updated": datetime.datetime.now()
+                }
+
+            }
         )
         return result
