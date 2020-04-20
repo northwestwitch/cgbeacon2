@@ -187,4 +187,4 @@ def variants(ds, vcf, sample):
                 f"Samples {custom_samples} were successfully added to dataset list of samples"
             )
         else:
-            click.echo(f"List of dataset samples was left unchanged")
+            click.echo("List of dataset samples was left unchanged")
