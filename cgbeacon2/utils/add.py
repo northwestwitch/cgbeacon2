@@ -19,8 +19,6 @@ def add_dataset(database, dataset_dict, update=False):
     Returns:
         inserted_id(str): the _id of the added/updated dataset
     """
-
-    inserted_id = None
     collection = "dataset"
 
     if update is True:  # update an existing dataset

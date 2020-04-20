@@ -3,7 +3,7 @@
 import click
 from flask.cli import with_appcontext, current_app
 
-from cgbeacon2.utils.delete import delete_dataset
+from cgbeacon2.utils.delete import delete_dataset, delete_variants
 
 
 @click.group()
@@ -24,7 +24,7 @@ def dataset(id):
 
     click.echo(f"deleting dataset with id '{id}' from database")
 
-    deleted = delete_dataset(mongo_db=current_app.db, id=id)
+    deleted = delete_dataset(database=current_app.db, id=id)
 
     if deleted is None:
         click.echo("Aborting")
@@ -65,3 +65,5 @@ def variants(ds, sample):
         if s not in dataset.get("samples", []):
             click.echo(f"Couldn't find any sample '{s}' in the sample list of dataset 'dataset'")
             raise click.Abort()
+
+    removed = delete_variants(current_app.db, ds, sample)
