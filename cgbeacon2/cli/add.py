@@ -178,9 +178,13 @@ def variants(ds, vcf, sample):
 
     if added > 0:
         # update list of samples in beacon for this dataset
-        result = update_dataset_samples(database=current_app.db, dataset_id=ds, samples=custom_samples, add=True)
+        result = update_dataset_samples(
+            database=current_app.db, dataset_id=ds, samples=custom_samples, add=True
+        )
 
         if result is not None:
-            click.echo(f"Samples {custom_samples} were successfully added to dataset list of samples")
+            click.echo(
+                f"Samples {custom_samples} were successfully added to dataset list of samples"
+            )
         else:
             click.echo(f"List of dataset samples was left unchanged")
