@@ -34,7 +34,7 @@ def delete_variants(database, ds_id, samples):
         samples(tuple): name of samples in this dataset
 
     Returns:
-        n_removed(int): number of variants removed from database
+        n_updated, n_removed(tuple): number of variants updated/removed from database
     """
     n_updated = 0
     n_removed = 0
