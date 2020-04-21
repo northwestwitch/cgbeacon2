@@ -4,6 +4,7 @@ import click
 from flask.cli import with_appcontext, current_app
 
 from cgbeacon2.utils.delete import delete_dataset, delete_variants
+from cgbeacon2.utils.update import update_dataset_samples
 
 
 @click.group()
@@ -52,7 +53,10 @@ def variants(ds, sample):
         sample(str) sample name as it's written in the VCF file, option repeated for each sample
     """
 
-    click.confirm(f"Deleting variants for sample {sample}, dataset '{ds}'. Do you want to continue?", abort=True)
+    click.confirm(
+        f"Deleting variants for sample {sample}, dataset '{ds}'. Do you want to continue?",
+        abort=True,
+    )
 
     # Make sure dataset exists and contains the provided sample(s)
     dataset = current_app.db["dataset"].find_one({"_id": ds})
@@ -62,8 +66,23 @@ def variants(ds, sample):
 
     for s in sample:
         if s not in dataset.get("samples", []):
-            click.echo(f"Couldn't find any sample '{s}' in the sample list of dataset 'dataset'")
+            click.echo(
+                f"Couldn't find any sample '{s}' in the sample list of dataset 'dataset'"
+            )
             raise click.Abort()
 
     updated, removed = delete_variants(current_app.db, ds, sample)
     click.echo(f"Number of variants updated:{updated}, removed:{removed}")
+
+    if updated + removed > 0:
+        # remove sample(s) from dataset
+        result = update_dataset_samples(
+            database=current_app.db, dataset_id=ds, samples=list(sample), add=False
+        )
+
+        if result is not None:
+            click.echo(
+                f"Samples {sample} were successfully removed from dataset list of samples"
+            )
+        else:
+            click.echo("List of dataset samples was left unchanged")

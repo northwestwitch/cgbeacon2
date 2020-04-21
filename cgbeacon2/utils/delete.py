@@ -40,11 +40,7 @@ def delete_variants(database, ds_id, samples):
     n_removed = 0
 
     sample_list = list(samples)
-    query = {
-        ".".join(["datasetIds", ds_id, "samples"]) :{
-            "$in" : sample_list
-        }
-    }
+    query = {".".join(["datasetIds", ds_id, "samples"]): {"$in": sample_list}}
     results = database["variant"].find(query)
     for res in results:
         updated, removed = delete_variant(database, ds_id, res, sample_list)
@@ -73,26 +69,24 @@ def delete_variant(database, dataset_id, variant, samples):
     removed = False
 
     dataset_samples = variant["datasetIds"][dataset_id].get("samples", [])
-    for sample in samples: #loop over the samples to remove
+    for sample in samples:  # loop over the samples to remove
         dataset_samples.remove(sample)
 
     # If there are still samples in database with this variant
     # Keep variant and update the list of samples
-    if len(dataset_samples)>0:
-        LOG.info(f"HERE, keep : {dataset_samples}")
+    if len(dataset_samples) > 0:
         results = database["variant"].find_one_and_update(
-            {"_id" : variant["_id"]},
-            {"$set": {
-                ".".join(["datasetIds", dataset_id, "samples"]) : dataset_samples
-            }}
+            {"_id": variant["_id"]},
+            {
+                "$set": {
+                    ".".join(["datasetIds", dataset_id, "samples"]): dataset_samples
+                }
+            },
         )
         if results is not None:
             updated = True
-    else: # No samples in database with this variant, remove it
-        LOG.info("THERE")
-        results = database["variant"].find_one_and_delete({
-            "_id" : variant["_id"]
-        })
+    else:  # No samples in database with this variant, remove it
+        results = database["variant"].find_one_and_delete({"_id": variant["_id"]})
         if results is not None:
             removed = True
 

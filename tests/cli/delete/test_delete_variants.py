@@ -4,20 +4,16 @@ import click
 from cgbeacon2.cli.commands import cli
 from cgbeacon2.resources import test_snv_vcf_path
 
+
 def test_delete_variants_confirm(mock_app):
     """Test confirm question in delete variants command"""
 
     runner = mock_app.test_cli_runner()
     # When invoking the command without confirming the action
-    result = runner.invoke(cli, [
-        "delete",
-        "variants",
-        "-ds", "foo",
-        "-sample", "bar"
-    ])
+    result = runner.invoke(cli, ["delete", "variants", "-ds", "foo", "-sample", "bar"])
     # Then the command should exit
     assert result.exit_code == 1
-    assert  "Do you want to continue?" in result.output
+    assert "Do you want to continue?" in result.output
 
 
 def test_delete_variant_non_existing_dataset(mock_app):
@@ -26,15 +22,12 @@ def test_delete_variant_non_existing_dataset(mock_app):
     runner = mock_app.test_cli_runner()
 
     # When invoking the command with a dataset not present in database
-    result = runner.invoke(cli, [
-        "delete",
-        "variants",
-        "-ds", "foo",
-        "-sample", "bar"
-    ], input='y\n')
+    result = runner.invoke(
+        cli, ["delete", "variants", "-ds", "foo", "-sample", "bar"], input="y\n"
+    )
 
     assert result.exit_code == 1
-    assert  "Couldn't find any dataset with id 'foo' in the database" in result.output
+    assert "Couldn't find any dataset with id 'foo' in the database" in result.output
 
 
 def test_delete_variants_non_existing_sample(mock_app, test_dataset_cli, database):
@@ -47,15 +40,16 @@ def test_delete_variants_non_existing_sample(mock_app, test_dataset_cli, databas
     database["dataset"].insert_one(dataset)
 
     # When invoking the command without a sample not present in dataset samples
-    result = runner.invoke(cli, [
-        "delete",
-        "variants",
-        "-ds", test_dataset_cli["_id"],
-        "-sample", "bar"
-    ], input='y\n')
+    result = runner.invoke(
+        cli,
+        ["delete", "variants", "-ds", test_dataset_cli["_id"], "-sample", "bar"],
+        input="y\n",
+    )
 
     assert result.exit_code == 1
-    assert  "Couldn't find any sample 'bar' in the sample list of dataset" in result.output
+    assert (
+        "Couldn't find any sample 'bar' in the sample list of dataset" in result.output
+    )
 
 
 def test_delete_variants(mock_app, test_dataset_cli, database):
@@ -90,16 +84,17 @@ def test_delete_variants(mock_app, test_dataset_cli, database):
     assert initial_vars > 0
 
     # Then when using the cli command to remove onw of the samples
-    result = runner.invoke(cli, [
-        "delete",
-        "variants",
-        "-ds", test_dataset_cli["_id"],
-        "-sample", sample
-    ], input='y\n')
+    result = runner.invoke(
+        cli,
+        ["delete", "variants", "-ds", test_dataset_cli["_id"], "-sample", sample],
+        input="y\n",
+    )
 
     # Then there should be less variants left in the database
     remaining_vars = sum(1 for i in database["variant"].find())
     assert remaining_vars > 0
     assert remaining_vars < initial_vars
 
-    
+    # And the sample should disappear from the list of dataset samples
+    dataset_obj = database["dataset"].find_one({"_id": dataset["_id"]})
+    assert sample not in dataset_obj["samples"]

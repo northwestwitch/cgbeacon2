@@ -37,12 +37,11 @@ def update_dataset_samples(database, dataset_id, samples, add=True):
         # update dataset with new samples
         result = database["dataset"].find_one_and_update(
             {"_id": dataset_id},
-            {"$set":
-                {
+            {
+                "$set": {
                     "samples": list(datasets_samples),
-                    "updated": datetime.datetime.now()
+                    "updated": datetime.datetime.now(),
                 }
-
-            }
+            },
         )
         return result
