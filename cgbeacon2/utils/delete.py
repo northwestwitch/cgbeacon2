@@ -96,5 +96,4 @@ def delete_variant(database, dataset_id, variant, samples):
         if results is not None:
             removed = True
 
-    LOG.error(f"-------->{updated}----{removed}")
     return updated, removed

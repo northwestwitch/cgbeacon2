@@ -172,4 +172,4 @@ def add_variant(database, variant, dataset_id):
             result = database["variant"].find_one_and_update(
                 {"_id": old_variant["_id"]}, {"$set": {"datasetIds": old_datasets_dict}}
             )
-            return result.modified_count
+            return True

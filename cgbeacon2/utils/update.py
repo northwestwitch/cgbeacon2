@@ -28,9 +28,12 @@ def update_dataset_samples(database, dataset_id, samples, add=True):
     datasets_samples_size = len(datasets_samples)
 
     for sample in samples:  # add new samples to dataset
-        datasets_samples.add(sample)
+        if add is True:
+            datasets_samples.add(sample)
+        else:
+            datasets_samples.remove(sample)
 
-    if len(datasets_samples) > datasets_samples_size:
+    if len(datasets_samples) != datasets_samples_size:
         # update dataset with new samples
         result = database["dataset"].find_one_and_update(
             {"_id": dataset_id},
