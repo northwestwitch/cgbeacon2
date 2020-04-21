@@ -36,21 +36,24 @@ def delete_variants(database, ds_id, samples):
     Returns:
         n_removed(int): number of variants removed from database
     """
+    n_updated = 0
     n_removed = 0
+
     sample_list = list(samples)
     query = {
         ".".join(["datasetIds", ds_id, "samples"]) :{
-            "$in" : [sample_list]
+            "$in" : sample_list
         }
     }
     results = database["variant"].find(query)
-
     for res in results:
-        updated_item = delete_variant(database, ds_id, res, sample_list)
-        if updated_item is not None:
+        updated, removed = delete_variant(database, ds_id, res, sample_list)
+        if updated is True:
+            n_updated += 1
+        if removed is True:
             n_removed += 1
 
-    return n_removed
+    return n_updated, n_removed
 
 
 def delete_variant(database, dataset_id, variant, samples):
@@ -59,11 +62,16 @@ def delete_variant(database, dataset_id, variant, samples):
     Accepts:
         database(pymongo.database.Database)
         dataset_id(str): dataset id
-        variant(dict): one variant
+        variant_typet(dict): one variant
         samples(list) : list of samples to remove this variant for
 
+    Returns:
+        (updated, removed)(tuple of bool): if variant was updated or removed
+
     """
-    updated = None
+    updated = False
+    removed = False
+
     dataset_samples = variant["datasetIds"][dataset_id].get("samples", [])
     for sample in samples: #loop over the samples to remove
         dataset_samples.remove(sample)
@@ -71,16 +79,22 @@ def delete_variant(database, dataset_id, variant, samples):
     # If there are still samples in database with this variant
     # Keep variant and update the list of samples
     if len(dataset_samples)>0:
-        updated = database["variant"].find_one_and_update(
-            {"_id" : dataset_id},
+        LOG.info(f"HERE, keep : {dataset_samples}")
+        results = database["variant"].find_one_and_update(
+            {"_id" : variant["_id"]},
             {"$set": {
-                ".".join("datasetIds", dataset_id, "samples") : dataset_samples
+                ".".join(["datasetIds", dataset_id, "samples"]) : dataset_samples
             }}
         )
-        return updated.modified_count
+        if results is not None:
+            updated = True
     else: # No samples in database with this variant, remove it
-        updated = database["variant"].find_one_and_delete({
-            "_id" : dataset_id
+        LOG.info("THERE")
+        results = database["variant"].find_one_and_delete({
+            "_id" : variant["_id"]
         })
-        return updated
-    return
+        if results is not None:
+            removed = True
+
+    LOG.error(f"-------->{updated}----{removed}")
+    return updated, removed
