@@ -8,3 +8,4 @@
 - Code to parse VCF files (SNVs) and create Variant objects
 - Save SNV variants from parsed VCF files
 - Update SNV variants for one or more VCF samples
+- Remove variants by providing dataset id and sample name(s)
