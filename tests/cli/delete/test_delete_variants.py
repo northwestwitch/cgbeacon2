@@ -2,7 +2,7 @@
 import click
 
 from cgbeacon2.cli.commands import cli
-from cgbeacon2.resources import test_snv_vcf_path
+from cgbeacon2.resources import test_snv_vcf_path, panel1_path
 
 
 def test_delete_variants_confirm(mock_app):
@@ -78,6 +78,8 @@ def test_delete_variants(mock_app, test_dataset_cli, database):
             sample,
             "-sample",
             sample2,
+            "-panel",
+            panel1_path
         ],
     )
     initial_vars = sum(1 for i in database["variant"].find())

@@ -154,6 +154,7 @@ def variants(ds, vcf, sample, panel):
 
     custom_samples = set(sample)  # set of samples provided by users
     vcf_obj = extract_variants(vcf_file=vcf, samples=custom_samples, filter=filter_intervals)
+    
     if vcf_obj is None:
         click.echo(f"Coundn't extract variants from provided VCF file")
         raise click.Abort()

@@ -67,10 +67,10 @@ def merge_intervals(panels):
 
     """
     merged_panels = BedTool(panels[0])
-    merged_panels = merged_panels.cat(*panels[1:])
+    if len(panels) > 1:
+        merged_panels = merged_panels.cat(*panels[1:])
 
     return merged_panels
-
 
 
 def variant_called(vcf_samples, gt_positions, g_types):
