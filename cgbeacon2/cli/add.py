@@ -146,10 +146,12 @@ def variants(ds, vcf, sample, panel):
         click.echo(f"Couldn't find any dataset with id '{ds}' in the database")
         raise click.Abort()
 
+    """
     if len(panel) > 0:
         panel = merge_intervals(panel)
     else:
         panel = None
+    """
 
     custom_samples = set(sample)  # set of samples provided by users
     vcf_obj = extract_variants(vcf_file=vcf, samples=custom_samples)
