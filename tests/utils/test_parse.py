@@ -11,7 +11,7 @@ def test_merge_intervals():
     chr1	1	100	feature1	0	+
     chr1	100	200	feature2	0	+
     chr1	150	500	feature3	0	-
-    chr1	900	950	feature4	0	+
+    chr1    900	950	feature4	0	+
     """
     assert len(a) == 4
 
@@ -28,3 +28,14 @@ def test_merge_intervals():
     chr1	1	500
     chr1	800	950
     """
+
+def test_merge_demo_intervals():
+    """Test function using pyBedTools for merging intervals from one or more panels using demo intervals"""
+
+    a = pybedtools.example_bedtool(panel1_path)
+    assert len(a) == 4
+    b = pybedtools.example_bedtool(panel2_path)
+    assert len(b) == 3
+
+    merged_bed = merge_intervals([a, b])
+    assert len(merged_bed) == len(a) + len(b) -1 # a and b have a shared interval
