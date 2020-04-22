@@ -1,19 +1,43 @@
 # -*- coding: utf-8 -*-
 import logging
 from cyvcf2 import VCF
+import os
+from pybedtools.bedtool import BedTool
+from tempfile import NamedTemporaryFile
 
 LOG = logging.getLogger(__name__)
 
 
-def extract_variants(vcf_file):
+def extract_variants(vcf_file, samples=None, filter=None):
     """Parse a VCF file and return its variants as cyvcf2.VCF objects
 
     Accepts:
         vcf_file(str): path to VCF file
-
+        samples(tuple): samples to extract variants for
+        filter(BcfTool object)
     """
     try:
-        vcf_obj = VCF(vcf_file)
+        if filter is not None:
+            # Genes or chromosomal intervals filter file(s) are provided
+            vcf_bed = BedTool(vcf_file)
+            LOG.info(
+                "Extracting %s intervals from the %s total entries of the VCF file.",
+                filter.count(),
+                vcf_bed.count(),
+            )
+            intersections = vcf_bed.intersect(filter, header=True)
+            intersected_vars = intersections.count()
+            LOG.info("Number of variants found in the intervals:%s", intersected_vars)
+
+            temp_intersections_file = NamedTemporaryFile("w+t", dir=os.getcwd())
+            intersections.saveas(temp_intersections_file.name)
+            vcf_obj = VCF(temp_intersections_file.name)
+
+            # remove temporary file:
+            temp_intersections_file.close()
+
+        else:
+            vcf_obj = VCF(vcf_file, samples=list(samples))
     except Exception as err:
         LOG.error(f"Error while creating VCF iterator from variant file:{err}")
         return
@@ -35,6 +59,23 @@ def count_variants(vcf_obj):
         nr_variants += 1
 
     return nr_variants
+
+
+def merge_intervals(panels):
+    """Create genomic intervals to filter VCF files starting from the provided panel file(s)
+
+    Accepts:
+        panels(list) : path to one or more panel bed files
+
+    Returns:
+        merged_panels(Temp BED File): a temporary file with merged panel intervals
+
+    """
+    merged_panels = BedTool(panels[0])
+    if len(panels) > 1:
+        merged_panels = merged_panels.cat(*panels[1:])
+
+    return merged_panels
 
 
 def variant_called(vcf_samples, gt_positions, g_types):
