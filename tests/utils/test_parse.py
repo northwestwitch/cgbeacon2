@@ -32,9 +32,9 @@ def test_merge_intervals():
 def test_merge_demo_intervals():
     """Test function using pyBedTools for merging intervals from one or more panels using demo intervals"""
 
-    a = pybedtools.example_bedtool(panel1_path)
+    a = pybedtools.BedTool(panel1_path)
     assert len(a) == 4
-    b = pybedtools.example_bedtool(panel2_path)
+    b = pybedtools.BedTool(panel2_path)
     assert len(b) == 3
 
     merged_bed = merge_intervals([a, b])
