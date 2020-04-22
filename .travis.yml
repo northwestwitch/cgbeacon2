@@ -9,6 +9,7 @@ env:
 
 before_install:
   - sudo apt-get -y install libcurl4-openssl-dev libssl-dev
+  - sudo apt-get install bedtools
 
 install:
     - pip install --upgrade pip
