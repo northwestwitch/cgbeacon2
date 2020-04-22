@@ -10,3 +10,4 @@ flask
 
 # utils
 cyvcf2
+pybedtools

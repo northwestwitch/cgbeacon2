@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from cgbeacon2.resources import test_snv_vcf_path, test_empty_vcf_path
+from cgbeacon2.resources import test_snv_vcf_path, test_empty_vcf_path, panel1_path, panel2_path
 from cgbeacon2.cli.commands import cli
 
 
@@ -79,14 +79,14 @@ def test_add_variants_wrong_samples(mock_app, test_dataset_cli, database):
             "-vcf",
             test_snv_vcf_path,
             "-sample",
-            "a_sample",
+            "bar",
         ],
     )
     # Then the command should return error
     assert result.exit_code == 1
     # And a specific error message
     assert (
-        f"Error. One or more provided samples are not contained in the VCF file"
+        f"Coundn't extract variants from provided VCF file"
         in result.output
     )
 
@@ -248,3 +248,38 @@ def test_add_other_sample_variants(mock_app, test_dataset_cli, database):
     assert sample in dataset_obj["samples"]
     assert sample2 in dataset_obj["samples"]
     assert "updated" in dataset_obj
+
+
+def test_add_panel_filtered_variants(mock_app, test_dataset_cli, database):
+    """Test adding variants filtered by panels"""
+
+    runner = mock_app.test_cli_runner()
+
+    # Having a database containing a dataset
+    dataset = test_dataset_cli
+    database["dataset"].insert_one(dataset)
+
+    sample = "ADM1059A1"
+
+    # When invoking the add variants command filtering by panel
+    result = runner.invoke(
+        cli,
+        [
+            "add",
+            "variants",
+            "-ds",
+            dataset["_id"],
+            "-vcf",
+            test_snv_vcf_path,
+            "-sample",
+            sample,
+            "-panel",
+            panel1_path,
+            "-panel",
+            panel2_path
+        ],
+    )
+    # Then the command should return error
+    #assert result.exit_code == 1
+    # And a specific error message
+    #assert f"Couldn't find any dataset with id 'a_dataset'" in result.output

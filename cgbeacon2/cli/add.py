@@ -7,7 +7,7 @@ from flask.cli import with_appcontext, current_app
 
 from cgbeacon2.constants import CONSENT_CODES
 from cgbeacon2.utils.add import add_dataset, add_variants
-from cgbeacon2.utils.parse import extract_variants, count_variants
+from cgbeacon2.utils.parse import extract_variants, count_variants, merge_intervals
 from cgbeacon2.utils.update import update_dataset_samples
 
 
@@ -129,14 +129,16 @@ def dataset(id, name, build, desc, version, url, cc, info, update):
     required=True,
     help="one or more samples to save variants for",
 )
+@click.option("-panel", type=click.Path(exists=True), multiple=True, required=False, help="one or more bed files containing genomic intervals")
 @with_appcontext
-def variants(ds, vcf, sample):
+def variants(ds, vcf, sample, panel):
     """Add variants from a VCF file to a dataset
 
     Accepts:
         ds(str): id of a dataset already existing in the database
         vcf(str): path to a VCF file
         sample(str) sample name as it's written in the VCF file, option repeated for each sample
+        panel(str): path to bed file containing genomic intervals to filter variants by
     """
     # make sure dataset id corresponds to a dataset in the database
     dataset = current_app.db["dataset"].find_one({"_id": ds})
@@ -144,9 +146,15 @@ def variants(ds, vcf, sample):
         click.echo(f"Couldn't find any dataset with id '{ds}' in the database")
         raise click.Abort()
 
-    vcf_obj = extract_variants(vcf_file=vcf)
+    if len(panel) > 0:
+        panel = merge_intervals(panel)
+    else:
+        panel = None
+
+    custom_samples = set(sample)  # set of samples provided by users
+    vcf_obj = extract_variants(vcf_file=vcf, samples=custom_samples)
     if vcf_obj is None:
-        click.echo(f"Coundn't parse provided VCF file")
+        click.echo(f"Coundn't extract variants from provided VCF file")
         raise click.Abort()
 
     nr_variants = count_variants(vcf_obj)
@@ -154,16 +162,7 @@ def variants(ds, vcf, sample):
         click.echo(f"Provided VCF file doesn't contain any variant")
         raise click.Abort()
 
-    # check if provided samples names correspond to those in the VCF file
-    vcf_samples = set(vcf_obj.samples)  # set of samples contained in VCF file
-    custom_samples = set(sample)  # set of samples provided by users
-    if len(custom_samples & vcf_samples) < len(custom_samples):
-        click.echo(
-            f"Error. One or more provided samples are not contained in the VCF file"
-        )
-        raise click.Abort()
-
-    vcf_obj = extract_variants(vcf_file=vcf)
+    vcf_obj = extract_variants(vcf_file=vcf, samples=custom_samples)
 
     # Parse VCF variants
     added = add_variants(

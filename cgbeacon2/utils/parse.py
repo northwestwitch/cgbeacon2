@@ -1,19 +1,21 @@
 # -*- coding: utf-8 -*-
 import logging
 from cyvcf2 import VCF
+from pybedtools.bedtool import BedTool
 
 LOG = logging.getLogger(__name__)
 
 
-def extract_variants(vcf_file):
+def extract_variants(vcf_file, samples=None):
     """Parse a VCF file and return its variants as cyvcf2.VCF objects
 
     Accepts:
         vcf_file(str): path to VCF file
+        samples(tuple): samples to extract variants for
 
     """
     try:
-        vcf_obj = VCF(vcf_file)
+        vcf_obj = VCF(vcf_file, samples=list(samples))
     except Exception as err:
         LOG.error(f"Error while creating VCF iterator from variant file:{err}")
         return
@@ -35,6 +37,23 @@ def count_variants(vcf_obj):
         nr_variants += 1
 
     return nr_variants
+
+
+def merge_intervals(panels):
+    """Create genomic intervals to filter VCF files starting from the provided panel file(s)
+
+    Accepts:
+        panels(list) : path to one or more panel bed files
+
+    Returns:
+        merged_panels(Temp BED File): a temporary file with merged panel intervals
+
+    """
+    merged_panels = BedTool(panels[0])
+    merged_panels = merged_panels.cat(*panels[1:])
+
+    return merged_panels
+
 
 
 def variant_called(vcf_samples, gt_positions, g_types):
