@@ -146,15 +146,14 @@ def variants(ds, vcf, sample, panel):
         click.echo(f"Couldn't find any dataset with id '{ds}' in the database")
         raise click.Abort()
 
-    """
     if len(panel) > 0:
-        panel = merge_intervals(panel)
+        # create BedTool panel with genomic intervals to filter VCF with
+        filter_intervals = merge_intervals(list(panel))
     else:
-        panel = None
-    """
+        filter_intervals = None
 
     custom_samples = set(sample)  # set of samples provided by users
-    vcf_obj = extract_variants(vcf_file=vcf, samples=custom_samples)
+    vcf_obj = extract_variants(vcf_file=vcf, samples=custom_samples, filter=filter_intervals)
     if vcf_obj is None:
         click.echo(f"Coundn't extract variants from provided VCF file")
         raise click.Abort()
@@ -164,7 +163,7 @@ def variants(ds, vcf, sample, panel):
         click.echo(f"Provided VCF file doesn't contain any variant")
         raise click.Abort()
 
-    vcf_obj = extract_variants(vcf_file=vcf, samples=custom_samples)
+    vcf_obj = extract_variants(vcf_file=vcf, samples=custom_samples, filter=filter_intervals)
 
     # Parse VCF variants
     added = add_variants(
