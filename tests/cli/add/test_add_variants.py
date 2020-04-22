@@ -79,7 +79,7 @@ def test_add_variants_wrong_samples(mock_app, test_dataset_cli, database):
             "-vcf",
             test_snv_vcf_path,
             "-sample",
-            "bar",
+            "foo",
         ],
     )
     # Then the command should return error
