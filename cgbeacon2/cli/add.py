@@ -129,7 +129,13 @@ def dataset(id, name, build, desc, version, url, cc, info, update):
     required=True,
     help="one or more samples to save variants for",
 )
-@click.option("-panel", type=click.Path(exists=True), multiple=True, required=False, help="one or more bed files containing genomic intervals")
+@click.option(
+    "-panel",
+    type=click.Path(exists=True),
+    multiple=True,
+    required=False,
+    help="one or more bed files containing genomic intervals",
+)
 @with_appcontext
 def variants(ds, vcf, sample, panel):
     """Add variants from a VCF file to a dataset
@@ -153,8 +159,10 @@ def variants(ds, vcf, sample, panel):
         filter_intervals = None
 
     custom_samples = set(sample)  # set of samples provided by users
-    vcf_obj = extract_variants(vcf_file=vcf, samples=custom_samples, filter=filter_intervals)
-    
+    vcf_obj = extract_variants(
+        vcf_file=vcf, samples=custom_samples, filter=filter_intervals
+    )
+
     if vcf_obj is None:
         click.echo(f"Coundn't extract variants from provided VCF file")
         raise click.Abort()
@@ -164,7 +172,9 @@ def variants(ds, vcf, sample, panel):
         click.echo(f"Provided VCF file doesn't contain any variant")
         raise click.Abort()
 
-    vcf_obj = extract_variants(vcf_file=vcf, samples=custom_samples, filter=filter_intervals)
+    vcf_obj = extract_variants(
+        vcf_file=vcf, samples=custom_samples, filter=filter_intervals
+    )
 
     # Parse VCF variants
     added = add_variants(

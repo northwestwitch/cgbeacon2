@@ -1,6 +1,11 @@
 # -*- coding: utf-8 -*-
 import pytest
-from cgbeacon2.resources import test_snv_vcf_path, test_empty_vcf_path, panel1_path, panel2_path
+from cgbeacon2.resources import (
+    test_snv_vcf_path,
+    test_empty_vcf_path,
+    panel1_path,
+    panel2_path,
+)
 from cgbeacon2.cli.commands import cli
 
 
@@ -87,10 +92,7 @@ def test_add_variants_wrong_samples(mock_app, test_dataset_cli, database):
     # Then the command should return error
     assert result.exit_code == 1
     # And a specific error message
-    assert (
-        f"Coundn't extract variants from provided VCF file"
-        in result.output
-    )
+    assert f"Coundn't extract variants from provided VCF file" in result.output
 
 
 def test_add_variants_snv_vcf(mock_app, test_dataset_cli, database):
@@ -118,7 +120,7 @@ def test_add_variants_snv_vcf(mock_app, test_dataset_cli, database):
             "-sample",
             sample,
             "-panel",
-            panel1_path
+            panel1_path,
         ],
     )
 
@@ -168,7 +170,7 @@ def test_add_variants_twice(mock_app, test_dataset_cli, database):
             "-panel",
             panel1_path,
             "-panel",
-            panel2_path
+            panel2_path,
         ],
     )
 
@@ -190,7 +192,7 @@ def test_add_variants_twice(mock_app, test_dataset_cli, database):
             "-panel",
             panel1_path,
             "-panel",
-            panel2_path
+            panel2_path,
         ],
     )
 
@@ -229,7 +231,7 @@ def test_add_other_sample_variants(mock_app, test_dataset_cli, database):
             "-sample",
             sample,
             "-panel",
-            panel1_path
+            panel1_path,
         ],
     )
 
@@ -249,7 +251,7 @@ def test_add_other_sample_variants(mock_app, test_dataset_cli, database):
             "-sample",
             sample2,
             "-panel",
-            panel1_path
+            panel1_path,
         ],
     )
 

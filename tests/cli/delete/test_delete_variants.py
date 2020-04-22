@@ -79,7 +79,7 @@ def test_delete_variants(mock_app, test_dataset_cli, database):
             "-sample",
             sample2,
             "-panel",
-            panel1_path
+            panel1_path,
         ],
     )
     initial_vars = sum(1 for i in database["variant"].find())

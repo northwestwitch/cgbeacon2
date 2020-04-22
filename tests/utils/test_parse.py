@@ -3,10 +3,11 @@ import pybedtools
 from cgbeacon2.resources import panel1_path, panel2_path
 from cgbeacon2.utils.parse import merge_intervals
 
+
 def test_merge_intervals():
     """Test function using pyBedTools for merging intervals from one or more panels"""
 
-    a = pybedtools.example_bedtool('a.bed') # path to test file a
+    a = pybedtools.example_bedtool("a.bed")  # path to test file a
     """ This file looks like this:
     chr1	1	100	feature1	0	+
     chr1	100	200	feature2	0	+
@@ -15,7 +16,7 @@ def test_merge_intervals():
     """
     assert len(a) == 4
 
-    b = pybedtools.example_bedtool('b.bed') # path to test file b
+    b = pybedtools.example_bedtool("b.bed")  # path to test file b
     """ This file looks like this:
     chr1	155	200	feature5	0	-
     chr1	800	901	feature6	0	+
@@ -29,6 +30,7 @@ def test_merge_intervals():
     chr1	800	950
     """
 
+
 def test_merge_demo_intervals():
     """Test function using pyBedTools for merging intervals from one or more panels using demo intervals"""
 
@@ -38,4 +40,4 @@ def test_merge_demo_intervals():
     assert len(b) == 3
 
     merged_bed = merge_intervals([a, b])
-    assert len(merged_bed) == len(a) + len(b) -1 # a and b have a shared interval
+    assert len(merged_bed) == len(a) + len(b) - 1  # a and b have a shared interval

@@ -20,16 +20,20 @@ def extract_variants(vcf_file, samples=None, filter=None):
         if filter is not None:
             # Genes or chromosomal intervals filter file(s) are provided
             vcf_bed = BedTool(vcf_file)
-            LOG.info('Extracting %s intervals from the %s total entries of the VCF file.', filter.count(), vcf_bed.count())
+            LOG.info(
+                "Extracting %s intervals from the %s total entries of the VCF file.",
+                filter.count(),
+                vcf_bed.count(),
+            )
             intersections = vcf_bed.intersect(filter, header=True)
             intersected_vars = intersections.count()
-            LOG.info('Number of variants found in the intervals:%s', intersected_vars)
+            LOG.info("Number of variants found in the intervals:%s", intersected_vars)
 
-            temp_intersections_file = NamedTemporaryFile('w+t', dir=os.getcwd())
+            temp_intersections_file = NamedTemporaryFile("w+t", dir=os.getcwd())
             intersections.saveas(temp_intersections_file.name)
             vcf_obj = VCF(temp_intersections_file.name)
 
-            #remove temporary file:
+            # remove temporary file:
             temp_intersections_file.close()
 
         else:
@@ -39,6 +43,7 @@ def extract_variants(vcf_file, samples=None, filter=None):
         return
 
     return vcf_obj
+
 
 def count_variants(vcf_obj):
     """Count how many variants are contained in a VCF object
