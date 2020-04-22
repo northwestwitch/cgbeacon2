@@ -1,1 +1,1 @@
-from .views import ap1_bp
+from .views import api1_bp

@@ -5,10 +5,10 @@ from cgbeacon2.models import Beacon
 
 LOG = logging.getLogger(__name__)
 
-ap1_bp = Blueprint("api_v1", __name__,)
+api1_bp = Blueprint("api_v1", __name__,)
 
 
-@ap1_bp.route("/apiv1.0/", methods=["GET"])
+@api1_bp.route("/apiv1.0/", methods=["GET"])
 def info():
     """Returns Beacon info data as a json object"""
 
