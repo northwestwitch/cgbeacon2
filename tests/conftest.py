@@ -35,6 +35,20 @@ def mock_app(database):
 
 
 @pytest.fixture
+def query_snv():
+    """A dictionary containing test query params"""
+    query = dict(
+        assembly = "GRCh37",
+        chrom = "1",
+        start = 235850063,
+        ref = "C",
+        alt = "A",
+        include_ds_resp = "ALL"
+    )
+    return query
+
+
+@pytest.fixture
 def test_dataset_cli():
     """A test dataset dictionary"""
     dataset = dict(
