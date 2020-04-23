@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import json
+from cgbeacon2.constants import MISSING_PARAMS_ERROR
 
 
 def test_info(mock_app):
@@ -14,3 +15,28 @@ def test_info(mock_app):
     fields = ["id", "name", "apiVersion", "organisation", "datasets"]
     for field in fields:
         assert data[field] is not None
+
+
+def test_query_get_request_missing_params(mock_app):
+    """Test the query endpoint by sending a request without required params"""
+
+    # When a request missing one or more required params is sent to the server
+    response = mock_app.test_client().get("/apiv1.0/query?")
+
+    # Then it should return error
+    assert response.status_code == 400
+    data = json.loads(response.data)
+    assert data["message"]["error"] == MISSING_PARAMS_ERROR
+    assert data["message"]["exists"] == None
+    assert data["message"]["datasetAlleleResponses"] == []
+    assert data["message"]["beaconId"]
+    assert data["message"]["apiVersion"] == "1.0.0"
+
+
+def test_query_get_request_valid_params(mock_app):
+    """Test the query endpoint by sending a GET request"""
+
+    query_string = f"query?assemblyId=GRCh37&referenceName=1&referenceBases=A"
+
+    response = mock_app.test_client().get("".join(["/apiv1.0/", query_string]))
+    assert response.status_code == 200

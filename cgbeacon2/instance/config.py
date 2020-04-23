@@ -25,7 +25,7 @@ ORGANISATION = dict(
 )
 
 BEACON_OBJ = dict(
-    id="sciLifeLab-beacon",  # mandatory
+    id="SciLifeLab-beacon",  # mandatory
     name="SciLifeLab Stockholm Beacon",  # mandatory
     organisation=ORGANISATION,  # mandatory
     alternativeUrl="http//scilifelab.beacon_alt.se",

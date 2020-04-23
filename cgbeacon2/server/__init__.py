@@ -45,6 +45,6 @@ def create_app():
     app.db = client[app.config["DB_NAME"]]
     LOG.info("database connection info:{}".format(app.db))
 
-    app.register_blueprint(api_v1.ap1_bp)
+    app.register_blueprint(api_v1.api1_bp)
 
     return app

@@ -10,3 +10,4 @@
 - Update SNV variants for one or more VCF samples
 - Remove variants by providing dataset id and sample name(s)
 - Filter VCF files using bed files with genomic intervals
+- Query endpoint returns basic response
