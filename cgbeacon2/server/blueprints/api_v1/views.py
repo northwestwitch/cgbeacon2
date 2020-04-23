@@ -2,8 +2,9 @@
 import logging
 from flask import Blueprint, current_app, jsonify, request
 from cgbeacon2.models import Beacon
-from .controllers import set_query
+from .controllers import create_allele_request, set_query
 
+API_VERSION = "1.0.0"
 LOG = logging.getLogger(__name__)
 api1_bp = Blueprint("api_v1", __name__,)
 
@@ -12,7 +13,7 @@ def info():
     """Returns Beacon info data as a json object"""
 
     beacon_config = current_app.config.get("BEACON_OBJ")
-    beacon_obj = Beacon(beacon_config, "1.0.0")
+    beacon_obj = Beacon(beacon_config, API_VERSION)
 
     resp = jsonify(beacon_obj.__dict__)
     resp.status_code = 200
@@ -22,16 +23,24 @@ def info():
 @api1_bp.route("/apiv1.0/query", methods=["GET", "POST"])
 def query():
     """Create a query from params provided in the request and return a response with eventual results"""
+    # test query:  http://127.0.0.1:5000/apiv1.0/query?assemblyId=GRCh37&referenceName=1&start=1138913&alternateBases=T&includeDatasetResponses=true
+
+    beacon_config = current_app.config.get("BEACON_OBJ")
+    beacon_obj = Beacon(beacon_config, API_VERSION)
 
     resp_obj = {}
-    # test query:  http://127.0.0.1:5000/apiv1.0/query?assemblyId=GRCh37&referenceName=1&start=1138913&alternateBases=T&includeDatasetResponses=true
-    query = set_query(request)
+    resp_status = 200
 
-    if "error" in query:
-        # query was not valid return error response
-        resp_obj["message"] = dict(query)
-        resp = jsonify(resp_obj)
-        resp.status_code = query["error"]["errorCode"]
-        return resp
+    # Create allele request object and eventual error
+    create_allele_request(resp_obj, request)
 
-    return "HELLO THERE"
+    if resp_obj.get("message"): # an error must have occurred
+        resp_obj["exists"] = None
+        resp_obj["datasetAlleleResponses"] = []
+        resp_obj["beaconId"] = beacon_obj.id
+        resp_obj["apiVersion"] = API_VERSION
+        resp_status = resp_obj["message"]["error"]["errorCode"]
+
+    resp = jsonify(resp_obj)
+    resp.status_code = resp_status
+    return resp

@@ -26,7 +26,7 @@ def test_query_get_request_missing_params(mock_app):
     # Then it should return error
     assert response.status_code == 400
     data = json.loads(response.data)
-    assert data["message"]["error"] == MISSING_PARAMS_ERROR["error"]
+    assert data["message"]["error"] == MISSING_PARAMS_ERROR
 
 
 
