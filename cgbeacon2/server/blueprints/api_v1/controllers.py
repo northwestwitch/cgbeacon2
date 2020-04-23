@@ -17,13 +17,13 @@ def create_allele_request(resp_obj, req):
     error = None
 
     if request.method == "GET":
-        data = req.args
+        data = dict(req.args)
     else: # POST method
-        data = req.data
+        data = dict(req.data)
 
     # loop over all available query params
     for param in QUERY_PARAMS_API_V1:
-        if data.get("param"):
+        if data.get(param):
             allele_query[param] = data[param]
 
     # check if the minimal required params were provided in query
@@ -37,7 +37,6 @@ def create_allele_request(resp_obj, req):
         resp_obj["alleleRequest"] = allele_query
 
 
-
 def set_query(req):
     """Create a a query dictionary from GET or POST requests sent to the query endpoint.
 
@@ -49,14 +48,6 @@ def set_query(req):
     """
     data = None
     query = {}
-    if request.method == "GET":
-        data = req.args
-    else: # POST method
-        data = req.data
-
-
-    query = dict(
-
-    )
+    query = {}
 
     return data

@@ -27,16 +27,16 @@ def test_query_get_request_missing_params(mock_app):
     assert response.status_code == 400
     data = json.loads(response.data)
     assert data["message"]["error"] == MISSING_PARAMS_ERROR
+    assert data["message"]["exists"] == None
+    assert data["message"]["datasetAlleleResponses"] == []
+    assert data["message"]["beaconId"]
+    assert data["message"]["apiVersion"] == "1.0.0"
 
 
+def test_query_get_request_valid_params(mock_app):
+    """Test the query endpoint by sending a GET request"""
 
-"""
-def test_query_get_request(mock_app, query_snv):
-    Test the query endpoint by sending a GET request
-
-    query_string = f'query?assemblyId={query_snv["assembly"]}&referenceName={query_snv["chrom"]}&start={query_snv["start"]}&alternateBases={query_snv["alt"]}&includeDatasetResponses={query_snv["include_ds_resp"]}'
+    query_string = f'query?assemblyId=GRCh37&referenceName=1&referenceBases=A'
 
     response = mock_app.test_client().get("".join(["/apiv1.0/", query_string]))
     assert response.status_code == 200
-
-"""

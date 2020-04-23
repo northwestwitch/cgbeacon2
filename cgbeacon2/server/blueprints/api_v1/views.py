@@ -35,10 +35,10 @@ def query():
     create_allele_request(resp_obj, request)
 
     if resp_obj.get("message"): # an error must have occurred
-        resp_obj["exists"] = None
-        resp_obj["datasetAlleleResponses"] = []
-        resp_obj["beaconId"] = beacon_obj.id
-        resp_obj["apiVersion"] = API_VERSION
+        resp_obj["message"]["exists"] = None
+        resp_obj["message"]["datasetAlleleResponses"] = []
+        resp_obj["message"]["beaconId"] = beacon_obj.id
+        resp_obj["message"]["apiVersion"] = API_VERSION
         resp_status = resp_obj["message"]["error"]["errorCode"]
 
     resp = jsonify(resp_obj)
