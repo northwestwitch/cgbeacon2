@@ -2,7 +2,7 @@
 import logging
 from flask import Blueprint, current_app, jsonify, request
 from cgbeacon2.models import Beacon
-from .controllers import create_allele_request, set_query
+from .controllers import create_allele_request
 
 API_VERSION = "1.0.0"
 LOG = logging.getLogger(__name__)
