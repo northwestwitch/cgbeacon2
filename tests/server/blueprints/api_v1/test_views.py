@@ -36,7 +36,7 @@ def test_query_get_request_missing_params(mock_app):
 def test_query_get_request_valid_params(mock_app):
     """Test the query endpoint by sending a GET request"""
 
-    query_string = f'query?assemblyId=GRCh37&referenceName=1&referenceBases=A'
+    query_string = f"query?assemblyId=GRCh37&referenceName=1&referenceBases=A"
 
     response = mock_app.test_client().get("".join(["/apiv1.0/", query_string]))
     assert response.status_code == 200

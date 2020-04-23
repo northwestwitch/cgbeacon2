@@ -38,12 +38,12 @@ def mock_app(database):
 def query_snv():
     """A dictionary containing test query params"""
     query = dict(
-        assembly = "GRCh37",
-        chrom = "1",
-        start = 235850063,
-        ref = "C",
-        alt = "A",
-        include_ds_resp = "ALL"
+        assembly="GRCh37",
+        chrom="1",
+        start=235850063,
+        ref="C",
+        alt="A",
+        include_ds_resp="ALL",
     )
     return query
 

@@ -8,6 +8,7 @@ API_VERSION = "1.0.0"
 LOG = logging.getLogger(__name__)
 api1_bp = Blueprint("api_v1", __name__,)
 
+
 @api1_bp.route("/apiv1.0/", methods=["GET"])
 def info():
     """Returns Beacon info data as a json object"""
@@ -34,7 +35,7 @@ def query():
     # Create allele request object and eventual error
     create_allele_request(resp_obj, request)
 
-    if resp_obj.get("message"): # an error must have occurred
+    if resp_obj.get("message"):  # an error must have occurred
         resp_obj["message"]["exists"] = None
         resp_obj["message"]["datasetAlleleResponses"] = []
         resp_obj["message"]["beaconId"] = beacon_obj.id

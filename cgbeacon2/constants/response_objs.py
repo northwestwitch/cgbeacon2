@@ -1,7 +1,7 @@
 # Error objects
 MISSING_PARAMS_ERROR = dict(
     errorCode=400,
-    errorMessage="Missing one or more mandatory parameters (referenceName, referenceBases, assemblyId)"
+    errorMessage="Missing one or more mandatory parameters (referenceName, referenceBases, assemblyId)",
 )
 
 QUERY_PARAMS_API_V1 = [
@@ -16,5 +16,5 @@ QUERY_PARAMS_API_V1 = [
     "endMax",
     "alternateBases",
     "variantType",
-    "includeDatasetResponses"
+    "includeDatasetResponses",
 ]
