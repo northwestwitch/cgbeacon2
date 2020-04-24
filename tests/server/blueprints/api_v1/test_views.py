@@ -115,11 +115,13 @@ def test_query_get_request_non_numerical_range_coordinates(mock_app):
     assert data["message"]["error"] == INVALID_COORD_RANGE
 
 
-def test_query_get_request_valid_params(mock_app):
-    """Test the query endpoint by sending a GET request"""
+def test_get_request_exact_position_snvs(mock_app):
+    """Test the query endpoint by sending a GET request. Search for SNVs, exact position"""
 
-    query_string = f"query?assemblyId=GRCh37&referenceName=1&referenceBases=A"
+    # when providing the required parameters in a SNV query for exact positions
+    query_string = "&".join([BASE_ARGS, "start=4&alternateBases=T"])
 
     response = mock_app.test_client().get("".join(["/apiv1.0/", query_string]))
-    # assert response.status_code == 400
-    # data = json.loads(response.data)
+
+    # No error should be returned
+    assert response.status_code == 200
