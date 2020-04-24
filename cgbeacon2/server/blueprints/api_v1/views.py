@@ -2,7 +2,7 @@
 import logging
 from flask import Blueprint, current_app, jsonify, request
 from cgbeacon2.models import Beacon
-from .controllers import create_allele_request
+from .controllers import create_allele_query
 
 API_VERSION = "1.0.0"
 LOG = logging.getLogger(__name__)
@@ -33,7 +33,7 @@ def query():
     resp_status = 200
 
     # Create allele request object and eventual error
-    create_allele_request(resp_obj, request)
+    create_allele_query(resp_obj, request)
 
     if resp_obj.get("message"):  # an error must have occurred
         resp_obj["message"]["exists"] = None

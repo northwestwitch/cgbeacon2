@@ -11,3 +11,4 @@
 - Remove variants by providing dataset id and sample name(s)
 - Filter VCF files using bed files with genomic intervals
 - Query endpoint returns basic response
+- Created error messages to handle wrong server requests
