@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 import logging
-from flask import request
+from flask import request, current_app
 from cgbeacon2.constants import (
     NO_MANDATORY_PARAMS,
     NO_SECONDARY_PARAMS,
@@ -9,6 +9,7 @@ from cgbeacon2.constants import (
     INVALID_COORD_RANGE,
     QUERY_PARAMS_API_V1,
 )
+from cgbeacon2.models.variant import md5_key
 
 LOG = logging.getLogger(__name__)
 
@@ -21,8 +22,26 @@ def check_allele_request(resp_obj, customer_query, mongo_query):
         customer_query(dict): a dictionary with all the key/values provided in the external request
         mongo_query(dict): the query to collect variants from this server
     """
-
-    range_coordinates = ("startMin", "startMax", "endMin", "endMax")
+    # If customer asks for a classical SNV
+    if customer_query.get("variantType") is None and all(
+        [
+            customer_query.get("referenceName"),
+            customer_query.get("start",),
+            customer_query.get("end"),
+            customer_query.get("referenceBases"),
+            customer_query.get("alternateBases"),
+            customer_query.get("assemblyId"),
+        ]
+    ):
+        # generate md5_key to compare with our database
+        mongo_query["_id"] = md5_key(
+            customer_query["referenceName"],
+            customer_query["start"],
+            customer_query.get("end"),
+            customer_query["referenceBases"],
+            customer_query["alternateBases"],
+            customer_query["assemblyId"],
+        )
 
     # Check that the 3 mandatory parameters are present in the query
     if None in [
@@ -69,12 +88,15 @@ def check_allele_request(resp_obj, customer_query, mongo_query):
                     error=NO_SV_END_PARAM, allelRequest=customer_query,
                 )
                 return
-                # it never enters in the condition where variantType is None and also alternateBases is none
+        else:
+            mongo_query["end"] = {"$lte": customer_query["end"]}
+        mongo_query["start"] = {"$gte": customer_query["start"]}
 
     elif all(
         [coord in customer_query.keys() for coord in range_coordinates]
     ):  # range query
         # check that startMin <= startMax <= endMin <= endMax
+        range_coordinates = ("startMin", "startMax", "endMin", "endMax")
         try:
             unsorted_coords = [
                 int(customer_query[coord]) for coord in range_coordinates
@@ -89,6 +111,27 @@ def check_allele_request(resp_obj, customer_query, mongo_query):
             )
             return
 
+        mongo_query["start"] = {"$gte": sorted_coords[0], "$lte": sorted_coords[1]}
+        mongo_query["end"] = {"$gte": sorted_coords[2], "$lte": sorted_coords[3]}
+
+    if mongo_query.get("_id") is None:
+        # perform variant query using only variant _id and eventual
+        mongo_query["assemblyId"] = customer_query["assemblyId"]
+        mongo_query["referenceName"] = customer_query["referenceName"]
+        mongo_query["referenceBases"] = customer_query["referenceBases"]
+
+        if "alternateBases" in customer_query:
+            mongo_query["alternateBases"] = customer_query["alternateBases"]
+
+        if "variantType" in customer_query:
+            mongo_query["variantType"] = customer_query["variantType"]
+    else:
+        mongo_query.pop("start")
+        mongo_query.pop("end", None)
+
+    if customer_query.get("datasetIds"):
+        mongo_query["datasetIds"] = {"$in": customer_query["datasetIds"]}
+
 
 def create_allele_query(resp_obj, req):
     """Populates a dictionary with the parameters provided in the request<<
@@ -98,18 +141,41 @@ def create_allele_query(resp_obj, req):
         req(flask.request): request received by server
 
     """
+    variant_collection = current_app.db["variant"]
     customer_query = {}
     mongo_query = {}
+    exists = False
 
     if request.method == "GET":
         data = dict(req.args)
+        customer_query["datasetIds"] = req.args.getlist("datasetIds")
     else:  # POST method
         data = dict(req.data)
+        customer_query["datasetIds"] = req.form.getlist("datasetIds")
 
     # loop over all available query params
     for param in QUERY_PARAMS_API_V1:
         if data.get(param):
             customer_query[param] = data[param]
+    if "includeDatasetResponses" not in customer_query:
+        customer_query["includeDatasetResponses"] = "NONE"
 
     # check if the minimal required params were provided in query
     check_allele_request(resp_obj, customer_query, mongo_query)
+
+    # if an error occurred, do not query database and return error
+    if resp_obj.get("message") is not None:
+        resp_obj["message"]["allelRequest"] = customer_query
+        resp_obj["message"]["exists"] = None
+        resp_obj["message"]["datasetAlleleResponses"] = []
+        return
+
+    resp_obj["allelRequest"] = customer_query
+
+    LOG.info(f"DATABASE QUERY IS---------------->{mongo_query}")
+
+    # query database
+    variants = variant_collection.find(mongo_query)
+
+    for variant in variants:
+        LOG.info(f"FOUND VARIANT---------------->{variant}")

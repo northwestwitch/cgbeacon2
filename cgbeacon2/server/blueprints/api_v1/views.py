@@ -38,9 +38,13 @@ def query():
     if resp_obj.get("message"):  # an error must have occurred
         resp_obj["message"]["exists"] = None
         resp_obj["message"]["datasetAlleleResponses"] = []
+        resp_status = resp_obj["message"]["error"]["errorCode"]
         resp_obj["message"]["beaconId"] = beacon_obj.id
         resp_obj["message"]["apiVersion"] = API_VERSION
-        resp_status = resp_obj["message"]["error"]["errorCode"]
+
+    else:
+        resp_obj["beaconId"] = beacon_obj.id
+        resp_obj["apiVersion"] = API_VERSION
 
     resp = jsonify(resp_obj)
     resp.status_code = resp_status
