@@ -9,7 +9,6 @@ from cgbeacon2.constants import (
     INVALID_COORD_RANGE,
     QUERY_PARAMS_API_V1,
 )
-from cgbeacon2.models.variant import md5_key
 
 LOG = logging.getLogger(__name__)
 
@@ -141,7 +140,6 @@ def create_allele_query(resp_obj, req):
         req(flask.request): request received by server
 
     """
-    variant_collection = current_app.db["variant"]
     customer_query = {}
     mongo_query = {}
     exists = False
@@ -172,10 +170,24 @@ def create_allele_query(resp_obj, req):
 
     resp_obj["allelRequest"] = customer_query
 
+    # query database
+    hits = query_db(mongo_query)
+
+
+def query_db(mongo_query):
+    """Query variant collection using a query dictionary
+
+    Accepts:
+        mongo_query(dic): a query dictionary
+
+    Returns.
+        results():
+
+    """
+    variant_collection = current_app.db["variant"]
     LOG.info(f"DATABASE QUERY IS---------------->{mongo_query}")
 
-    # query database
-    variants = variant_collection.find(mongo_query)
+    results = variant_collection.find(mongo_query)
 
     for variant in variants:
         LOG.info(f"FOUND VARIANT---------------->{variant}")
