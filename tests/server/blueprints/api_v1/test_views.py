@@ -13,6 +13,7 @@ COORDS_ARGS = "start=235826381&end=235826383"
 ALT_ARG = "alternateBases=T"
 DATASET_ARGS = "datasetIds=foo&datasetIds=test_ds"
 
+
 def test_info(mock_app):
     """Test the endpoint that returns the beacon info"""
 
@@ -28,6 +29,7 @@ def test_info(mock_app):
 
 
 ################## TESTS FOR HANDLING WRONG REQUESTS ################
+
 
 def test_query_get_request_missing_mandatory_params(mock_app):
     """Test the query endpoint by sending a request without mandatory params:
@@ -121,11 +123,24 @@ def test_query_get_request_non_numerical_range_coordinates(mock_app):
 
 ################## TESTS FOR HANDLING SNV REQUESTS ################
 
-def test_get_request_exact_position_snv(mock_app):
-    """Test the query endpoint by sending a GET request. Search for SNVs, exact position"""
+
+def test_get_request_exact_position_snv_return_ALL(
+    mock_app, test_snv, test_dataset_cli, test_dataset_no_variants
+):
+    """Test the query endpoint by sending a GET request. Search for SNVs, exact position, return responses from ALL datasets"""
+
+    # Having a dataset with a variant:
+    database = mock_app.db
+    database["variant"].insert_one(test_snv)
+
+    # And 2 datasets
+    test_dataset_cli["samples"] = ["ADM1059A1"]
+    for ds in [test_dataset_cli, test_dataset_no_variants]:
+        database["dataset"].insert_one(ds)
 
     # when providing the required parameters in a SNV query for exact positions
-    query_string = "&".join([BASE_ARGS, COORDS_ARGS, ALT_ARG, DATASET_ARGS])
+    ds_reponse_type = "includeDatasetResponses=ALL"
+    query_string = "&".join([BASE_ARGS, COORDS_ARGS, ALT_ARG, ds_reponse_type])
 
     response = mock_app.test_client().get("".join(["/apiv1.0/", query_string]))
     data = json.loads(response.data)
@@ -139,15 +154,14 @@ def test_get_request_exact_position_snv(mock_app):
     assert data["allelRequest"]["end"]
     assert data["allelRequest"]["referenceBases"] == "TA"
     assert data["allelRequest"]["alternateBases"] == "T"
-    assert data["allelRequest"]["datasetIds"] == ["foo", "test_ds"]
+    assert data["allelRequest"]["includeDatasetResponses"] == "ALL"
+
+    assert data.get("message") is None
 
     # Beacon info should be returned
     assert data["beaconId"]
     assert data["apiVersion"] == "1.0.0"
-
-    
-
-
+    assert data["datasetAlleleResponses"]
 
 
 ################## TESTS FOR HANDLING SV REQUESTS ################

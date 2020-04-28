@@ -40,7 +40,6 @@ def query():
         resp_obj["message"]["beaconId"] = beacon_obj.id
         resp_obj["message"]["apiVersion"] = API_VERSION
 
-
     else:
         resp_obj["beaconId"] = beacon_obj.id
         resp_obj["apiVersion"] = API_VERSION
@@ -50,6 +49,7 @@ def query():
         query_datasets = resp_obj["allelRequest"].get("datasetIds", [])
         ds_allele_responses = dispatch_query(query, response_type, query_datasets)
 
+        resp_obj["datasetAlleleResponses"] = ds_allele_responses
 
     resp = jsonify(resp_obj)
     resp.status_code = resp_status

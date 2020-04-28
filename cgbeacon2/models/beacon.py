@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from cgbeacon2 import __version__
 
+
 class Beacon:
     """Represents a general beacon object"""
 
@@ -18,7 +19,6 @@ class Beacon:
         self.welcomeUrl = conf_obj.get("welcome_url")
         self.datasets = self._datasets(database)
 
-
     def _datasets(self, database):
         """Retrieve all datasets associated to this Beacon
 
@@ -31,7 +31,7 @@ class Beacon:
             return []
         datasets = list(database["dataset"].find())
         for ds in list(datasets):
-            if ds.get("samples") is not None :
+            if ds.get("samples") is not None:
                 # return number of samples for each dataset, not sample names
                 ds["sampleCount"] = len(ds.get("samples"))
                 ds.pop("samples")

@@ -174,7 +174,6 @@ def check_allele_request(resp_obj, customer_query, mongo_query):
         mongo_query.pop("end", None)
 
 
-
 def dispatch_query(mongo_query, response_type, datasets=[]):
     """Query variant collection using a query dictionary
 
@@ -198,18 +197,22 @@ def dispatch_query(mongo_query, response_type, datasets=[]):
 
     variant = variant_collection.find_one(mongo_query)
 
+    if variant is None:
+        return []
+
     if response_type == "NONE":
         LOG.info("WHAT THE HELL AM I RETURNING HERE?")
 
     else:
         # request datasets:
-        req_dsets=set(datasets)
+        req_dsets = set(datasets)
 
         # IDs of datasets found for this variant(s)
         result = create_ds_allele_response(response_type, req_dsets, variant)
         return result
 
     return
+
 
 def create_ds_allele_response(response_type, req_dsets, variant):
     """Create a Beacon Dataset Allele Response
@@ -224,12 +227,10 @@ def create_ds_allele_response(response_type, req_dsets, variant):
     """
     ds_responses = []
 
-    LOG.info("------------>IN CREATE DS ALLELE RESPONSE")
-
     all_dsets = current_app.db["dataset"].find()
-    all_dsets = [ ds["_id"] for ds in all_dsets]
+    all_dsets = [ds["_id"] for ds in all_dsets]
 
-    if len(req_dsets) == 0: # if query didn't specify any dataset
+    if len(req_dsets) == 0:  # if query didn't specify any dataset
         # Use all datasets present in this beacon
         req_dsets = set(all_dsets)
 
@@ -238,17 +239,14 @@ def create_ds_allele_response(response_type, req_dsets, variant):
         if not ds in all_dsets:
             LOG.info(f"Provided dataset {ds} could not be found in database")
             continue
+        ds_response = DatasetAlleleResponse(ds, variant).__dict__
 
-        LOG.info(f"------------>DATASET:{ds}")
-        # make sure dataset is present in this database
+        # collect responses according to the type of response requested
+        if (
+            response_type == "ALL"
+            or (response_type == "HIT" and ds_response["exists"] is True)
+            or (response_type == "MISS" and ds_response["exists"] is False)
+        ):
+            ds_responses.append(ds_response)
 
-        ds_response = DatasetAlleleResponse(dataset_id=ds, variant_obj=variant)
-        LOG.info(f"DS RESPONSE IS:{ds_response.__dict__}")
-
-
-
-    #if response_type == "ALL":
-
-
-    #if response_type == "ALL":
-        #return info from all datasets, even those that don't have the queried variant
+    return ds_responses
