@@ -29,9 +29,13 @@ class Beacon:
         """
         if database is None:
             return []
-        datasets = database["dataset"].find()
-        return list(datasets)
-
+        datasets = list(database["dataset"].find())
+        for ds in list(datasets):
+            if ds.get("samples") is not None :
+                # return number of samples for each dataset, not sample names
+                ds["sampleCount"] = len(ds.get("samples"))
+                ds.pop("samples")
+        return datasets
 
     def _sample_allele_requests(self):
         """Return some example allele requests"""

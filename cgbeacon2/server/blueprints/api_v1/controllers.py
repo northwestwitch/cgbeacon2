@@ -9,6 +9,7 @@ from cgbeacon2.constants import (
     INVALID_COORD_RANGE,
     QUERY_PARAMS_API_V1,
 )
+from cgbeacon2.models import DatasetAlleleResponse
 from cgbeacon2.utils.md5 import md5_key
 
 VALID_FLAGS = ["NONE", "HIT", "MISS", "ALL"]
@@ -172,38 +173,82 @@ def check_allele_request(resp_obj, customer_query, mongo_query):
         mongo_query.pop("start")
         mongo_query.pop("end", None)
 
-    if customer_query.get("datasetIds"):
-        mongo_query["datasetIds"] = {"$in": customer_query["datasetIds"]}
 
 
-def dispatch_query(beacon_obj, mongo_query, response_level):
+def dispatch_query(mongo_query, response_type, datasets=[]):
     """Query variant collection using a query dictionary
 
     Accepts:
-        beacon_obj(cgbeacon2.models.Beacon): an instance of this beacon
         mongo_query(dic): a query dictionary
-        response_level(str): individual dataset responses -->
+        response_type(str): individual dataset responses -->
             ALL means all datasets even those that don't have the queried variant
             HIT means only datasets that have the queried variant
             MISS means opposite to HIT value, only datasets that don't have the queried variant
             NONE don't return datasets response.
+        datasets(list): dataset ids from request "datasetIds" field
 
-    Returns.
+    Returns:
         results():
 
     """
     variant_collection = current_app.db["variant"]
 
     LOG.info(f"Perform database query -----------> {mongo_query}.")
-    LOG.info(f"Response level (datasetAlleleResponses) -----> {response_level}.")
+    LOG.info(f"Response level (datasetAlleleResponses) -----> {response_type}.")
 
-    results = variant_collection.find(mongo_query)
+    variant = variant_collection.find_one(mongo_query)
 
-    if response_level == "NONE":
-        LOG.info("do nothing")
+    if response_type == "NONE":
+        LOG.info("WHAT THE HELL AM I RETURNING HERE?")
+
     else:
-        all_datasets = beacon_obj.datasets
-        LOG.info(f"DATASETS:{all_datasets} ------ TYPE OF DATASETS:{type(all_datasets)}")
+        # request datasets:
+        req_dsets=set(datasets)
 
-    for variant in results:
-        LOG.info(f"FOUND VARIANT---------------->{variant}")
+        # IDs of datasets found for this variant(s)
+        result = create_ds_allele_response(response_type, req_dsets, variant)
+        return result
+
+    return
+
+def create_ds_allele_response(response_type, req_dsets, variant):
+    """Create a Beacon Dataset Allele Response
+
+    Accepts:
+        response_type(str): ALL, HIT or MISS
+        req_dsets(set): datasets requested, could be empty
+        variant(dict): a variant object
+
+    Returns:
+        ds_responses(list): list of cgbeacon2.model.DatasetAlleleResponse
+    """
+    ds_responses = []
+
+    LOG.info("------------>IN CREATE DS ALLELE RESPONSE")
+
+    all_dsets = current_app.db["dataset"].find()
+    all_dsets = [ ds["_id"] for ds in all_dsets]
+
+    if len(req_dsets) == 0: # if query didn't specify any dataset
+        # Use all datasets present in this beacon
+        req_dsets = set(all_dsets)
+
+    for ds in req_dsets:
+        # check if database contains a dataset with provided ID:
+        if not ds in all_dsets:
+            LOG.info(f"Provided dataset {ds} could not be found in database")
+            continue
+
+        LOG.info(f"------------>DATASET:{ds}")
+        # make sure dataset is present in this database
+
+        ds_response = DatasetAlleleResponse(dataset_id=ds, variant_obj=variant)
+        LOG.info(f"DS RESPONSE IS:{ds_response.__dict__}")
+
+
+
+    #if response_type == "ALL":
+
+
+    #if response_type == "ALL":
+        #return info from all datasets, even those that don't have the queried variant

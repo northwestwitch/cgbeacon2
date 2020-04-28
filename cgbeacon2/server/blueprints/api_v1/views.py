@@ -45,8 +45,10 @@ def query():
         resp_obj["beaconId"] = beacon_obj.id
         resp_obj["apiVersion"] = API_VERSION
 
-        # query database
-        results = dispatch_query(beacon_obj, query, resp_obj["allelRequest"].get("includeDatasetResponses", "NONE"))
+        # query database (it should return a datasetAlleleResponses object)
+        response_type = resp_obj["allelRequest"].get("includeDatasetResponses", "NONE")
+        query_datasets = resp_obj["allelRequest"].get("datasetIds", [])
+        ds_allele_responses = dispatch_query(query, response_type, query_datasets)
 
 
     resp = jsonify(resp_obj)
