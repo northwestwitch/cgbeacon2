@@ -12,7 +12,6 @@ from cgbeacon2.constants import (
 from cgbeacon2.models import DatasetAlleleResponse
 from cgbeacon2.utils.md5 import md5_key
 
-VALID_FLAGS = ["NONE", "HIT", "MISS", "ALL"]
 RANGE_COORDINATES = ("startMin", "startMax", "endMin", "endMax")
 LOG = logging.getLogger(__name__)
 
