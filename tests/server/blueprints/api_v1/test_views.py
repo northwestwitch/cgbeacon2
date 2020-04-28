@@ -8,8 +8,10 @@ from cgbeacon2.constants import (
     INVALID_COORD_RANGE,
 )
 
-BASE_ARGS = "query?assemblyId=GRCh37&referenceName=1&referenceBases=A"
-
+BASE_ARGS = "query?assemblyId=GRCh37&referenceName=1&referenceBases=TA"
+COORDS_ARGS = "start=235826381&end=235826383"
+ALT_ARG = "alternateBases=T"
+DATASET_ARGS = "datasetIds=foo&datasetIds=test_ds"
 
 def test_info(mock_app):
     """Test the endpoint that returns the beacon info"""
@@ -24,6 +26,8 @@ def test_info(mock_app):
     for field in fields:
         assert data[field] is not None
 
+
+################## TESTS FOR HANDLING WRONG REQUESTS ################
 
 def test_query_get_request_missing_mandatory_params(mock_app):
     """Test the query endpoint by sending a request without mandatory params:
@@ -115,13 +119,35 @@ def test_query_get_request_non_numerical_range_coordinates(mock_app):
     assert data["message"]["error"] == INVALID_COORD_RANGE
 
 
-def test_get_request_exact_position_snvs(mock_app):
+################## TESTS FOR HANDLING SNV REQUESTS ################
+
+def test_get_request_exact_position_snv(mock_app):
     """Test the query endpoint by sending a GET request. Search for SNVs, exact position"""
 
     # when providing the required parameters in a SNV query for exact positions
-    query_string = "&".join([BASE_ARGS, "start=4&alternateBases=T"])
+    query_string = "&".join([BASE_ARGS, COORDS_ARGS, ALT_ARG, DATASET_ARGS])
 
     response = mock_app.test_client().get("".join(["/apiv1.0/", query_string]))
+    data = json.loads(response.data)
 
     # No error should be returned
     assert response.status_code == 200
+
+    # AllelRequest field should reflect the original query
+    assert data["allelRequest"]["referenceName"] == "1"
+    assert data["allelRequest"]["start"]
+    assert data["allelRequest"]["end"]
+    assert data["allelRequest"]["referenceBases"] == "TA"
+    assert data["allelRequest"]["alternateBases"] == "T"
+    assert data["allelRequest"]["datasetIds"] == ["foo", "test_ds"]
+
+    # Beacon info should be returned
+    assert data["beaconId"]
+    assert data["apiVersion"] == "1.0.0"
+
+    
+
+
+
+
+################## TESTS FOR HANDLING SV REQUESTS ################

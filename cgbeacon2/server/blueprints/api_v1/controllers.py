@@ -9,8 +9,52 @@ from cgbeacon2.constants import (
     INVALID_COORD_RANGE,
     QUERY_PARAMS_API_V1,
 )
+from cgbeacon2.utils.md5 import md5_key
 
+VALID_FLAGS = ["NONE", "HIT", "MISS", "ALL"]
+RANGE_COORDINATES = ("startMin", "startMax", "endMin", "endMax")
 LOG = logging.getLogger(__name__)
+
+
+def create_allele_query(resp_obj, req):
+    """Populates a dictionary with the parameters provided in the request<<
+
+    Accepts:
+        resp_obj(dictionary): response data that will be returned by server
+        req(flask.request): request received by server
+
+    """
+    customer_query = {}
+    mongo_query = {}
+    exists = False
+
+    if request.method == "GET":
+        data = dict(req.args)
+        customer_query["datasetIds"] = req.args.getlist("datasetIds")
+    else:  # POST method
+        data = dict(req.data)
+        customer_query["datasetIds"] = req.form.getlist("datasetIds")
+
+    # loop over all available query params
+    for param in QUERY_PARAMS_API_V1:
+        if data.get(param):
+            customer_query[param] = data[param]
+    if "includeDatasetResponses" not in customer_query:
+        customer_query["includeDatasetResponses"] = "NONE"
+
+    # check if the minimal required params were provided in query
+    check_allele_request(resp_obj, customer_query, mongo_query)
+
+    # if an error occurred, do not query database and return error
+    if resp_obj.get("message") is not None:
+        resp_obj["message"]["allelRequest"] = customer_query
+        resp_obj["message"]["exists"] = None
+        resp_obj["message"]["datasetAlleleResponses"] = []
+        return
+
+    resp_obj["allelRequest"] = customer_query
+
+    return mongo_query
 
 
 def check_allele_request(resp_obj, customer_query, mongo_query):
@@ -69,7 +113,7 @@ def check_allele_request(resp_obj, customer_query, mongo_query):
     # Check that genomic coordinates are provided (even rough)
     elif (
         customer_query.get("start") is None
-        and all([coord in customer_query.keys() for coord in range_coordinates])
+        and all([coord in customer_query.keys() for coord in RANGE_COORDINATES])
         is False
     ):
         # return a bad request 400 error with explanation message
@@ -92,13 +136,13 @@ def check_allele_request(resp_obj, customer_query, mongo_query):
         mongo_query["start"] = {"$gte": customer_query["start"]}
 
     elif all(
-        [coord in customer_query.keys() for coord in range_coordinates]
+        [coord in customer_query.keys() for coord in RANGE_COORDINATES]
     ):  # range query
         # check that startMin <= startMax <= endMin <= endMax
-        range_coordinates = ("startMin", "startMax", "endMin", "endMax")
+
         try:
             unsorted_coords = [
-                int(customer_query[coord]) for coord in range_coordinates
+                int(customer_query[coord]) for coord in RANGE_COORDINATES
             ]
         except ValueError:
             unsorted_coords = [1, 0]
@@ -132,62 +176,34 @@ def check_allele_request(resp_obj, customer_query, mongo_query):
         mongo_query["datasetIds"] = {"$in": customer_query["datasetIds"]}
 
 
-def create_allele_query(resp_obj, req):
-    """Populates a dictionary with the parameters provided in the request<<
-
-    Accepts:
-        resp_obj(dictionary): response data that will be returned by server
-        req(flask.request): request received by server
-
-    """
-    customer_query = {}
-    mongo_query = {}
-    exists = False
-
-    if request.method == "GET":
-        data = dict(req.args)
-        customer_query["datasetIds"] = req.args.getlist("datasetIds")
-    else:  # POST method
-        data = dict(req.data)
-        customer_query["datasetIds"] = req.form.getlist("datasetIds")
-
-    # loop over all available query params
-    for param in QUERY_PARAMS_API_V1:
-        if data.get(param):
-            customer_query[param] = data[param]
-    if "includeDatasetResponses" not in customer_query:
-        customer_query["includeDatasetResponses"] = "NONE"
-
-    # check if the minimal required params were provided in query
-    check_allele_request(resp_obj, customer_query, mongo_query)
-
-    # if an error occurred, do not query database and return error
-    if resp_obj.get("message") is not None:
-        resp_obj["message"]["allelRequest"] = customer_query
-        resp_obj["message"]["exists"] = None
-        resp_obj["message"]["datasetAlleleResponses"] = []
-        return
-
-    resp_obj["allelRequest"] = customer_query
-
-    # query database
-    hits = query_db(mongo_query)
-
-
-def query_db(mongo_query):
+def dispatch_query(beacon_obj, mongo_query, response_level):
     """Query variant collection using a query dictionary
 
     Accepts:
+        beacon_obj(cgbeacon2.models.Beacon): an instance of this beacon
         mongo_query(dic): a query dictionary
+        response_level(str): individual dataset responses -->
+            ALL means all datasets even those that don't have the queried variant
+            HIT means only datasets that have the queried variant
+            MISS means opposite to HIT value, only datasets that don't have the queried variant
+            NONE don't return datasets response.
 
     Returns.
         results():
 
     """
     variant_collection = current_app.db["variant"]
-    LOG.info(f"DATABASE QUERY IS---------------->{mongo_query}")
+
+    LOG.info(f"Perform database query -----------> {mongo_query}.")
+    LOG.info(f"Response level (datasetAlleleResponses) -----> {response_level}.")
 
     results = variant_collection.find(mongo_query)
 
-    for variant in variants:
+    if response_level == "NONE":
+        LOG.info("do nothing")
+    else:
+        all_datasets = beacon_obj.datasets
+        LOG.info(f"DATASETS:{all_datasets} ------ TYPE OF DATASETS:{type(all_datasets)}")
+
+    for variant in results:
         LOG.info(f"FOUND VARIANT---------------->{variant}")
