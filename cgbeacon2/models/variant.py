@@ -12,15 +12,7 @@ class Variant:
         self.start = parsed_variant[
             "start"
         ]  # int, Precise start coordinate position, allele locus (0-based, inclusive)
-        self.startMin = parsed_variant[
-            "start"
-        ]  # int, for for querying imprecise positions
-        self.startMax = parsed_variant[
-            "start"
-        ]  # int, for for querying imprecise positions
         self.end = parsed_variant["end"]  # int
-        self.endMin = parsed_variant["end"]  # int, for for querying imprecise positions
-        self.endMax = parsed_variant["end"]  # int, for for querying imprecise positions
         self.referenceBases = "".join(
             parsed_variant["reference_bases"]
         )  # str, '^([ACGT]+|N)$'
