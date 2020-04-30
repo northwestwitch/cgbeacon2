@@ -132,11 +132,7 @@ def test_add_variants_snv_vcf(mock_app, test_dataset_cli, database):
     test_variant = database["variant"].find_one()
     assert isinstance(test_variant["referenceName"], str)
     assert isinstance(test_variant["start"], int)
-    assert isinstance(test_variant["startMin"], int)
-    assert isinstance(test_variant["startMax"], int)
     assert isinstance(test_variant["end"], int)
-    assert isinstance(test_variant["endMin"], int)
-    assert isinstance(test_variant["endMax"], int)
     assert isinstance(test_variant["referenceBases"], str)
     assert isinstance(test_variant["alternateBases"], str)
     assert test_variant["assemblyId"] == "GRCh37"
