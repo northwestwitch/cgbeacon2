@@ -14,3 +14,4 @@
 - Created error messages to handle wrong server requests
 - Return responses for SNV queries with datasetAlleleResponses == ALL, HIT, MISS
 - Added repository codeowners
+- Added tests for queries with datasetAlleleResponses == HIT and MISS
