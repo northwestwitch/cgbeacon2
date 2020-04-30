@@ -110,7 +110,6 @@ def check_allele_request(resp_obj, customer_query, mongo_query):
         for dset in dset_builds:
             if dset != customer_query["assemblyId"]:
                 # return a bad request 400 error with explanation message
-                # return a bad request 400 error with explanation message
                 resp_obj["message"] = dict(
                     error=BUILD_MISMATCH, allelRequest=customer_query,
                 )
