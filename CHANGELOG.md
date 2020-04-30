@@ -15,3 +15,4 @@
 - Return responses for SNV queries with datasetAlleleResponses == ALL, HIT, MISS
 - Added repository codeowners
 - Added tests for queries with datasetAlleleResponses == HIT and MISS
+- No conflicts between queried assembly and the assembly or queried datasets
