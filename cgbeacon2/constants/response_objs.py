@@ -24,6 +24,11 @@ INVALID_COORD_RANGE = dict(
     errorMessage="invalid coordinate range: startMin <= startMax <= endMin <= endMax",
 )
 
+BUILD_MISMATCH = dict(
+    errorCode=400,
+    errorMessage="Requested genome assembly is in conflict with the assembly of one or more requested datasets",
+)
+
 QUERY_PARAMS_API_V1 = [
     "referenceName",
     "referenceBases",

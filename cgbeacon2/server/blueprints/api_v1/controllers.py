@@ -7,6 +7,7 @@ from cgbeacon2.constants import (
     NO_POSITION_PARAMS,
     NO_SV_END_PARAM,
     INVALID_COORD_RANGE,
+    BUILD_MISMATCH,
     QUERY_PARAMS_API_V1,
 )
 from cgbeacon2.models import DatasetAlleleResponse
@@ -97,8 +98,26 @@ def check_allele_request(resp_obj, customer_query, mongo_query):
             error=NO_MANDATORY_PARAMS, allelRequest=customer_query,
         )
         return
+
+    # check if genome build requested corresponds to genome build of the available datasets:
+    if len(customer_query["datasetIds"]) > 0:
+        dset_builds = current_app.db["dataset"].find(
+            {"_id": {"$in": customer_query["datasetIds"]}}, {"assembly_id": 1, "_id": 0}
+        )
+        dset_builds = [
+            dset["assembly_id"] for dset in dset_builds if dset["assembly_id"]
+        ]
+        for dset in dset_builds:
+            if dset != customer_query["assemblyId"]:
+                # return a bad request 400 error with explanation message
+                # return a bad request 400 error with explanation message
+                resp_obj["message"] = dict(
+                    error=BUILD_MISMATCH, allelRequest=customer_query,
+                )
+                return
+
     # alternateBases OR variantType is also required
-    elif all(
+    if all(
         param is None
         for param in [
             customer_query.get("alternateBases"),
@@ -111,7 +130,7 @@ def check_allele_request(resp_obj, customer_query, mongo_query):
         )
         return
     # Check that genomic coordinates are provided (even rough)
-    elif (
+    if (
         customer_query.get("start") is None
         and all([coord in customer_query.keys() for coord in RANGE_COORDINATES])
         is False
@@ -122,7 +141,7 @@ def check_allele_request(resp_obj, customer_query, mongo_query):
         )
         return
 
-    elif customer_query.get("start"):  # query for exact position
+    if customer_query.get("start"):  # query for exact position
         if customer_query.get("end") is None:
             if customer_query.get("variantType"):
                 # query for SVs without specifying end position, return error

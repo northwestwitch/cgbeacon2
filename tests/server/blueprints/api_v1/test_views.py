@@ -6,6 +6,7 @@ from cgbeacon2.constants import (
     NO_POSITION_PARAMS,
     NO_SV_END_PARAM,
     INVALID_COORD_RANGE,
+    BUILD_MISMATCH,
 )
 
 BASE_ARGS = "query?assemblyId=GRCh37&referenceName=1&referenceBases=TA"
@@ -47,6 +48,24 @@ def test_query_get_request_missing_mandatory_params(mock_app):
     assert data["message"]["datasetAlleleResponses"] == []
     assert data["message"]["beaconId"]
     assert data["message"]["apiVersion"] == "1.0.0"
+
+
+def test_query_get_request_build_mismatch(mock_app, test_dataset_cli):
+    """Test the query endpoint by sending a request with build mismatch between queried datasets and genome build"""
+
+    # Having a dataset with genome build GRCh38 in the database:
+    database = mock_app.db
+    test_dataset_cli["assembly_id"] = "GRCh38"
+    database["dataset"].insert_one(test_dataset_cli)
+
+    # When a request with genome build GRCh38 and detasetIds with genome build GRCh37 is sent to the server:
+    query_string = "&".join([BASE_ARGS, f"datasetIds={test_dataset_cli['_id']}"])
+    response = mock_app.test_client().get("".join(["/apiv1.0/", query_string]))
+
+    # Then it should return error
+    assert response.status_code == 400
+    data = json.loads(response.data)
+    assert data["message"]["error"] == BUILD_MISMATCH
 
 
 def test_query_get_request_missing_secondary_params(mock_app):

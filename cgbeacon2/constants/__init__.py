@@ -6,5 +6,6 @@ from .response_objs import (
     NO_POSITION_PARAMS,
     NO_SV_END_PARAM,
     INVALID_COORD_RANGE,
+    BUILD_MISMATCH,
     QUERY_PARAMS_API_V1,
 )
