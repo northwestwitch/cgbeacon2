@@ -92,9 +92,6 @@ def add_variants(database, vcf_obj, samples, assembly, dataset_id, nr_variants):
             if len(sample_calls) == 0:
                 continue  # variant was not called in samples of interest
 
-            if vcf_variant.var_type == "sv":  # otherwise snp or indel
-                parsed_variant["variant_type"] = "sv"  # fix later, this is not OK yet
-
             parsed_variant = dict(
                 chromosome=vcf_variant.CHROM,
                 start=vcf_variant.start,
@@ -102,6 +99,10 @@ def add_variants(database, vcf_obj, samples, assembly, dataset_id, nr_variants):
                 reference_bases=vcf_variant.REF,
                 alternate_bases=vcf_variant.ALT,
             )
+
+            if vcf_variant.var_type == "sv":
+                parsed_variant["variant_type"] = vcf_variant.get("SVTYPE")
+
             dataset_dict = {dataset_id: {"samples": sample_calls}}
             # Create standard variant object with specific _id
             variant = Variant(parsed_variant, dataset_dict, assembly)
