@@ -47,8 +47,11 @@ def query():
         # query database (it should return a datasetAlleleResponses object)
         response_type = resp_obj["allelRequest"].get("includeDatasetResponses", "NONE")
         query_datasets = resp_obj["allelRequest"].get("datasetIds", [])
-        ds_allele_responses = dispatch_query(query, response_type, query_datasets)
+        exists, ds_allele_responses = dispatch_query(
+            query, response_type, query_datasets
+        )
 
+        resp_obj["exists"] = exists
         resp_obj["datasetAlleleResponses"] = ds_allele_responses
 
     resp = jsonify(resp_obj)

@@ -64,6 +64,7 @@ def test_query_get_request_missing_secondary_params(mock_app):
     data = json.loads(response.data)
     assert data["message"]["error"] == NO_SECONDARY_PARAMS
 
+
 def test_query_get_request_non_numerical_sv_coordinates(mock_app):
     """Test the query endpoint by sending a request with non-numerical start position"""
 

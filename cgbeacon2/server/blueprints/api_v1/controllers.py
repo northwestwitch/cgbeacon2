@@ -160,7 +160,6 @@ def check_allele_request(resp_obj, customer_query, mongo_query):
                 error=INVALID_COORDINATES, allelRequest=customer_query,
             )
 
-
     elif all(
         [coord in customer_query.keys() for coord in RANGE_COORDINATES]
     ):  # range query
@@ -221,37 +220,40 @@ def dispatch_query(mongo_query, response_type, datasets=[]):
     LOG.info(f"Perform database query -----------> {mongo_query}.")
     LOG.info(f"Response level (datasetAlleleResponses) -----> {response_type}.")
 
-    variant = variant_collection.find_one(mongo_query)
+    # End users are only interested in knowing which datasets have one or more specific vars, return only datasets
+    variants = list(variant_collection.find(mongo_query, {"_id": 0, "datasetIds": 1}))
 
-    if variant is None:
+    if len(variants) == 0:
         return []
 
     if response_type == "NONE":
-        LOG.info("WHAT THE HELL AM I RETURNING HERE?")
+        if len(variants) > 0:
+            return True, []
 
     else:
         # request datasets:
         req_dsets = set(datasets)
 
         # IDs of datasets found for this variant(s)
-        result = create_ds_allele_response(response_type, req_dsets, variant)
+        result = create_ds_allele_response(response_type, req_dsets, variants)
         return result
 
-    return
+    return False, []
 
 
-def create_ds_allele_response(response_type, req_dsets, variant):
+def create_ds_allele_response(response_type, req_dsets, variants):
     """Create a Beacon Dataset Allele Response
 
     Accepts:
         response_type(str): ALL, HIT or MISS
         req_dsets(set): datasets requested, could be empty
-        variant(dict): a variant object
+        variants(list): a list of query results (only dataset info)
 
     Returns:
         ds_responses(list): list of cgbeacon2.model.DatasetAlleleResponse
     """
     ds_responses = []
+    exists = False
 
     all_dsets = current_app.db["dataset"].find()
     all_dsets = [ds["_id"] for ds in all_dsets]
@@ -265,7 +267,7 @@ def create_ds_allele_response(response_type, req_dsets, variant):
         if not ds in all_dsets:
             LOG.info(f"Provided dataset {ds} could not be found in database")
             continue
-        ds_response = DatasetAlleleResponse(ds, variant).__dict__
+        ds_response = DatasetAlleleResponse(ds, variants).__dict__
 
         # collect responses according to the type of response requested
         if (
@@ -275,4 +277,7 @@ def create_ds_allele_response(response_type, req_dsets, variant):
         ):
             ds_responses.append(ds_response)
 
-    return ds_responses
+        if ds_response["exists"] is True:
+            exists = True
+
+    return exists, ds_responses

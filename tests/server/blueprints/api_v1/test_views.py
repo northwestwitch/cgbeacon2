@@ -133,11 +133,11 @@ def test_get_request_exact_position_snv_return_MISS(
 def test_get_request_snv_return_NONE(mock_app, test_snv, test_dataset_cli):
     """Test the query endpoint by sending a GET request. Search for SNVs, includeDatasetResponses=None"""
 
-    # Having a dataset with a variant:
+    # Having a database with a variant:
     database = mock_app.db
     database["variant"].insert_one(test_snv)
 
-    # And 2 dataset
+    # And a dataset
     database["dataset"].insert_one(test_dataset_cli)
 
     # when providing the required parameters in a SNV query with includeDatasetResponses=NONE (or omitting the param)
@@ -148,10 +148,10 @@ def test_get_request_snv_return_NONE(mock_app, test_snv, test_dataset_cli):
     # No error should be returned
     assert response.status_code == 200
     assert data["allelRequest"]["includeDatasetResponses"] == "NONE"
-
-    
-
-
+    # No specific dataset response should be prensent
+    assert data["datasetAlleleResponses"] == []
+    # But since variant is found, beacon responds: True
+    assert data["exists"] is True
 
 
 ################## TESTS FOR HANDLING SV REQUESTS ################
