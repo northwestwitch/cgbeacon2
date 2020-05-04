@@ -1,13 +1,5 @@
 # -*- coding: utf-8 -*-
 import json
-from cgbeacon2.constants import (
-    NO_MANDATORY_PARAMS,
-    NO_SECONDARY_PARAMS,
-    NO_POSITION_PARAMS,
-    NO_SV_END_PARAM,
-    INVALID_COORD_RANGE,
-    BUILD_MISMATCH,
-)
 
 BASE_ARGS = "query?assemblyId=GRCh37&referenceName=1&referenceBases=TA"
 COORDS_ARGS = "start=235826381&end=235826383"
