@@ -19,6 +19,11 @@ NO_SV_END_PARAM = dict(
     errorMessage="Structural variants query requires an 'end' coordinate param",
 )
 
+INVALID_COORDINATES = dict(
+    errorCode=400,
+    errorMessage="invalid coordinates. Variant start and stop positions must be numbers",
+)
+
 INVALID_COORD_RANGE = dict(
     errorCode=400,
     errorMessage="invalid coordinate range: startMin <= startMax <= endMin <= endMax",

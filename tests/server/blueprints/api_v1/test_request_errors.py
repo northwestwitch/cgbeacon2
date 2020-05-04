@@ -5,6 +5,7 @@ from cgbeacon2.constants import (
     NO_SECONDARY_PARAMS,
     NO_POSITION_PARAMS,
     NO_SV_END_PARAM,
+    INVALID_COORDINATES,
     INVALID_COORD_RANGE,
     BUILD_MISMATCH,
 )
@@ -64,6 +65,32 @@ def test_query_get_request_missing_secondary_params(mock_app):
     assert data["message"]["error"] == NO_SECONDARY_PARAMS
 
 
+def test_query_get_request_non_numerical_sv_coordinates(mock_app):
+    """Test the query endpoint by sending a request with non-numerical start position"""
+
+    query_string = "&".join([BASE_ARGS, "start=FOO&end=70600&variantType=DUP"])
+    # When a request has a non-numerical start or stop position
+    response = mock_app.test_client().get("".join(["/apiv1.0/", query_string]))
+    data = json.loads(response.data)
+    # Then it should return error
+    assert response.status_code == 400
+    assert data["message"]["error"] == INVALID_COORDINATES
+
+
+def test_query_get_request_missing_sv_coordinate(mock_app):
+    """Test the query endpoint by sending a request missing SV coordinates params:
+        provide only start but no end param
+
+    """
+    query_string = "&".join([BASE_ARGS, "start=4&variantType=DUP"])
+    # When a request for SV variants is missing stop position parameter
+    response = mock_app.test_client().get("".join(["/apiv1.0/", query_string]))
+    data = json.loads(response.data)
+    # Then it should return error
+    assert response.status_code == 400
+    assert data["message"]["error"] == NO_SV_END_PARAM
+
+
 def test_query_get_request_missing_positions_params(mock_app):
     """Test the query endpoint by sending a request missing coordinate params:
         Either stat or startMin + startMax + endMin + endMax
@@ -78,20 +105,6 @@ def test_query_get_request_missing_positions_params(mock_app):
     # Then it should return error
     assert response.status_code == 400
     assert data["message"]["error"] == NO_POSITION_PARAMS
-
-
-def test_query_get_request_non_numerical_sv_coordinates(mock_app):
-    """Test the query endpoint by sending a request missing SV coordinates params:
-        provide only start but no end param
-
-    """
-    query_string = "&".join([BASE_ARGS, "start=4&variantType=DUP"])
-    # When a request for SV variants is missing stop position parameter
-    response = mock_app.test_client().get("".join(["/apiv1.0/", query_string]))
-    data = json.loads(response.data)
-    # Then it should return error
-    assert response.status_code == 400
-    assert data["message"]["error"] == NO_SV_END_PARAM
 
 
 def test_query_get_request_non_increasing_sv_coordinates(mock_app):
