@@ -17,3 +17,4 @@
 - Added tests for queries with datasetAlleleResponses == HIT and MISS
 - No conflicts between queried assembly and the assembly or queried datasets
 - Parse SVs and save them to database
+- Fixed code for range queries and without end position, with tests

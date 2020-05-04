@@ -192,5 +192,5 @@ def test_get_request_svs_range_coordinates(mock_app, test_sv, test_dataset_cli):
     data = json.loads(response.data)
     # No error should be returned
     assert response.status_code == 200
-    # And the beacon should anwer "Yes" --> Variant found
+    # And the beacon should answer exists=True (variant found)
     assert data["exists"] == True
