@@ -223,7 +223,7 @@ def dispatch_query(mongo_query, response_type, datasets=[]):
     variants = list(variant_collection.find(mongo_query, {"_id": 0, "datasetIds": 1}))
 
     if len(variants) == 0:
-        False, []
+        return False, []
 
     if response_type == "NONE":
         if len(variants) > 0:
