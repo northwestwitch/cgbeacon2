@@ -155,3 +155,42 @@ def test_get_request_snv_return_NONE(mock_app, test_snv, test_dataset_cli):
 
 
 ################## TESTS FOR HANDLING SV REQUESTS ################
+
+
+def test_get_request_svs_range_coordinates(mock_app, test_sv, test_dataset_cli):
+    """test get request providing coordinate range for querying structural variants"""
+
+    # Having a database with a variant:
+    database = mock_app.db
+    database["variant"].insert_one(test_sv)
+
+    # And a dataset
+    database["dataset"].insert_one(test_dataset_cli)
+
+    build = test_sv["assemblyId"]
+    chrom = test_sv["referenceName"]
+    ref = test_sv["referenceBases"]
+    base_sv_coords = (
+        f"query?assemblyId={build}&referenceName={chrom}&referenceBases={ref}"
+    )
+
+    type = f"variantType={test_sv['variantType']}"
+
+    # When providing range coordinates
+    start_min = test_sv["start"] - 5
+    start_max = test_sv["start"] + 5
+    end_min = test_sv["end"] - 5
+    end_max = test_sv["end"] + 5
+    range_coords = (
+        f"startMin={start_min}&startMax={start_max}&endMin={end_min}&endMax={end_max}"
+    )
+
+    query_string = "&".join([base_sv_coords, range_coords, type])
+
+    response = mock_app.test_client().get("".join(["/apiv1.0/", query_string]))
+
+    data = json.loads(response.data)
+    # No error should be returned
+    assert response.status_code == 200
+    # And the beacon should anwer "Yes" --> Variant found
+    assert data["exists"] == True

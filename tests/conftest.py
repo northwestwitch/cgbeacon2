@@ -36,7 +36,7 @@ def mock_app(database):
 
 @pytest.fixture
 def test_snv():
-    """A dictionary representing a variant as it is saved in database"""
+    """A dictionary representing a snv variant as it is saved in database"""
     variant = {
         "_id": "0e331ff7e817513492852ca696588443",
         "referenceName": "1",
@@ -50,6 +50,23 @@ def test_snv():
         "alternateBases": "T",
         "assemblyId": "GRCh37",
         "datasetIds": {"dataset1": {"samples": ["ADM1059A1"]}},
+    }
+    return variant
+
+
+@pytest.fixture
+def test_sv():
+    """A dictionary representing a sv variant as it is saved in database"""
+    variant = {
+        "_id": "8623a1f2d1ba887bafed174ab3eb5d41",
+        "referenceName": "5",
+        "start": 474601,
+        "end": 474974,
+        "referenceBases": "GCGGGGAGAGAGAGAGAGCGAGCCAGGTTCAGGTCCAGGGAGGAGAGAGACAGCGCGCGCGAGGCGGAGACCTGGAGGGAGAGGAGCTGCGGAGAGGGGTTAGGCGGGGAGGGAGAGAGCCAGGTTCAGGTCCAGGGAGGAGAGAGACAGCGCGCGCGAGGCGGAGACCTGGAGGGAGAGGAGCTGCGGAGAGGGGTTAGGCGGGGAGAGAGAGAGCGAGCCAGGTTCAGGTCCAGGGAGGAGAGAGACAGCGCGCGCGAGGCGGAGACCTGGAGGGAGAGGAGCTGCGGAGAGGGGTTAGGCGGGGAGGGAGAGAGACAGCGCGCGCGAGGCGGAGACCTGGAGGGAGAGGAGCTGCGGAGAGGGGTTAGGC",
+        "alternateBases": "GT",
+        "variantType": "DEL",
+        "assemblyId": "GRCh37",
+        "datasetIds": {"test_ds": {"samples": ["ADM1059A1"]}},
     }
     return variant
 

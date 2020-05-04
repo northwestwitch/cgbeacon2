@@ -164,23 +164,21 @@ def check_allele_request(resp_obj, customer_query, mongo_query):
         [coord in customer_query.keys() for coord in RANGE_COORDINATES]
     ):  # range query
         # check that startMin <= startMax <= endMin <= endMax
-
         try:
             unsorted_coords = [
                 int(customer_query[coord]) for coord in RANGE_COORDINATES
             ]
         except ValueError:
             unsorted_coords = [1, 0]
-        sorted_coords = unsorted_coords.sort()
-        if sorted_coords != unsorted_coords:  # coordinates are not valid
+        if unsorted_coords != sorted(unsorted_coords):  # coordinates are not valid
             # return a bad request 400 error with explanation message
             resp_obj["message"] = dict(
                 error=INVALID_COORD_RANGE, allelRequest=customer_query,
             )
             return
 
-        mongo_query["start"] = {"$gte": sorted_coords[0], "$lte": sorted_coords[1]}
-        mongo_query["end"] = {"$gte": sorted_coords[2], "$lte": sorted_coords[3]}
+        mongo_query["start"] = {"$gte": unsorted_coords[0], "$lte": unsorted_coords[1]}
+        mongo_query["end"] = {"$gte": unsorted_coords[2], "$lte": unsorted_coords[3]}
 
     if mongo_query.get("_id") is None:
         # perform normal query
@@ -193,6 +191,7 @@ def check_allele_request(resp_obj, customer_query, mongo_query):
 
         if "variantType" in customer_query:
             mongo_query["variantType"] = customer_query["variantType"]
+
     else:
         # use only variant _id in query
         mongo_query.pop("start")
@@ -224,7 +223,7 @@ def dispatch_query(mongo_query, response_type, datasets=[]):
     variants = list(variant_collection.find(mongo_query, {"_id": 0, "datasetIds": 1}))
 
     if len(variants) == 0:
-        return []
+        False, []
 
     if response_type == "NONE":
         if len(variants) > 0:
