@@ -99,7 +99,7 @@ def test_get_request_exact_position_snv_return_HIT(
 def test_get_request_exact_position_snv_return_MISS(
     mock_app, test_snv, test_dataset_cli, test_dataset_no_variants
 ):
-    """Test the query endpoint by sending a GET request. Search for SNVs, exact position, return only responses from dataset with no hots (MISS)"""
+    """Test the query endpoint by sending a GET request. Search for SNVs, exact position, return only responses from dataset with no hits (MISS)"""
 
     # Having a dataset with a variant:
     database = mock_app.db
@@ -128,6 +128,30 @@ def test_get_request_exact_position_snv_return_MISS(
         == test_dataset_no_variants["_id"]
     )
     assert data["datasetAlleleResponses"][0]["exists"] == False
+
+
+def test_get_request_snv_return_NONE(mock_app, test_snv, test_dataset_cli):
+    """Test the query endpoint by sending a GET request. Search for SNVs, includeDatasetResponses=None"""
+
+    # Having a dataset with a variant:
+    database = mock_app.db
+    database["variant"].insert_one(test_snv)
+
+    # And 2 dataset
+    database["dataset"].insert_one(test_dataset_cli)
+
+    # when providing the required parameters in a SNV query with includeDatasetResponses=NONE (or omitting the param)
+    query_string = "&".join([BASE_ARGS, "start=235826381", ALT_ARG])
+    response = mock_app.test_client().get("".join(["/apiv1.0/", query_string]))
+    data = json.loads(response.data)
+
+    # No error should be returned
+    assert response.status_code == 200
+    assert data["allelRequest"]["includeDatasetResponses"] == "NONE"
+
+    
+
+
 
 
 ################## TESTS FOR HANDLING SV REQUESTS ################

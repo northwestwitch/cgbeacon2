@@ -6,6 +6,7 @@ from cgbeacon2.constants import (
     NO_SECONDARY_PARAMS,
     NO_POSITION_PARAMS,
     NO_SV_END_PARAM,
+    INVALID_COORDINATES,
     INVALID_COORD_RANGE,
     BUILD_MISMATCH,
     QUERY_PARAMS_API_V1,
@@ -141,17 +142,24 @@ def check_allele_request(resp_obj, customer_query, mongo_query):
         return
 
     if customer_query.get("start"):  # query for exact position
-        if customer_query.get("end") is None:
-            if customer_query.get("variantType"):
-                # query for SVs without specifying end position, return error
-                # return a bad request 400 error with explanation message
-                resp_obj["message"] = dict(
-                    error=NO_SV_END_PARAM, allelRequest=customer_query,
-                )
-                return
-        else:
-            mongo_query["end"] = {"$lte": customer_query["end"]}
-        mongo_query["start"] = {"$gte": customer_query["start"]}
+        try:
+            if customer_query.get("end") is None:
+                if customer_query.get("variantType"):
+                    # query for SVs without specifying end position, return error
+                    # return a bad request 400 error with explanation message
+                    resp_obj["message"] = dict(
+                        error=NO_SV_END_PARAM, allelRequest=customer_query,
+                    )
+                    return
+            else:
+                mongo_query["end"] = {"$lte": int(customer_query["end"])}
+            mongo_query["start"] = {"$gte": int(customer_query["start"])}
+        except ValueError:
+            # return a bad request 400 error with explanation message
+            resp_obj["message"] = dict(
+                error=INVALID_COORDINATES, allelRequest=customer_query,
+            )
+
 
     elif all(
         [coord in customer_query.keys() for coord in RANGE_COORDINATES]
@@ -176,7 +184,7 @@ def check_allele_request(resp_obj, customer_query, mongo_query):
         mongo_query["end"] = {"$gte": sorted_coords[2], "$lte": sorted_coords[3]}
 
     if mongo_query.get("_id") is None:
-        # perform variant query using only variant _id and eventual
+        # perform normal query
         mongo_query["assemblyId"] = customer_query["assemblyId"]
         mongo_query["referenceName"] = customer_query["referenceName"]
         mongo_query["referenceBases"] = customer_query["referenceBases"]
@@ -187,6 +195,7 @@ def check_allele_request(resp_obj, customer_query, mongo_query):
         if "variantType" in customer_query:
             mongo_query["variantType"] = customer_query["variantType"]
     else:
+        # use only variant _id in query
         mongo_query.pop("start")
         mongo_query.pop("end", None)
 
