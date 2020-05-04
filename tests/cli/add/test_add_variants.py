@@ -2,6 +2,7 @@
 import pytest
 from cgbeacon2.resources import (
     test_snv_vcf_path,
+    test_sv_vcf_path,
     test_empty_vcf_path,
     panel1_path,
     panel2_path,
@@ -264,3 +265,93 @@ def test_add_other_sample_variants(mock_app, test_dataset_cli, database):
     assert sample in dataset_obj["samples"]
     assert sample2 in dataset_obj["samples"]
     assert "updated" in dataset_obj
+
+
+def test_add_sv_variants(mock_app, test_dataset_cli, database):
+    """Test adding SV variants for one sample"""
+
+    runner = mock_app.test_cli_runner()
+
+    # Having a database containing a dataset
+    dataset = test_dataset_cli
+    database["dataset"].insert_one(dataset)
+
+    sample = "ADM1059A1"
+
+    # When invoking the add variants from a VCF file for the first time
+    result = runner.invoke(
+        cli,
+        [
+            "add",
+            "variants",
+            "-ds",
+            dataset["_id"],
+            "-vcf",
+            test_sv_vcf_path,
+            "-sample",
+            sample,
+        ],
+    )
+
+    # Then a number of variants should have been saved to database
+    saved_vars = list(database["variant"].find())
+    assert len(saved_vars) > 0
+
+    valid_types = ["INS", "DUP", "DEL", "INV"]
+    # AND all of them should have a valid SV variant type
+    for var in saved_vars:
+        assert var["variantType"] in valid_types
+
+
+def test_add_snv_sv_variants(mock_app, test_dataset_cli, database):
+    """Test adding snv + sv variants for one sample"""
+
+    runner = mock_app.test_cli_runner()
+
+    # Having a database containing a dataset
+    dataset = test_dataset_cli
+    database["dataset"].insert_one(dataset)
+
+    sample = "ADM1059A1"
+
+    # When invoking the add variants from a VCF file for the first time
+    # filtering using 2 gene panels
+    result = runner.invoke(
+        cli,
+        [
+            "add",
+            "variants",
+            "-ds",
+            dataset["_id"],
+            "-vcf",
+            test_snv_vcf_path,
+            "-sample",
+            sample,
+            "-panel",
+            panel1_path,
+            "-panel",
+            panel2_path,
+        ],
+    )
+
+    # Then a number of SNV variants should have been saved to database
+    saved_snvs = sum(1 for i in database["variant"].find())
+
+    # WHEN variants from a another VCF file containing SVs are added
+    result = runner.invoke(
+        cli,
+        [
+            "add",
+            "variants",
+            "-ds",
+            dataset["_id"],
+            "-vcf",
+            test_sv_vcf_path,
+            "-sample",
+            sample,
+        ],
+    )
+
+    # THEN more variants should have been added to the database
+    new_saved_vars = sum(1 for i in database["variant"].find())
+    assert new_saved_vars > saved_snvs
