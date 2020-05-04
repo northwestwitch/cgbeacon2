@@ -18,3 +18,4 @@
 - No conflicts between queried assembly and the assembly or queried datasets
 - Parse SVs and save them to database
 - Fixed code for range queries and without end position, with tests
+- Added test for negative response and introduce error=None if response status code is 200 (success)
