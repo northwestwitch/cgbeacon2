@@ -52,6 +52,7 @@ def query():
         )
 
         resp_obj["exists"] = exists
+        resp_obj["error"] = None
         resp_obj["datasetAlleleResponses"] = ds_allele_responses
 
     resp = jsonify(resp_obj)
