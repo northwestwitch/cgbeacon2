@@ -154,6 +154,33 @@ def test_get_request_snv_return_NONE(mock_app, test_snv, test_dataset_cli):
     assert data["exists"] is True
 
 
+def test_get_snv_query_variant_not_found(mock_app, test_dataset_cli):
+    """Test a query that should return variant not found (exists=False)"""
+
+    # Having a database with a dataset but no variant:
+    database = mock_app.db
+    database["dataset"].insert_one(test_dataset_cli)
+
+    # when querying for a variant
+    query_string = "&".join([BASE_ARGS, "start=235826381", ALT_ARG])
+    response = mock_app.test_client().get("".join(["/apiv1.0/", query_string]))
+    data = json.loads(response.data)
+
+    # No error should be returned
+    assert response.status_code == 200
+
+    # AllelRequest field should reflect the original query
+    assert data["allelRequest"]["referenceName"] is not None
+    assert data["allelRequest"]["start"] is not None
+    assert data["allelRequest"]["referenceBases"] is not None
+    assert data["allelRequest"]["alternateBases"] is not None
+    assert data["allelRequest"]["includeDatasetResponses"] == "NONE"
+
+    # and response should be negative (exists=False)
+    assert data["exists"] is False
+    assert data["error"] is None
+
+
 ################## TESTS FOR HANDLING SV REQUESTS ################
 
 
