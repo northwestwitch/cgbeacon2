@@ -91,7 +91,7 @@
         </div>
         <!--Range coordinates-->
         <div class="row mt-3" id="rangeCoords">
-          <div class="ml-3 col-md-2"></div>
+          <div class="col-md-2"></div>
           <div class="col-md-2">
             <label for="startMin">Min start</label>
             <input type="number" class="form-control" id="startMin" name="startMin">
@@ -109,31 +109,6 @@
             <input type="number" class="form-control" id="endMax" name="endMax">
           </div>
         </div>
-
-              <!--
-              <div class="col-md-3">
-                <div>
-                  <label for="chromosomeselect">Chromosome</label>
-
-                </div>
-                <p>
-                <input type="hidden" value="GRCh37" name="build" />
-                <div>
-                  <label for="start">Start (GRCh37)</label>
-                  <input type="number" class="form-control" name="start" min="1" data-bind="value:start" placeholder="ex: 3560876" required>
-                </div>
-                <p>
-                <div>
-                  <label for="allele">Allele</label>
-                  <input type="text" class="form-control" id="allele" name="var" placeholder="ex: T" required>
-                </div>
-              </div>
-              <div class="col-md-1">
-                <p></p>
-              </div>
-
-          -->
-        </div>
          <br>
         <div class="row">
           <div class="col-md-5"></div>
@@ -143,6 +118,7 @@
         </div>
       </form>
      <p>
+       <!--Results display div-->
     {%if display_result %}
        {% if display_result[0] %}
          <div class="mx-auto bs-callout bs-callout-info" style="width: 800px;">
