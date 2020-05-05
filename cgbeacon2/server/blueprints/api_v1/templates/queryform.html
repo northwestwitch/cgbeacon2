@@ -62,6 +62,54 @@
               Datasets without hits
             </label>
           </div>
+        </div> <!--end of first row-->
+        <div class="row">
+          <div class="form-check col-md-2 mt-3">
+            <input type="checkbox" id="type" checked data-toggle="toggle" data-on="Single nucleotides" data-off="Structural variants" data-onstyle="light" data-offstyle="warning">
+          </div>
+          <div class="col-md-2">
+            <label for="start">Start position</label>
+            <input type="number" class="form-control" id="start" name="start" required>
+          </div>
+          <div class="col-md-2">
+            <label for="end">End position</label>
+            <input type="number" class="form-control" id="end" name="end">
+          </div>
+          <!--simple SNV search-->
+          <div id="snvsDiv" class="col-md-3">
+            <label for="alternateBases">Alternate bases</label>
+            <input type="text" class="form-control" id="alternateBases" name="alternateBases" placeholder="ex: C" required>
+          </div>
+          <div id="svsDiv" class="col-md-2">
+            <label for="variantType">Variant type</label>
+            <select class="form-control" name="variantType">
+              {% for sv in ["INS", "DEL", "DUP", "INV"] %}
+                <option>{{sv}}</option>
+              {% endfor %}
+            </select>
+          </div>
+        </div>
+        <!--Range coordinates-->
+        <div class="row mt-3" id="rangeCoords">
+          <div class="ml-3 col-md-2"></div>
+          <div class="col-md-2">
+            <label for="startMin">Min start</label>
+            <input type="number" class="form-control" id="startMin" name="startMin">
+          </div>
+          <div class="col-md-2">
+            <label for="startMax">Max start</label>
+            <input type="number" class="form-control" id="startMax" name="startMax">
+          </div>
+          <div class="col-md-2">
+            <label for="endMin">Min end</label>
+            <input type="number" class="form-control" id="endMin" name="endMin">
+          </div>
+          <div class="col-md-2">
+            <label for="endMax">Max end</label>
+            <input type="number" class="form-control" id="endMax" name="endMax">
+          </div>
+        </div>
+
               <!--
               <div class="col-md-3">
                 <div>
@@ -90,7 +138,7 @@
         <div class="row">
           <div class="col-md-5"></div>
             <div class="col-md-3">
-              <button type="submit" name="query" value="submit" class="btn btn-info">Search SciLifeLab Beacon</button>
+              <button type="submit" name="query" value="submit" class="btn btn-warning">Search SciLifeLab Beacon</button>
             </div>
         </div>
       </form>
@@ -114,6 +162,27 @@
   <script>
   $('select[multiple]').selectpicker({
         width: '100%'
+  });
+  $(function() {
+    $('#type').change(function() {
+      if($(this).prop("checked")){
+        $('#snvsDiv').show();
+        $("#alternateBases").prop('required',true);
+        $("#start").prop('required',true);
+        $('#svsDiv').hide();
+      }
+      else{
+        $('#svsDiv').show();
+        $('#snvsDiv').hide();
+        $("#alternateBases").prop('required',false);
+        $("#start").prop('required',false);
+      }
+    })
+  })
+  $(document).ready(function(){
+    $('#svsDiv').hide();
+    $("#alternateBases").prop('required',true);
+    $("#start").prop('required',true);
   });
   </script>
 
