@@ -1,12 +1,13 @@
 # -*- coding: utf-8 -*-
 import logging
-from flask import Blueprint, current_app, jsonify, request
+from flask import Blueprint, current_app, jsonify, request, render_template
+from cgbeacon2.constants import CHROMOSOMES
 from cgbeacon2.models import Beacon
 from .controllers import create_allele_query, dispatch_query
 
 API_VERSION = "1.0.0"
 LOG = logging.getLogger(__name__)
-api1_bp = Blueprint("api_v1", __name__,)
+api1_bp = Blueprint("api_v1", __name__, static_folder="static", template_folder="templates", static_url_path="/api_v1/static",)
 
 
 @api1_bp.route("/apiv1.0/", methods=["GET"])
@@ -21,10 +22,19 @@ def info():
     return resp
 
 
+@api1_bp.route("/apiv1.0/query_form", methods=["GET", "POST"])
+def query_form():
+    """The endpoint to a super simple query form to interrogate this beacon"""
+
+    all_dsets = current_app.db["dataset"].find()
+    all_dsets = [ds["_id"] for ds in all_dsets]
+
+    return render_template("queryform.html", chromosomes=CHROMOSOMES, dsets=all_dsets)
+
+
 @api1_bp.route("/apiv1.0/query", methods=["GET", "POST"])
 def query():
     """Create a query from params provided in the request and return a response with eventual results"""
-    # test query:  http://127.0.0.1:5000/apiv1.0/query?assemblyId=GRCh37&referenceName=1&start=1138913&alternateBases=T&includeDatasetResponses=true
 
     beacon_config = current_app.config.get("BEACON_OBJ")
     beacon_obj = Beacon(beacon_config, API_VERSION, current_app.db)
