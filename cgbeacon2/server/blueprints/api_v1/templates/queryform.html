@@ -6,7 +6,7 @@
     <div class="page-title">
       <p class="card-text">Learn more about the Global Alliance for Genomics and Health (GA4GH) at <a href=http://genomicsandhealth.org target=_blank>http://genomicsandhealth.org</a> as well as the Beacon Network: <a href=https://beacon-network.org/#/ target=_blank>https://beacon-network.org</a></p>
     </div>
-      <form action="/" method="post">
+      <form action="{{url_for('api_v1.query_form')}}" method="post">
         <div class="row">
           <div class="col-md-12">
             <p class="text-right d-flex align-items-center"><h4 style="color: #ef7c00;">Variant search</h4></p>
