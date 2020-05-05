@@ -23,6 +23,19 @@ def test_info(mock_app):
 ################## TESTS FOR HANDLING SNV REQUESTS ################
 
 
+def test_query_form_get(mock_app):
+    """Test the interactive query interface page"""
+
+    # When calling the endpoing with the GET method
+    response = mock_app.test_client().get("/apiv1.0/query_form")
+
+    # Should not return error
+    assert response.status_code == 200
+
+
+################## TESTS FOR HANDLING SNV REQUESTS ################
+
+
 def test_get_request_exact_position_snv_return_ALL(
     mock_app, test_snv, test_dataset_cli, test_dataset_no_variants
 ):

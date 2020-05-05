@@ -1,0 +1,165 @@
+
+{% extends "main.html" %}
+{% block body %}
+  <div class="container-fluid">
+    <br>
+    <div class="page-title">
+      <p class="card-text">Learn more about the Global Alliance for Genomics and Health (GA4GH) at <a href=http://genomicsandhealth.org target=_blank>http://genomicsandhealth.org</a> as well as the Beacon Network: <a href=https://beacon-network.org/#/ target=_blank>https://beacon-network.org</a></p>
+    </div>
+      <form action="{{url_for('api_v1.query_form')}}" method="post">
+        <div class="row">
+          <div class="col-md-12">
+            <p class="text-right d-flex align-items-center"><h4 style="color: #ef7c00;">Variant search</h4></p>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-md-2">
+            <label for="assemblyId">Genome build<span style="color: #ef7c00;">*</span></label>
+            <select class="form-control" name="assemblyId" required>
+              <option>GRCh37</option>
+              <option>GRCh38</option>
+            </select>
+          </div>
+          <div class="col-md-2">
+            <label for="referenceName">Chromosome<span style="color: #ef7c00;">*</span></label>
+            <select class="form-control" name="referenceName" required>
+              {% for chrom in chromosomes %}
+                <option>{{chrom}}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="col-md-2">
+            <label for="referenceBases">Reference bases<span style="color: #ef7c00;">*</span></label>
+            <input type="text" class="form-control" id="referenceBases" name="referenceBases" placeholder="ex: T" required>
+          </div>
+          <div class="col-md-3">
+            <label for="datasetIds">Dataset</label>
+                <select multiple class="selectpicker" name="datasetIds">
+                  {%for dset in dsets %}
+                    <option value="{{dset}}">{{ dset }}</option>
+                  {%endfor %}
+                </select>
+          </div>
+          <div class="form-check col-md-3">
+            <!-- DatasetAlleleResponse=NONE-->
+            <input class="form-check-input" type="radio" name="DatasetAlleleResponse" id="DatasetAlleleResponse" value="NONE" checked>
+            <label class="form-check-label" for="DatasetAlleleResponse">
+              General info
+            </label><br>
+            <!-- DatasetAlleleResponse=ALL-->
+            <input class="form-check-input" type="radio" name="DatasetAlleleResponse" id="DatasetAlleleResponse" value="ALL">
+            <label class="form-check-label" for="DatasetAlleleResponse">
+              All datasets
+            </label><br>
+            <!-- DatasetAlleleResponse=HIT-->
+            <input class="form-check-input" type="radio" name="DatasetAlleleResponse" id="DatasetAlleleResponse" value="HIT">
+            <label class="form-check-label" for="DatasetAlleleResponse">
+              Datasets with hits
+            </label><br>
+            <!-- DatasetAlleleResponse=MISS-->
+            <input class="form-check-input" type="radio" name="DatasetAlleleResponse" id="DatasetAlleleResponse" value="MISS">
+            <label class="form-check-label" for="DatasetAlleleResponse">
+              Datasets without hits
+            </label>
+          </div>
+        </div> <!--end of first row-->
+        <div class="row">
+          <div class="form-check col-md-2 mt-3">
+            <input type="checkbox" id="type" checked data-toggle="toggle" data-on="Single nucleotides" data-off="Structural variants" data-onstyle="light" data-offstyle="warning">
+          </div>
+          <div class="col-md-2">
+            <label for="start">Start position</label>
+            <input type="number" class="form-control" id="start" name="start" required>
+          </div>
+          <div class="col-md-2">
+            <label for="end">End position</label>
+            <input type="number" class="form-control" id="end" name="end">
+          </div>
+          <!--simple SNV search-->
+          <div id="snvsDiv" class="col-md-3">
+            <label for="alternateBases">Alternate bases</label>
+            <input type="text" class="form-control" id="alternateBases" name="alternateBases" placeholder="ex: C" required>
+          </div>
+          <div id="svsDiv" class="col-md-2">
+            <label for="variantType">Variant type</label>
+            <select class="form-control" name="variantType">
+              {% for sv in ["INS", "DEL", "DUP", "INV"] %}
+                <option>{{sv}}</option>
+              {% endfor %}
+            </select>
+          </div>
+        </div>
+        <!--Range coordinates-->
+        <div class="row mt-3" id="rangeCoords">
+          <div class="col-md-2"></div>
+          <div class="col-md-2">
+            <label for="startMin">Min start</label>
+            <input type="number" class="form-control" id="startMin" name="startMin">
+          </div>
+          <div class="col-md-2">
+            <label for="startMax">Max start</label>
+            <input type="number" class="form-control" id="startMax" name="startMax">
+          </div>
+          <div class="col-md-2">
+            <label for="endMin">Min end</label>
+            <input type="number" class="form-control" id="endMin" name="endMin">
+          </div>
+          <div class="col-md-2">
+            <label for="endMax">Max end</label>
+            <input type="number" class="form-control" id="endMax" name="endMax">
+          </div>
+        </div>
+         <br>
+        <div class="row">
+          <div class="col-md-5"></div>
+            <div class="col-md-3">
+              <button type="submit" name="query" value="submit" class="btn btn-warning">Search SciLifeLab Beacon</button>
+            </div>
+        </div>
+      </form>
+     <p>
+       <!--Results display div-->
+    {%if display_result %}
+       {% if display_result[0] %}
+         <div class="mx-auto bs-callout bs-callout-info" style="width: 800px;">
+            <h4 style="text-align:left;">{{ display_result[1] }}</h4>
+         </div>
+       {% elif display_result[1] %}
+           <div class="mx-auto bs-callout bs-callout-danger" style="width: 800px;">
+              <h4 style="text-align:left;">{{ display_result[1] }}</h4>
+           </div>
+       {% endif %}
+    {% endif %}
+  </div>
+{% endblock %}
+
+{% block scripts %}
+  {{ super() }}
+  <script>
+  $('select[multiple]').selectpicker({
+        width: '100%'
+  });
+  $(function() {
+    $('#type').change(function() {
+      if($(this).prop("checked")){
+        $('#snvsDiv').show();
+        $("#alternateBases").prop('required',true);
+        $("#start").prop('required',true);
+        $('#svsDiv').hide();
+      }
+      else{
+        $('#svsDiv').show();
+        $('#snvsDiv').hide();
+        $("#alternateBases").prop('required',false);
+        $("#start").prop('required',false);
+      }
+    })
+  })
+  $(document).ready(function(){
+    $('#svsDiv').hide();
+    $("#alternateBases").prop('required',true);
+    $("#start").prop('required',true);
+  });
+  </script>
+
+{% endblock%}
