@@ -7,7 +7,13 @@ from .controllers import create_allele_query, dispatch_query
 
 API_VERSION = "1.0.0"
 LOG = logging.getLogger(__name__)
-api1_bp = Blueprint("api_v1", __name__, static_folder="static", template_folder="templates", static_url_path="/api_v1/static",)
+api1_bp = Blueprint(
+    "api_v1",
+    __name__,
+    static_folder="static",
+    template_folder="templates",
+    static_url_path="/api_v1/static",
+)
 
 
 @api1_bp.route("/apiv1.0/", methods=["GET"])
