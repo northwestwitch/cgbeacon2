@@ -20,3 +20,4 @@
 - Fixed code for range queries and without end position, with tests
 - Added test for negative response and introduce error=None if response status code is 200 (success)
 - Added simple query interface
+- Run queries and display results on the web interface
