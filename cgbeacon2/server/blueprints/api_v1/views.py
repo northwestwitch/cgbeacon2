@@ -59,7 +59,7 @@ def query_form():
             if resp_obj["exists"] == False:
                 flash_color = "secondary"
 
-            if len(resp_obj.get("datasetAlleleResponses"), []) > 0:
+            if len(resp_obj.get("datasetAlleleResponses", [])) > 0:
                 # flash response from single datasets:
                 for resp in resp_obj["datasetAlleleResponses"]:
                     if resp["exists"] is True:
