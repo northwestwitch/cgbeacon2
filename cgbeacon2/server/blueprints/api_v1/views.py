@@ -1,6 +1,14 @@
 # -*- coding: utf-8 -*-
 import logging
-from flask import Blueprint, current_app, jsonify, request, render_template, flash, redirect
+from flask import (
+    Blueprint,
+    current_app,
+    jsonify,
+    request,
+    render_template,
+    flash,
+    redirect,
+)
 from cgbeacon2.constants import CHROMOSOMES
 from cgbeacon2.models import Beacon
 from .controllers import create_allele_query, dispatch_query
@@ -38,14 +46,18 @@ def query_form():
 
     if request.method == "POST":
         # Create database query object
+        flash(str(dict(request.form)))
+
         query = create_allele_query(resp_obj, request)
 
-        if resp_obj.get("message") is not None: # an error must have occurred
+        if resp_obj.get("message") is not None:  # an error must have occurred
             flash(resp_obj["message"]["error"], "danger")
 
-        else: # query database
+        else:  # query database
             # query database (it should return a datasetAlleleResponses object)
-            response_type = resp_obj["allelRequest"].get("includeDatasetResponses", "NONE")
+            response_type = resp_obj["allelRequest"].get(
+                "includeDatasetResponses", "NONE"
+            )
             query_datasets = resp_obj["allelRequest"].get("datasetIds", [])
             exists, ds_allele_responses = dispatch_query(
                 query, response_type, query_datasets
@@ -69,7 +81,12 @@ def query_form():
             else:
                 flash("Allele could not be found", "secondary")
 
-    return render_template("queryform.html", chromosomes=CHROMOSOMES, dsets=all_dsets, form=dict(request.form))
+    return render_template(
+        "queryform.html",
+        chromosomes=CHROMOSOMES,
+        dsets=all_dsets,
+        form=dict(request.form),
+    )
 
 
 @api1_bp.route("/apiv1.0/query", methods=["GET", "POST"])

@@ -39,7 +39,7 @@ def create_allele_query(resp_obj, req):
 
         # Remove null parameters from the query
         remove_keys = []
-        for key,value in data.items():
+        for key, value in data.items():
             if value == "":
                 remove_keys.append(key)
         for key in remove_keys:

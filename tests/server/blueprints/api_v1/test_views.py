@@ -20,20 +20,7 @@ def test_info(mock_app):
         assert data[field] is not None
 
 
-################## TESTS FOR HANDLING SNV REQUESTS ################
-
-
-def test_query_form_get(mock_app):
-    """Test the interactive query interface page"""
-
-    # When calling the endpoing with the GET method
-    response = mock_app.test_client().get("/apiv1.0/query_form")
-
-    # Should not return error
-    assert response.status_code == 200
-
-
-################## TESTS FOR HANDLING SNV REQUESTS ################
+################## TESTS FOR HANDLING GET REQUESTS ################
 
 
 def test_get_request_exact_position_snv_return_ALL(
@@ -194,7 +181,7 @@ def test_get_snv_query_variant_not_found(mock_app, test_dataset_cli):
     assert data["error"] is None
 
 
-################## TESTS FOR HANDLING SV REQUESTS ################
+################## TESTS FOR HANDLING SV GET REQUESTS ################
 
 
 def test_get_request_svs_range_coordinates(mock_app, test_sv, test_dataset_cli):
@@ -234,3 +221,164 @@ def test_get_request_svs_range_coordinates(mock_app, test_sv, test_dataset_cli):
     assert response.status_code == 200
     # And the beacon should answer exists=True (variant found)
     assert data["exists"] == True
+
+
+def test_query_form_get(mock_app):
+    """Test the interactive query interface page"""
+
+    # When calling the endpoing with the GET method
+    response = mock_app.test_client().get("/apiv1.0/query_form")
+
+    # Should not return error
+    assert response.status_code == 200
+
+
+################## TESTS FOR HANDLING POST REQUESTS ################
+
+
+def test_query_form_post_snv_exact_coords_found(mock_app, test_snv, test_dataset_cli):
+    """Test the interactive query interface, snv, exact coordinates"""
+
+    # Having a database with a variant:
+    database = mock_app.db
+    database["variant"].insert_one(test_snv)
+
+    # And a dataset
+    database["dataset"].insert_one(test_dataset_cli)
+
+    form_data = dict(
+        assemblyId=test_snv["assemblyId"],
+        referenceName=test_snv["referenceName"],
+        start=test_snv["start"],
+        referenceBases=test_snv["referenceBases"],
+        alternateBases=test_snv["alternateBases"],
+        includeDatasetResponses="ALL",
+    )
+
+    # When calling the endpoing with the POST method
+    response = mock_app.test_client().post("/apiv1.0/query_form", data=form_data)
+
+    # Endpoint should NOT return error
+    assert response.status_code == 200
+
+    # And should display exists = true, af the dataset level
+    assert "alert alert-success" in str(response.data)
+    assert "exists&#39;: True" in str(response.data)
+
+
+def test_query_form_post_snv_exact_coords_not_found(
+    mock_app, test_snv, test_dataset_cli
+):
+    """Test the interactive query interface, snv, exact coordinates, allele not found"""
+
+    # Having a database with a dataset but no variants
+    database = mock_app.db
+    database["dataset"].insert_one(test_dataset_cli)
+
+    form_data = dict(
+        assemblyId=test_snv["assemblyId"],
+        referenceName=test_snv["referenceName"],
+        start=test_snv["start"],
+        referenceBases=test_snv["referenceBases"],
+        alternateBases=test_snv["alternateBases"],
+        includeDatasetResponses="NONE",
+    )
+
+    # When calling the endpoing with the POST method
+    response = mock_app.test_client().post("/apiv1.0/query_form", data=form_data)
+
+    # Endpoint should NOT return error
+    assert response.status_code == 200
+
+    # And should display allele NOT found message
+    assert "Allele could not be found" in str(response.data)
+
+
+def test_query_form_post_SV_exact_coords_found(mock_app, test_sv, test_dataset_cli):
+    """Test the interactive query interface, sv, exact coordinates"""
+
+    # Having a database with a structural variant:
+    database = mock_app.db
+    database["variant"].insert_one(test_sv)
+
+    # And a dataset
+    database["dataset"].insert_one(test_dataset_cli)
+
+    form_data = dict(
+        assemblyId=test_sv["assemblyId"],
+        referenceName=test_sv["referenceName"],
+        start=test_sv["start"],
+        end=test_sv["end"],
+        referenceBases=test_sv["referenceBases"],
+        variantType=test_sv["variantType"],
+        includeDatasetResponses="NONE",
+    )
+
+    # When calling the endpoing with the POST method,
+    response = mock_app.test_client().post("/apiv1.0/query_form", data=form_data)
+
+    # Endpoint should NOT return error
+    assert response.status_code == 200
+
+    # And Allele found message should be displayed on the page
+    assert "Allele was found in this beacon" in str(response.data)
+
+
+def test_query_post_range_coords_SV_found(mock_app, test_sv, test_dataset_cli):
+    """Test the interactive query interface, sv, range coordinates"""
+
+    # Having a database with a structural variant:
+    database = mock_app.db
+    database["variant"].insert_one(test_sv)
+
+    # And a dataset
+    database["dataset"].insert_one(test_dataset_cli)
+
+    start_min = test_sv["start"] - 5
+    start_max = test_sv["start"] + 5
+    end_min = test_sv["end"] - 5
+    end_max = test_sv["end"] + 5
+
+    # providing range coordinates in the form data
+    form_data = dict(
+        assemblyId=test_sv["assemblyId"],
+        referenceName=test_sv["referenceName"],
+        startMin=start_min,
+        startMax=start_max,
+        endMin=end_min,
+        endMax=end_max,
+        referenceBases=test_sv["referenceBases"],
+        variantType=test_sv["variantType"],
+        includeDatasetResponses="NONE",
+    )
+
+    # When calling the endpoing with the POST method,
+    response = mock_app.test_client().post("/apiv1.0/query_form", data=form_data)
+
+    # Endpoint should NOT return error
+    assert response.status_code == 200
+
+    # And Allele found message should be displayed on the page
+    assert "Allele was found in this beacon" in str(response.data)
+
+
+def test_post_query_error(mock_app, test_snv, test_dataset_cli):
+    """Test posting a query with errors, the servers should restuen error"""
+
+    # Example, form data is missing wither alt base or variant type (one of them is mandatory)
+    form_data = dict(
+        assemblyId=test_snv["assemblyId"],
+        referenceName=test_snv["referenceName"],
+        start=test_snv["start"],
+        end=test_snv["end"],
+    )
+
+    # When calling the endpoing with the POST method,
+    response = mock_app.test_client().post("/apiv1.0/query_form", data=form_data)
+
+    # Endpoint should retun a page
+    assert response.status_code == 200
+
+    # that displays the error
+    assert "alert alert-danger" in str(response.data)
+    assert "errorCode&#39;: 400" in str(response.data)
