@@ -25,26 +25,31 @@
         </ul>
     </div>
   </nav>
-
 </header>
 
 <body>
 {% block body %}{% endblock %}
+<br>
+{% for category, message in get_flashed_messages(with_categories=True) %}
+  <div class="alert alert-{{category}}">{{ message }}</div>
+{% endfor %}
+
 <footer class="footer">
-  <div class="container">
-    <div class="row d-flex justify-content-around">
-			<div>
-				<a href="https://www.scilifelab.se" target=_blank><img src="{{url_for('api_v1.static', filename='scilifelab-logo.svg')}}" alt="SciLifeLab" height="50"></a>
-      </div>
-			<div>
-				<a href="https://elixir-europe.org/" target=_blank><img src="{{url_for('api_v1.static', filename='elixir_logo.png')}}" alt="Elixir" height="50"></a>
-			</div>
-			<div>
-				<a href="http://ki.se" target=_blank><img src="{{url_for('api_v1.static', filename='KI2.jpeg')}}" alt="Karolinska University Hospital" height="50"></a>
-			</div>
-			<div>
-				<a href="https://www.ga4gh.org/" target=_blank><img src="{{url_for('api_v1.static', filename='ga4gh.png')}}" alt="Global Alliance for Genomics and Health" height="50"></a>
-			</div>
+  <div class="row d-flex justify-content-around">
+    <div>
+      <a href="https://www.scilifelab.se" target=_blank><img src="{{url_for('api_v1.static', filename='scilifelab-logo.svg')}}" alt="SciLifeLab" height="50"></a>
+    </div>
+    <div>
+      <a href="https://elixir-europe.org/" target=_blank><img src="{{url_for('api_v1.static', filename='elixir_logo.png')}}" alt="Elixir" height="50"></a>
+    </div>
+    <div>
+      <a href="http://ki.se" target=_blank><img src="{{url_for('api_v1.static', filename='KI2.jpeg')}}" alt="Karolinska University Hospital" height="50"></a>
+    </div>
+    <div>
+      <a href="https://www.ga4gh.org/" target=_blank><img src="{{url_for('api_v1.static', filename='ga4gh.png')}}" alt="Global Alliance for Genomics and Health" height="50"></a>
+    </div>
+    <div>
+      <a href="https://beacon-network.org/#/" target=_blank><img src="{{url_for('api_v1.static', filename='beacon-network-logo-dark.svg')}}" alt="The Beacon Network" height="50"></a>
     </div>
   </div>
 </footer>

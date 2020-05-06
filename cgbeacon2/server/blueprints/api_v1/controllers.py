@@ -34,8 +34,16 @@ def create_allele_query(resp_obj, req):
         data = dict(req.args)
         customer_query["datasetIds"] = req.args.getlist("datasetIds")
     else:  # POST method
-        data = dict(req.data)
+        data = dict(req.form)
         customer_query["datasetIds"] = req.form.getlist("datasetIds")
+
+        # Remove null parameters from the query
+        remove_keys = []
+        for key, value in data.items():
+            if value == "":
+                remove_keys.append(key)
+        for key in remove_keys:
+            data.pop(key)
 
     # loop over all available query params
     for param in QUERY_PARAMS_API_V1:
