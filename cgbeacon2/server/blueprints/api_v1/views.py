@@ -37,8 +37,6 @@ def query_form():
     resp_obj = {}
 
     if request.method == "POST":
-        flash(dict(request.form))
-
         # Create database query object
         query = create_allele_query(resp_obj, request)
 
