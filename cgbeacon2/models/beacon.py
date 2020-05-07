@@ -42,8 +42,12 @@ class Beacon:
             if ds.get("samples") is not None:
                 # return number of samples for each dataset, not sample names
                 ds["sampleCount"] = len(ds.get("samples"))
-                ds.pop("samples")
-                ds.pop("authlevel")
+            ds.pop("samples", None)
+            ds["info"] = {"accessType": ds["authlevel"].upper()},
+            ds.pop("authlevel")
+            ds["id"] = ds["_id"]
+
+            ds.pop("_id")
         return datasets
 
     def _datasets_by_access_level(self, database):

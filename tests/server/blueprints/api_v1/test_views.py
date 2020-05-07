@@ -6,18 +6,36 @@ COORDS_ARGS = "start=235826381&end=235826383"
 ALT_ARG = "alternateBases=T"
 
 
-def test_info(mock_app):
-    """Test the endpoint that returns the beacon info"""
+def test_beacon_entrypoint(mock_app, registered_dataset):
+    """Test the endpoint that returns the beacon info, when there is one dataset in database"""
 
-    # When calling the endpoing with the GET method
-    response = mock_app.test_client().get("/apiv1.0/")
-    assert response.status_code == 200
+    # Having a database containing a public dataset
+    database = mock_app.db
+    database["dataset"].insert_one(registered_dataset)
 
-    # The returned data should contain all the mandatory fields
-    data = json.loads(response.data)
-    fields = ["id", "name", "apiVersion", "organisation", "datasets"]
-    for field in fields:
-        assert data[field] is not None
+    with mock_app.test_client() as client:
+
+        # When calling the endpoing with the GET method
+        response = client.get("/apiv1.0/")
+        assert response.status_code == 200
+
+        # The returned data should contain all the expected fields
+        data = json.loads(response.data)
+        fields = ["id", "name", "apiVersion", "organisation", "datasets"]
+        for field in fields:
+            assert data[field] is not None
+
+        # including the dataset info
+        assert data["datasets"][0]["id"]
+
+
+
+
+
+
+
+
+
 
 
 ################## TESTS FOR HANDLING GET REQUESTS ################
