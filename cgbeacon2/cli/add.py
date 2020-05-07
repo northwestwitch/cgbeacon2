@@ -80,6 +80,8 @@ def dataset(id, name, build, authlevel, desc, version, url, cc, info, update):
     else:
         dataset_obj["created"] = datetime.datetime.now()
 
+    dataset_obj["authlevel"] = authlevel
+
     if desc is not None:
         dataset_obj["description"] = desc
 

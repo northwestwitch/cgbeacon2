@@ -110,6 +110,7 @@ def test_add_dataset_complete(public_dataset, mock_app, database):
     assert new_dataset["_id"] == dataset["_id"]
     assert new_dataset["name"] == dataset["name"]
     assert new_dataset["assembly_id"] == dataset["assembly_id"]
+    assert new_dataset["authlevel"] == dataset["authlevel"]
     assert new_dataset["description"] == dataset["description"]
     assert new_dataset["version"] == dataset["version"]
     assert new_dataset["external_url"] == dataset["url"]
