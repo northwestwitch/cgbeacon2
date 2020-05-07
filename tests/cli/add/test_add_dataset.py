@@ -90,13 +90,7 @@ def test_add_dataset_complete(public_dataset, mock_app, database):
             "-url",
             dataset["url"],
             "-cc",
-            dataset["consent_code"],
-            "-info",
-            "FOO",
-            "7",
-            "-info",
-            "BAR",
-            "XYZ",
+            dataset["consent_code"]
         ],
     )
 
@@ -114,8 +108,6 @@ def test_add_dataset_complete(public_dataset, mock_app, database):
     assert new_dataset["description"] == dataset["description"]
     assert new_dataset["version"] == dataset["version"]
     assert new_dataset["external_url"] == dataset["url"]
-    assert new_dataset["info"]["FOO"] == "7"
-    assert new_dataset["info"]["BAR"] == "XYZ"
     assert new_dataset["consent_code"] == dataset["consent_code"]
     assert new_dataset["created"]
 
@@ -150,12 +142,6 @@ def test_add_dataset_wrong_consent(public_dataset, mock_app, database):
             dataset["url"],
             "-cc",
             "MEH",  # Non valid consent code
-            "-info",
-            "FOO",
-            "7",
-            "-info",
-            "BAR",
-            "XYZ",
         ],
     )
 
@@ -202,13 +188,7 @@ def test_update_non_existent_dataset(public_dataset, mock_app, database):
             dataset["url"],
             "-cc",
             dataset["consent_code"],
-            "-info",
-            "FOO",
-            "7",
-            "-info",
-            "BAR",
-            "XYZ",
-            "--update",
+            "--update"
         ],
     )
     # Then the command should print error
@@ -251,13 +231,7 @@ def test_update_dataset(public_dataset, mock_app, database):
             dataset["url"],
             "-cc",
             dataset["consent_code"],
-            "-info",
-            "FOO",
-            "7",
-            "-info",
-            "BAR",
-            "XYZ",
-            "--update",
+            "--update"
         ],
     )
 
