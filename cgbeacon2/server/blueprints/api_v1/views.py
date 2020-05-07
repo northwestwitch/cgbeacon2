@@ -29,9 +29,9 @@ def info():
     """Returns Beacon info data as a json object"""
 
     beacon_config = current_app.config.get("BEACON_OBJ")
-    beacon_obj = Beacon(beacon_config, API_VERSION, current_app.db)
+    beacon = Beacon(beacon_config, API_VERSION, current_app.db)
 
-    resp = jsonify(beacon_obj.__dict__)
+    resp = jsonify(beacon.introduce())
     resp.status_code = 200
     return resp
 
