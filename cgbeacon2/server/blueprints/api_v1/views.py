@@ -9,7 +9,7 @@ from flask import (
     flash,
     redirect,
 )
-from flask_negotiate import produces, consumes
+from flask_negotiate import produces
 from cgbeacon2.constants import CHROMOSOMES
 from cgbeacon2.models import Beacon
 from .controllers import create_allele_query, dispatch_query

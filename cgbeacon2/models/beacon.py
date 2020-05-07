@@ -1,8 +1,5 @@
 # -*- coding: utf-8 -*-
 from cgbeacon2 import __version__
-import logging
-
-LOG = logging.getLogger(__name__)
 
 
 class Beacon:
