@@ -90,7 +90,7 @@ def test_add_dataset_complete(public_dataset, mock_app, database):
             "-url",
             dataset["url"],
             "-cc",
-            dataset["consent_code"]
+            dataset["consent_code"],
         ],
     )
 
@@ -188,7 +188,7 @@ def test_update_non_existent_dataset(public_dataset, mock_app, database):
             dataset["url"],
             "-cc",
             dataset["consent_code"],
-            "--update"
+            "--update",
         ],
     )
     # Then the command should print error
@@ -231,7 +231,7 @@ def test_update_dataset(public_dataset, mock_app, database):
             dataset["url"],
             "-cc",
             dataset["consent_code"],
-            "--update"
+            "--update",
         ],
     )
 

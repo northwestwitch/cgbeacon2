@@ -1,5 +1,8 @@
 # -*- coding: utf-8 -*-
 from cgbeacon2 import __version__
+import logging
+
+LOG = logging.getLogger(__name__)
 
 
 class Beacon:
@@ -11,7 +14,6 @@ class Beacon:
         self.createDateTime = conf_obj.get("created")
         self.description = conf_obj.get("description")
         self.id = conf_obj.get("id")
-        self.info = conf_obj.get("info")
         self.name = conf_obj.get("name")
         self.organisation = conf_obj.get("organisation")
         self.sampleAlleleRequests = self._sample_allele_requests()
@@ -43,11 +45,11 @@ class Beacon:
                 # return number of samples for each dataset, not sample names
                 ds["sampleCount"] = len(ds.get("samples"))
             ds.pop("samples", None)
-            ds["info"] = {"accessType": ds["authlevel"].upper()},
+            ds["info"] = {"accessType": ds["authlevel"].upper()}
             ds.pop("authlevel")
             ds["id"] = ds["_id"]
-
             ds.pop("_id")
+
         return datasets
 
     def _datasets_by_access_level(self, database):
