@@ -10,8 +10,9 @@ from cgbeacon2.constants import (
     BUILD_MISMATCH,
 )
 
-BASE_ARGS = "query?assemblyId=GRCh37&referenceName=1&referenceBases=TA"
+HEADERS = {"Content-type": "application/json", "Accept": "application/json"}
 
+BASE_ARGS = "query?assemblyId=GRCh37&referenceName=1&referenceBases=TA"
 ################## TESTS FOR HANDLING WRONG REQUESTS ################
 
 
@@ -21,7 +22,7 @@ def test_query_get_request_missing_mandatory_params(mock_app):
     """
 
     # When a request missing one or more required params is sent to the server
-    response = mock_app.test_client().get("/apiv1.0/query?")
+    response = mock_app.test_client().get("/apiv1.0/query?", headers=HEADERS)
 
     # Then it should return error
     assert response.status_code == 400
@@ -43,7 +44,9 @@ def test_query_get_request_build_mismatch(mock_app, public_dataset):
 
     # When a request with genome build GRCh37 and detasetIds with genome build GRCh38 is sent to the server:
     query_string = "&".join([BASE_ARGS, f"datasetIds={public_dataset['_id']}"])
-    response = mock_app.test_client().get("".join(["/apiv1.0/", query_string]))
+    response = mock_app.test_client().get(
+        "".join(["/apiv1.0/", query_string]), headers=HEADERS
+    )
 
     # Then it should return error
     assert response.status_code == 400
@@ -57,7 +60,9 @@ def test_query_get_request_missing_secondary_params(mock_app):
     """
     # When a request missing alternateBases or variantType params is sent to the server
     query_string = BASE_ARGS
-    response = mock_app.test_client().get("".join(["/apiv1.0/", query_string]))
+    response = mock_app.test_client().get(
+        "".join(["/apiv1.0/", query_string]), headers=HEADERS
+    )
 
     # Then it should return error
     assert response.status_code == 400
@@ -70,7 +75,9 @@ def test_query_get_request_non_numerical_sv_coordinates(mock_app):
 
     query_string = "&".join([BASE_ARGS, "start=FOO&end=70600&variantType=DUP"])
     # When a request has a non-numerical start or stop position
-    response = mock_app.test_client().get("".join(["/apiv1.0/", query_string]))
+    response = mock_app.test_client().get(
+        "".join(["/apiv1.0/", query_string]), headers=HEADERS
+    )
     data = json.loads(response.data)
     # Then it should return error
     assert response.status_code == 400
@@ -84,7 +91,9 @@ def test_query_get_request_missing_sv_coordinate(mock_app):
     """
     query_string = "&".join([BASE_ARGS, "start=4&variantType=DUP"])
     # When a request for SV variants is missing stop position parameter
-    response = mock_app.test_client().get("".join(["/apiv1.0/", query_string]))
+    response = mock_app.test_client().get(
+        "".join(["/apiv1.0/", query_string]), headers=HEADERS
+    )
     data = json.loads(response.data)
     # Then it should return error
     assert response.status_code == 400
@@ -100,7 +109,9 @@ def test_query_get_request_missing_positions_params(mock_app):
     query_string = "&".join(
         [BASE_ARGS, "alternateBases=T&startMin=2&startMax=6&endMin=4"]
     )
-    response = mock_app.test_client().get("".join(["/apiv1.0/", query_string]))
+    response = mock_app.test_client().get(
+        "".join(["/apiv1.0/", query_string]), headers=HEADERS
+    )
     data = json.loads(response.data)
     # Then it should return error
     assert response.status_code == 400
@@ -114,7 +125,9 @@ def test_query_get_request_non_increasing_sv_coordinates(mock_app):
     query_string = "&".join([BASE_ARGS, range_coords])
 
     # When a request for range coordinates doesn't contain ordered coordinates
-    response = mock_app.test_client().get("".join(["/apiv1.0/", query_string]))
+    response = mock_app.test_client().get(
+        "".join(["/apiv1.0/", query_string]), headers=HEADERS
+    )
     data = json.loads(response.data)
     # Then it should return error
     assert response.status_code == 400
@@ -128,7 +141,9 @@ def test_query_get_request_non_numerical_range_coordinates(mock_app):
     query_string = "&".join([BASE_ARGS, range_coords])
 
     # When a request for range coordinates doesn't contain integers
-    response = mock_app.test_client().get("".join(["/apiv1.0/", query_string]))
+    response = mock_app.test_client().get(
+        "".join(["/apiv1.0/", query_string]), headers=HEADERS
+    )
     data = json.loads(response.data)
     # Then it should return error
     assert response.status_code == 400

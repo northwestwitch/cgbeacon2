@@ -3,7 +3,7 @@
 from cgbeacon2.models import Beacon
 
 
-def test_beacon_model_no_db_connection(mock_app):
+def test_beacon_model_no_db_connection(mock_app, public_dataset):
     """Test creating a beacon using the Beacon class with no database connection"""
 
     config_options = mock_app.config.get("BEACON_OBJ")

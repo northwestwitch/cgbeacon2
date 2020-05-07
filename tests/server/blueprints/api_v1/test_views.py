@@ -1,23 +1,36 @@
 # -*- coding: utf-8 -*-
 import json
 
+HEADERS = {"Content-type": "application/json", "Accept": "application/json"}
+
+
 BASE_ARGS = "query?assemblyId=GRCh37&referenceName=1&referenceBases=TA"
 COORDS_ARGS = "start=235826381&end=235826383"
 ALT_ARG = "alternateBases=T"
 
 
-def test_info(mock_app):
-    """Test the endpoint that returns the beacon info"""
+def test_beacon_entrypoint(mock_app, registered_dataset):
+    """Test the endpoint that returns the beacon info, when there is one dataset in database"""
 
-    # When calling the endpoing with the GET method
-    response = mock_app.test_client().get("/apiv1.0/")
-    assert response.status_code == 200
+    # Having a database containing a public dataset
+    database = mock_app.db
+    database["dataset"].insert_one(registered_dataset)
 
-    # The returned data should contain all the mandatory fields
-    data = json.loads(response.data)
-    fields = ["id", "name", "apiVersion", "organisation", "datasets"]
-    for field in fields:
-        assert data[field] is not None
+    with mock_app.test_client() as client:
+
+        # When calling the endpoing with the GET method
+        response = client.get("/apiv1.0/", headers=HEADERS)
+        assert response.status_code == 200
+
+        # The returned data should contain all the expected fields
+        data = json.loads(response.data)
+        fields = ["id", "name", "apiVersion", "organisation", "datasets"]
+        for field in fields:
+            assert data[field] is not None
+
+        # including the dataset info
+        assert data["datasets"][0]["id"]
+        assert data["datasets"][0]["info"]["accessType"] == "REGISTERED"
 
 
 ################## TESTS FOR HANDLING GET REQUESTS ################
@@ -41,7 +54,9 @@ def test_get_request_exact_position_snv_return_ALL(
     ds_reponse_type = "includeDatasetResponses=ALL"
     query_string = "&".join([BASE_ARGS, COORDS_ARGS, ALT_ARG, ds_reponse_type])
 
-    response = mock_app.test_client().get("".join(["/apiv1.0/", query_string]))
+    response = mock_app.test_client().get(
+        "".join(["/apiv1.0/", query_string]), headers=HEADERS
+    )
     data = json.loads(response.data)
 
     # No error should be returned
@@ -83,7 +98,9 @@ def test_get_request_exact_position_snv_return_HIT(
     ds_reponse_type = "includeDatasetResponses=HIT"
     query_string = "&".join([BASE_ARGS, COORDS_ARGS, ALT_ARG, ds_reponse_type])
 
-    response = mock_app.test_client().get("".join(["/apiv1.0/", query_string]))
+    response = mock_app.test_client().get(
+        "".join(["/apiv1.0/", query_string]), headers=HEADERS
+    )
     data = json.loads(response.data)
 
     # No error should be returned
@@ -114,7 +131,9 @@ def test_get_request_exact_position_snv_return_MISS(
     ds_reponse_type = "includeDatasetResponses=MISS"
     query_string = "&".join([BASE_ARGS, COORDS_ARGS, ALT_ARG, ds_reponse_type])
 
-    response = mock_app.test_client().get("".join(["/apiv1.0/", query_string]))
+    response = mock_app.test_client().get(
+        "".join(["/apiv1.0/", query_string]), headers=HEADERS
+    )
     data = json.loads(response.data)
 
     # No error should be returned
@@ -142,7 +161,9 @@ def test_get_request_snv_return_NONE(mock_app, test_snv, public_dataset):
 
     # when providing the required parameters in a SNV query with includeDatasetResponses=NONE (or omitting the param)
     query_string = "&".join([BASE_ARGS, "start=235826381", ALT_ARG])
-    response = mock_app.test_client().get("".join(["/apiv1.0/", query_string]))
+    response = mock_app.test_client().get(
+        "".join(["/apiv1.0/", query_string]), headers=HEADERS
+    )
     data = json.loads(response.data)
 
     # No error should be returned
@@ -163,7 +184,9 @@ def test_get_snv_query_variant_not_found(mock_app, public_dataset):
 
     # when querying for a variant
     query_string = "&".join([BASE_ARGS, "start=235826381", ALT_ARG])
-    response = mock_app.test_client().get("".join(["/apiv1.0/", query_string]))
+    response = mock_app.test_client().get(
+        "".join(["/apiv1.0/", query_string]), headers=HEADERS
+    )
     data = json.loads(response.data)
 
     # No error should be returned
@@ -214,7 +237,9 @@ def test_get_request_svs_range_coordinates(mock_app, test_sv, public_dataset):
 
     query_string = "&".join([base_sv_coords, range_coords, type])
 
-    response = mock_app.test_client().get("".join(["/apiv1.0/", query_string]))
+    response = mock_app.test_client().get(
+        "".join(["/apiv1.0/", query_string]), headers=HEADERS
+    )
 
     data = json.loads(response.data)
     # No error should be returned
@@ -233,7 +258,62 @@ def test_query_form_get(mock_app):
     assert response.status_code == 200
 
 
-################## TESTS FOR HANDLING POST REQUESTS ################
+################## TESTS FOR HANDLING JSON POST REQUESTS ################
+
+
+def test_post_query(mock_app, test_snv, public_dataset):
+    """Test receiving classical POST json request and returning a response
+        curl -X POST \
+        localhost:5000/apiv1.0/query \
+        -H 'Content-Type: application/json' \
+        -d '{"referenceName": "1",
+        "start": 156146085,
+        "referenceBases": "C",
+        "alternateBases": "A",
+        "assemblyId": "GRCh37",
+        "includeDatasetResponses": "HIT"}'
+    """
+
+    # Having a database with a variant:
+    database = mock_app.db
+    database["variant"].insert_one(test_snv)
+
+    # And a dataset
+    database["dataset"].insert_one(public_dataset)
+
+    data = json.dumps(
+        {
+            "referenceName": test_snv["referenceName"],
+            "start": test_snv["start"],
+            "referenceBases": test_snv["referenceBases"],
+            "alternateBases": test_snv["alternateBases"],
+            "assemblyId": test_snv["assemblyId"],
+            "datasetIds": [public_dataset["_id"]],
+            "includeDatasetResponses": "HIT",
+        }
+    )
+
+    # When calling the endpoing with the POST method
+    response = mock_app.test_client().post("/apiv1.0/query", data=data, headers=HEADERS)
+
+    # Should not return error
+    assert response.status_code == 200
+    resp_data = json.loads(response.data)
+
+    # And all the expected fields should be present in the response
+    assert resp_data["allelRequest"]["referenceName"] == test_snv["referenceName"]
+    assert resp_data["allelRequest"]["start"] == test_snv["start"]
+    assert resp_data["allelRequest"]["referenceBases"] == test_snv["referenceBases"]
+    assert resp_data["allelRequest"]["alternateBases"] == test_snv["alternateBases"]
+    assert resp_data["allelRequest"]["assemblyId"] == test_snv["assemblyId"]
+    assert resp_data["allelRequest"]["includeDatasetResponses"] == "HIT"
+
+    # Including the hit result
+    assert resp_data["datasetAlleleResponses"][0]["datasetId"] == public_dataset["_id"]
+    assert resp_data["datasetAlleleResponses"][0]["exists"] == True
+
+
+################### TESTS FOR HANDLING POST REQUESTS FROM THE WEB INTERFACE ################
 
 
 def test_query_form_post_snv_exact_coords_found(mock_app, test_snv, public_dataset):
