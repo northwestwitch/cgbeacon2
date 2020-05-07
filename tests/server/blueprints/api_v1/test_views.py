@@ -24,7 +24,7 @@ def test_info(mock_app):
 
 
 def test_get_request_exact_position_snv_return_ALL(
-    mock_app, test_snv, public_dataset, test_dataset_no_variants
+    mock_app, test_snv, public_dataset, public_dataset_no_variants
 ):
     """Test the query endpoint by sending a GET request. Search for SNVs, exact position, return responses from ALL datasets"""
 
@@ -34,7 +34,7 @@ def test_get_request_exact_position_snv_return_ALL(
 
     # And 2 datasets
     public_dataset["samples"] = ["ADM1059A1"]
-    for ds in [public_dataset, test_dataset_no_variants]:
+    for ds in [public_dataset, public_dataset_no_variants]:
         database["dataset"].insert_one(ds)
 
     # when providing the required parameters in a SNV query for exact positions
@@ -66,7 +66,7 @@ def test_get_request_exact_position_snv_return_ALL(
 
 
 def test_get_request_exact_position_snv_return_HIT(
-    mock_app, test_snv, public_dataset, test_dataset_no_variants
+    mock_app, test_snv, public_dataset, public_dataset_no_variants
 ):
     """Test the query endpoint by sending a GET request. Search for SNVs, exact position, return only responses from dataset with variant (HIT)"""
 
@@ -76,7 +76,7 @@ def test_get_request_exact_position_snv_return_HIT(
 
     # And 2 datasets
     public_dataset["samples"] = ["ADM1059A1"]
-    for ds in [public_dataset, test_dataset_no_variants]:
+    for ds in [public_dataset, public_dataset_no_variants]:
         database["dataset"].insert_one(ds)
 
     # when providing the required parameters in a SNV query for exact positions
@@ -97,7 +97,7 @@ def test_get_request_exact_position_snv_return_HIT(
 
 
 def test_get_request_exact_position_snv_return_MISS(
-    mock_app, test_snv, public_dataset, test_dataset_no_variants
+    mock_app, test_snv, public_dataset, public_dataset_no_variants
 ):
     """Test the query endpoint by sending a GET request. Search for SNVs, exact position, return only responses from dataset with no hits (MISS)"""
 
@@ -107,7 +107,7 @@ def test_get_request_exact_position_snv_return_MISS(
 
     # And 2 datasets
     public_dataset["samples"] = ["ADM1059A1"]
-    for ds in [public_dataset, test_dataset_no_variants]:
+    for ds in [public_dataset, public_dataset_no_variants]:
         database["dataset"].insert_one(ds)
 
     # when providing the required parameters in a SNV query for exact positions
@@ -125,7 +125,7 @@ def test_get_request_exact_position_snv_return_MISS(
     assert len(data["datasetAlleleResponses"]) == 1
     assert (
         data["datasetAlleleResponses"][0]["datasetId"]
-        == test_dataset_no_variants["_id"]
+        == public_dataset_no_variants["_id"]
     )
     assert data["datasetAlleleResponses"][0]["exists"] == False
 
