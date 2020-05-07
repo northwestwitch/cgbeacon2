@@ -7,6 +7,7 @@ progress
 
 # server
 flask
+flask_negotiate
 
 # utils
 cyvcf2

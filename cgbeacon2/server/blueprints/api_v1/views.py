@@ -9,6 +9,7 @@ from flask import (
     flash,
     redirect,
 )
+from flask_negotiate import produces, consumes
 from cgbeacon2.constants import CHROMOSOMES
 from cgbeacon2.models import Beacon
 from .controllers import create_allele_query, dispatch_query
@@ -25,6 +26,7 @@ api1_bp = Blueprint(
 
 
 @api1_bp.route("/apiv1.0/", methods=["GET"])
+@produces("application/json")
 def info():
     """Returns Beacon info data as a json object"""
 
@@ -38,7 +40,9 @@ def info():
 
 @api1_bp.route("/apiv1.0/query_form", methods=["GET", "POST"])
 def query_form():
-    """The endpoint to a super simple query form to interrogate this beacon"""
+    """The endpoint to a super simple query form to interrogate this beacon
+       Query is performed only on public access datasets contained in this beacon
+    """
 
     all_dsets = current_app.db["dataset"].find()
     all_dsets = [ds["_id"] for ds in all_dsets]
@@ -88,6 +92,7 @@ def query_form():
 
 
 @api1_bp.route("/apiv1.0/query", methods=["GET", "POST"])
+@produces("application/json")
 def query():
     """Create a query from params provided in the request and return a response with eventual results"""
 

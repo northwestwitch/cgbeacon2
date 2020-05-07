@@ -22,3 +22,4 @@
 - Added simple query interface
 - Run queries and display results on the web interface
 - Add 3 level of authentication when creating datasets and fix tests accordingly
+- Important request/response syntax fixes

@@ -29,13 +29,18 @@ def create_allele_query(resp_obj, req):
     customer_query = {}
     mongo_query = {}
     exists = False
+    data = None
 
-    if request.method == "GET":
+    if req.method == "GET":
         data = dict(req.args)
         customer_query["datasetIds"] = req.args.getlist("datasetIds")
     else:  # POST method
-        data = dict(req.form)
-        customer_query["datasetIds"] = req.form.getlist("datasetIds")
+        if req.headers["Content-type"] == "application/json":
+            data = req.get_json(force=True, cache=False)
+            customer_query["datasetIds"] = data.get("datasetIds")
+        else:
+            data = dict(req.form)
+            customer_query["datasetIds"] = req.form.getlist("datasetIds")
 
         # Remove null parameters from the query
         remove_keys = []
@@ -160,8 +165,8 @@ def check_allele_request(resp_obj, customer_query, mongo_query):
                     )
                     return
             else:
-                mongo_query["end"] = {"$lte": int(customer_query["end"])}
-            mongo_query["start"] = {"$gte": int(customer_query["start"])}
+                mongo_query["end"] = int(customer_query["end"])
+            mongo_query["start"] = int(customer_query["start"])
         except ValueError:
             # return a bad request 400 error with explanation message
             resp_obj["message"] = dict(
