@@ -266,9 +266,7 @@ def test_query_form_post_snv_exact_coords_found(mock_app, test_snv, public_datas
     assert "exists&#39;: True" in str(response.data)
 
 
-def test_query_form_post_snv_exact_coords_not_found(
-    mock_app, test_snv, public_dataset
-):
+def test_query_form_post_snv_exact_coords_not_found(mock_app, test_snv, public_dataset):
     """Test the interactive query interface, snv, exact coordinates, allele not found"""
 
     # Having a database with a dataset but no variants

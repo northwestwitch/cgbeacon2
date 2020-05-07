@@ -28,8 +28,12 @@ def add():
     help="Genome assembly",
     default="GRCh37",
 )
-@click.option('-authlevel',
-              type=click.Choice(['public', 'registered', 'controlled'], case_sensitive=False), help='the access level of this dataset', required=True)
+@click.option(
+    "-authlevel",
+    type=click.Choice(["public", "registered", "controlled"], case_sensitive=False),
+    help="the access level of this dataset",
+    required=True,
+)
 @click.option(
     "-desc", type=click.STRING, nargs=1, required=False, help="dataset description"
 )

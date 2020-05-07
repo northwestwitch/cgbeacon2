@@ -30,7 +30,17 @@ def test_delete_existing_dataset(public_dataset, mock_app, database):
 
     # When a dataset is inserted into database
     result = runner.invoke(
-        cli, ["add", "dataset", "-id", dataset["_id"], "-name", dataset["name"], "-authlevel", dataset["authlevel"]]
+        cli,
+        [
+            "add",
+            "dataset",
+            "-id",
+            dataset["_id"],
+            "-name",
+            dataset["name"],
+            "-authlevel",
+            dataset["authlevel"],
+        ],
     )
 
     new_dataset = database["dataset"].find_one()

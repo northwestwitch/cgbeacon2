@@ -46,8 +46,6 @@ def query_form():
 
     if request.method == "POST":
         # Create database query object
-        flash(str(dict(request.form)))
-
         query = create_allele_query(resp_obj, request)
 
         if resp_obj.get("message") is not None:  # an error must have occurred

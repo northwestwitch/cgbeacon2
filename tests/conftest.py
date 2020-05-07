@@ -126,7 +126,7 @@ def public_dataset_no_variants():
         _id="dataset2",
         name="Test dataset 2",
         assembly_id="GRCh37",
-        authlevel = "public",
+        authlevel="public",
         description="Test dataset 2 description",
         version=1.0,
         url="external_url2.url",

@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from cgbeacon2 import __version__
 
+
 class Beacon:
     """Represents a general beacon object"""
 
@@ -26,7 +27,6 @@ class Beacon:
         beacon_obj.pop("datasets_by_auth_level")
         return beacon_obj
 
-
     def _datasets(self, database):
         """Retrieve all datasets associated to this Beacon
 
@@ -46,7 +46,6 @@ class Beacon:
                 ds.pop("authlevel")
         return datasets
 
-
     def _datasets_by_access_level(self, database):
         """Retrieve all datasets associated to this Beacon, by access level
 
@@ -55,11 +54,7 @@ class Beacon:
         Returns:
             datasets_by_level(dict): the keys are "public", "registered", "controlled"
         """
-        datasets_by_level = dict(
-            public={},
-            registered={},
-            controlled={}
-        )
+        datasets_by_level = dict(public={}, registered={}, controlled={})
 
         if database is None:
             return datasets_by_level
@@ -70,7 +65,6 @@ class Beacon:
             datasets_by_level[ds["authlevel"]][ds["_id"]] = ds
 
         return datasets_by_level
-
 
     def _sample_allele_requests(self):
         """Returns a list of example allele requests"""
