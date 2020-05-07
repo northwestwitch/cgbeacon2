@@ -18,6 +18,7 @@ class Beacon:
         self.version = f"v{__version__}"
         self.welcomeUrl = conf_obj.get("welcome_url")
         self.datasets = self._datasets(database)
+        self.datasets_by_auth_level = self._datasets_by_access_level(database)
 
     def _datasets(self, database):
         """Retrieve all datasets associated to this Beacon
@@ -36,6 +37,24 @@ class Beacon:
                 ds["sampleCount"] = len(ds.get("samples"))
                 ds.pop("samples")
         return datasets
+
+
+    def _datasets_by_access_level(self, database):
+        """Retrieve all datasets associated to this Beacon, by access level
+
+        Accepts:
+            database(pymongo.database.Database)
+        Returns:
+            public_datasets(list), registered_datasets(list), controlled_datasets(list)
+        """
+        public_datasets = []
+        registered_datasets = []
+        controlled_datasets = []
+
+        if database is None:
+            return public_datasets, registered_datasets, controlled_datasets
+
+
 
     def _sample_allele_requests(self):
         """Return some example allele requests"""

@@ -28,6 +28,8 @@ def add():
     help="Genome assembly",
     default="GRCh37",
 )
+@click.option('-authlevel',
+              type=click.Choice(['public', 'registered', 'controlled'], case_sensitive=False), help='the access level of this dataset', required=True)
 @click.option(
     "-desc", type=click.STRING, nargs=1, required=False, help="dataset description"
 )
@@ -51,14 +53,15 @@ def add():
 )
 @click.option("--update", is_flag=True)
 @with_appcontext
-def dataset(id, name, build, desc, version, url, cc, info, update):
+def dataset(id, name, build, authlevel, desc, version, url, cc, info, update):
     """Creates a dataset object in the database or updates a pre-existing one
 
     Accepts:
         id(str): dataset unique ID (mandatory)
         name(str): dataset name (mandatory)
-        build(str): Assembly identifier, GRCh37, GRCh38 (mandatory)
-        description(str): description
+        build(str): assembly identifier, GRCh37, GRCh38 (mandatory)
+        authlevel(str): authorization level to query this dataset: 'public', 'registered' or 'controlled'
+        desc(str): description
         version(str): version
         url(): URL to an external system providing more dataset information (RFC 3986 format).
         cc(str): https://journals.plos.org/plosgenetics/article?id=10.1371/journal.pgen.1005772

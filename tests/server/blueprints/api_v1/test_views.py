@@ -24,7 +24,7 @@ def test_info(mock_app):
 
 
 def test_get_request_exact_position_snv_return_ALL(
-    mock_app, test_snv, test_dataset_cli, test_dataset_no_variants
+    mock_app, test_snv, public_dataset, test_dataset_no_variants
 ):
     """Test the query endpoint by sending a GET request. Search for SNVs, exact position, return responses from ALL datasets"""
 
@@ -33,8 +33,8 @@ def test_get_request_exact_position_snv_return_ALL(
     database["variant"].insert_one(test_snv)
 
     # And 2 datasets
-    test_dataset_cli["samples"] = ["ADM1059A1"]
-    for ds in [test_dataset_cli, test_dataset_no_variants]:
+    public_dataset["samples"] = ["ADM1059A1"]
+    for ds in [public_dataset, test_dataset_no_variants]:
         database["dataset"].insert_one(ds)
 
     # when providing the required parameters in a SNV query for exact positions
@@ -66,7 +66,7 @@ def test_get_request_exact_position_snv_return_ALL(
 
 
 def test_get_request_exact_position_snv_return_HIT(
-    mock_app, test_snv, test_dataset_cli, test_dataset_no_variants
+    mock_app, test_snv, public_dataset, test_dataset_no_variants
 ):
     """Test the query endpoint by sending a GET request. Search for SNVs, exact position, return only responses from dataset with variant (HIT)"""
 
@@ -75,8 +75,8 @@ def test_get_request_exact_position_snv_return_HIT(
     database["variant"].insert_one(test_snv)
 
     # And 2 datasets
-    test_dataset_cli["samples"] = ["ADM1059A1"]
-    for ds in [test_dataset_cli, test_dataset_no_variants]:
+    public_dataset["samples"] = ["ADM1059A1"]
+    for ds in [public_dataset, test_dataset_no_variants]:
         database["dataset"].insert_one(ds)
 
     # when providing the required parameters in a SNV query for exact positions
@@ -92,12 +92,12 @@ def test_get_request_exact_position_snv_return_HIT(
 
     # And only the dataset with hits should be returned
     assert len(data["datasetAlleleResponses"]) == 1
-    assert data["datasetAlleleResponses"][0]["datasetId"] == test_dataset_cli["_id"]
+    assert data["datasetAlleleResponses"][0]["datasetId"] == public_dataset["_id"]
     assert data["datasetAlleleResponses"][0]["exists"] == True
 
 
 def test_get_request_exact_position_snv_return_MISS(
-    mock_app, test_snv, test_dataset_cli, test_dataset_no_variants
+    mock_app, test_snv, public_dataset, test_dataset_no_variants
 ):
     """Test the query endpoint by sending a GET request. Search for SNVs, exact position, return only responses from dataset with no hits (MISS)"""
 
@@ -106,8 +106,8 @@ def test_get_request_exact_position_snv_return_MISS(
     database["variant"].insert_one(test_snv)
 
     # And 2 datasets
-    test_dataset_cli["samples"] = ["ADM1059A1"]
-    for ds in [test_dataset_cli, test_dataset_no_variants]:
+    public_dataset["samples"] = ["ADM1059A1"]
+    for ds in [public_dataset, test_dataset_no_variants]:
         database["dataset"].insert_one(ds)
 
     # when providing the required parameters in a SNV query for exact positions
@@ -130,7 +130,7 @@ def test_get_request_exact_position_snv_return_MISS(
     assert data["datasetAlleleResponses"][0]["exists"] == False
 
 
-def test_get_request_snv_return_NONE(mock_app, test_snv, test_dataset_cli):
+def test_get_request_snv_return_NONE(mock_app, test_snv, public_dataset):
     """Test the query endpoint by sending a GET request. Search for SNVs, includeDatasetResponses=None"""
 
     # Having a database with a variant:
@@ -138,7 +138,7 @@ def test_get_request_snv_return_NONE(mock_app, test_snv, test_dataset_cli):
     database["variant"].insert_one(test_snv)
 
     # And a dataset
-    database["dataset"].insert_one(test_dataset_cli)
+    database["dataset"].insert_one(public_dataset)
 
     # when providing the required parameters in a SNV query with includeDatasetResponses=NONE (or omitting the param)
     query_string = "&".join([BASE_ARGS, "start=235826381", ALT_ARG])
@@ -154,12 +154,12 @@ def test_get_request_snv_return_NONE(mock_app, test_snv, test_dataset_cli):
     assert data["exists"] is True
 
 
-def test_get_snv_query_variant_not_found(mock_app, test_dataset_cli):
+def test_get_snv_query_variant_not_found(mock_app, public_dataset):
     """Test a query that should return variant not found (exists=False)"""
 
     # Having a database with a dataset but no variant:
     database = mock_app.db
-    database["dataset"].insert_one(test_dataset_cli)
+    database["dataset"].insert_one(public_dataset)
 
     # when querying for a variant
     query_string = "&".join([BASE_ARGS, "start=235826381", ALT_ARG])
@@ -184,7 +184,7 @@ def test_get_snv_query_variant_not_found(mock_app, test_dataset_cli):
 ################## TESTS FOR HANDLING SV GET REQUESTS ################
 
 
-def test_get_request_svs_range_coordinates(mock_app, test_sv, test_dataset_cli):
+def test_get_request_svs_range_coordinates(mock_app, test_sv, public_dataset):
     """test get request providing coordinate range for querying structural variants"""
 
     # Having a database with a variant:
@@ -192,7 +192,7 @@ def test_get_request_svs_range_coordinates(mock_app, test_sv, test_dataset_cli):
     database["variant"].insert_one(test_sv)
 
     # And a dataset
-    database["dataset"].insert_one(test_dataset_cli)
+    database["dataset"].insert_one(public_dataset)
 
     build = test_sv["assemblyId"]
     chrom = test_sv["referenceName"]
@@ -236,7 +236,7 @@ def test_query_form_get(mock_app):
 ################## TESTS FOR HANDLING POST REQUESTS ################
 
 
-def test_query_form_post_snv_exact_coords_found(mock_app, test_snv, test_dataset_cli):
+def test_query_form_post_snv_exact_coords_found(mock_app, test_snv, public_dataset):
     """Test the interactive query interface, snv, exact coordinates"""
 
     # Having a database with a variant:
@@ -244,7 +244,7 @@ def test_query_form_post_snv_exact_coords_found(mock_app, test_snv, test_dataset
     database["variant"].insert_one(test_snv)
 
     # And a dataset
-    database["dataset"].insert_one(test_dataset_cli)
+    database["dataset"].insert_one(public_dataset)
 
     form_data = dict(
         assemblyId=test_snv["assemblyId"],
@@ -267,13 +267,13 @@ def test_query_form_post_snv_exact_coords_found(mock_app, test_snv, test_dataset
 
 
 def test_query_form_post_snv_exact_coords_not_found(
-    mock_app, test_snv, test_dataset_cli
+    mock_app, test_snv, public_dataset
 ):
     """Test the interactive query interface, snv, exact coordinates, allele not found"""
 
     # Having a database with a dataset but no variants
     database = mock_app.db
-    database["dataset"].insert_one(test_dataset_cli)
+    database["dataset"].insert_one(public_dataset)
 
     form_data = dict(
         assemblyId=test_snv["assemblyId"],
@@ -294,7 +294,7 @@ def test_query_form_post_snv_exact_coords_not_found(
     assert "Allele could not be found" in str(response.data)
 
 
-def test_query_form_post_SV_exact_coords_found(mock_app, test_sv, test_dataset_cli):
+def test_query_form_post_SV_exact_coords_found(mock_app, test_sv, public_dataset):
     """Test the interactive query interface, sv, exact coordinates"""
 
     # Having a database with a structural variant:
@@ -302,7 +302,7 @@ def test_query_form_post_SV_exact_coords_found(mock_app, test_sv, test_dataset_c
     database["variant"].insert_one(test_sv)
 
     # And a dataset
-    database["dataset"].insert_one(test_dataset_cli)
+    database["dataset"].insert_one(public_dataset)
 
     form_data = dict(
         assemblyId=test_sv["assemblyId"],
@@ -324,7 +324,7 @@ def test_query_form_post_SV_exact_coords_found(mock_app, test_sv, test_dataset_c
     assert "Allele was found in this beacon" in str(response.data)
 
 
-def test_query_post_range_coords_SV_found(mock_app, test_sv, test_dataset_cli):
+def test_query_post_range_coords_SV_found(mock_app, test_sv, public_dataset):
     """Test the interactive query interface, sv, range coordinates"""
 
     # Having a database with a structural variant:
@@ -332,7 +332,7 @@ def test_query_post_range_coords_SV_found(mock_app, test_sv, test_dataset_cli):
     database["variant"].insert_one(test_sv)
 
     # And a dataset
-    database["dataset"].insert_one(test_dataset_cli)
+    database["dataset"].insert_one(public_dataset)
 
     start_min = test_sv["start"] - 5
     start_max = test_sv["start"] + 5
@@ -362,7 +362,7 @@ def test_query_post_range_coords_SV_found(mock_app, test_sv, test_dataset_cli):
     assert "Allele was found in this beacon" in str(response.data)
 
 
-def test_post_query_error(mock_app, test_snv, test_dataset_cli):
+def test_post_query_error(mock_app, test_snv, public_dataset):
     """Test posting a query with errors, the servers should restuen error"""
 
     # Example, form data is missing wither alt base or variant type (one of them is mandatory)

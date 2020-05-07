@@ -36,13 +36,13 @@ def test_add_variants_no_dataset(mock_app):
     assert f"Couldn't find any dataset with id 'a_dataset'" in result.output
 
 
-def test_add_variants_empty_vcf(mock_app, test_dataset_cli, database):
+def test_add_variants_empty_vcf(mock_app, public_dataset, database):
     """Test the cli command to add variants when the VCF file is empty"""
 
     runner = mock_app.test_cli_runner()
 
     # Having a database containing a dataset
-    dataset = test_dataset_cli
+    dataset = public_dataset
     database["dataset"].insert_one(dataset)
 
     # When invoking the add variants with an existing but empty VCF file
@@ -67,13 +67,13 @@ def test_add_variants_empty_vcf(mock_app, test_dataset_cli, database):
 
 
 @pytest.mark.skip(reason="This test doesn't seem to work for Travis CI")
-def test_add_variants_wrong_samples(mock_app, test_dataset_cli, database):
+def test_add_variants_wrong_samples(mock_app, public_dataset, database):
     """Test the cli command to add variants providing samples that are not in the VCF file"""
 
     runner = mock_app.test_cli_runner()
 
     # Having a database containing a dataset
-    dataset = test_dataset_cli
+    dataset = public_dataset
     database["dataset"].insert_one(dataset)
 
     # When invoking the add variants for a sample not in the VCF file
@@ -96,13 +96,13 @@ def test_add_variants_wrong_samples(mock_app, test_dataset_cli, database):
     assert f"Coundn't extract variants from provided VCF file" in result.output
 
 
-def test_add_variants_snv_vcf(mock_app, test_dataset_cli, database):
+def test_add_variants_snv_vcf(mock_app, public_dataset, database):
     """Test the cli command to add SNV variants from VCF file"""
 
     runner = mock_app.test_cli_runner()
 
     # Having a database containing a dataset
-    dataset = test_dataset_cli
+    dataset = public_dataset
     database["dataset"].insert_one(dataset)
 
     sample = "ADM1059A1"
@@ -140,13 +140,13 @@ def test_add_variants_snv_vcf(mock_app, test_dataset_cli, database):
     assert test_variant["datasetIds"] == {dataset["_id"]: {"samples": [sample]}}
 
 
-def test_add_variants_twice(mock_app, test_dataset_cli, database):
+def test_add_variants_twice(mock_app, public_dataset, database):
     """Test to add variants from the same sample twice"""
 
     runner = mock_app.test_cli_runner()
 
     # Having a database containing a dataset
-    dataset = test_dataset_cli
+    dataset = public_dataset
     database["dataset"].insert_one(dataset)
 
     sample = "ADM1059A1"
@@ -202,13 +202,13 @@ def test_add_variants_twice(mock_app, test_dataset_cli, database):
     assert "updated" in dataset_obj
 
 
-def test_add_other_sample_variants(mock_app, test_dataset_cli, database):
+def test_add_other_sample_variants(mock_app, public_dataset, database):
     """Test adding variants for another sample, same VCF file"""
 
     runner = mock_app.test_cli_runner()
 
     # Having a database containing a dataset
-    dataset = test_dataset_cli
+    dataset = public_dataset
     database["dataset"].insert_one(dataset)
 
     # AND 2 samples to add
@@ -267,13 +267,13 @@ def test_add_other_sample_variants(mock_app, test_dataset_cli, database):
     assert "updated" in dataset_obj
 
 
-def test_add_sv_variants(mock_app, test_dataset_cli, database):
+def test_add_sv_variants(mock_app, public_dataset, database):
     """Test adding SV variants for one sample"""
 
     runner = mock_app.test_cli_runner()
 
     # Having a database containing a dataset
-    dataset = test_dataset_cli
+    dataset = public_dataset
     database["dataset"].insert_one(dataset)
 
     sample = "ADM1059A1"
@@ -303,13 +303,13 @@ def test_add_sv_variants(mock_app, test_dataset_cli, database):
         assert var["variantType"] in valid_types
 
 
-def test_add_snv_sv_variants(mock_app, test_dataset_cli, database):
+def test_add_snv_sv_variants(mock_app, public_dataset, database):
     """Test adding snv + sv variants for one sample"""
 
     runner = mock_app.test_cli_runner()
 
     # Having a database containing a dataset
-    dataset = test_dataset_cli
+    dataset = public_dataset
     database["dataset"].insert_one(dataset)
 
     sample = "ADM1059A1"

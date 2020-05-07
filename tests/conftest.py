@@ -72,12 +72,13 @@ def test_sv():
 
 
 @pytest.fixture
-def test_dataset_cli():
+def public_dataset():
     """A test dataset dictionary"""
     dataset = dict(
         _id="dataset1",
         name="Test dataset",
         assembly_id="GRCh37",
+        authlevel="public",
         description="Test dataset description",
         version=1.0,
         url="external_url.url",
