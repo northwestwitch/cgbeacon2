@@ -20,17 +20,27 @@ def test_delete_non_existing_dataset(mock_app):
     assert "Coundn't find a dataset with id 'foo' in database" in result.output
 
 
-def test_delete_existing_dataset(test_dataset_cli, mock_app, database):
+def test_delete_existing_dataset(public_dataset, mock_app, database):
     """Test the command line to delete an existing dataset"""
 
     # test add a dataset_obj using the app cli
     runner = mock_app.test_cli_runner()
 
-    dataset = test_dataset_cli
+    dataset = public_dataset
 
     # When a dataset is inserted into database
     result = runner.invoke(
-        cli, ["add", "dataset", "-id", dataset["_id"], "-name", dataset["name"],]
+        cli,
+        [
+            "add",
+            "dataset",
+            "-id",
+            dataset["_id"],
+            "-name",
+            dataset["name"],
+            "-authlevel",
+            dataset["authlevel"],
+        ],
     )
 
     new_dataset = database["dataset"].find_one()

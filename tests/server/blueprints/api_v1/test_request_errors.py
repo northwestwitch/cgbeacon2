@@ -33,16 +33,16 @@ def test_query_get_request_missing_mandatory_params(mock_app):
     assert data["message"]["apiVersion"] == "1.0.0"
 
 
-def test_query_get_request_build_mismatch(mock_app, test_dataset_cli):
+def test_query_get_request_build_mismatch(mock_app, public_dataset):
     """Test the query endpoint by sending a request with build mismatch between queried datasets and genome build"""
 
     # Having a dataset with genome build GRCh38 in the database:
     database = mock_app.db
-    test_dataset_cli["assembly_id"] = "GRCh38"
-    database["dataset"].insert_one(test_dataset_cli)
+    public_dataset["assembly_id"] = "GRCh38"
+    database["dataset"].insert_one(public_dataset)
 
     # When a request with genome build GRCh37 and detasetIds with genome build GRCh38 is sent to the server:
-    query_string = "&".join([BASE_ARGS, f"datasetIds={test_dataset_cli['_id']}"])
+    query_string = "&".join([BASE_ARGS, f"datasetIds={public_dataset['_id']}"])
     response = mock_app.test_client().get("".join(["/apiv1.0/", query_string]))
 
     # Then it should return error

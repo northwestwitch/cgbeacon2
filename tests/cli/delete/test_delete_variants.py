@@ -30,19 +30,19 @@ def test_delete_variant_non_existing_dataset(mock_app):
     assert "Couldn't find any dataset with id 'foo' in the database" in result.output
 
 
-def test_delete_variants_non_existing_sample(mock_app, test_dataset_cli, database):
+def test_delete_variants_non_existing_sample(mock_app, public_dataset, database):
     """Test the command to delete variants when the sample is not found in database"""
 
     runner = mock_app.test_cli_runner()
 
     # Having a database containing a dataset
-    dataset = test_dataset_cli
+    dataset = public_dataset
     database["dataset"].insert_one(dataset)
 
     # When invoking the command without a sample not present in dataset samples
     result = runner.invoke(
         cli,
-        ["delete", "variants", "-ds", test_dataset_cli["_id"], "-sample", "bar"],
+        ["delete", "variants", "-ds", public_dataset["_id"], "-sample", "bar"],
         input="y\n",
     )
 
@@ -52,13 +52,13 @@ def test_delete_variants_non_existing_sample(mock_app, test_dataset_cli, databas
     )
 
 
-def test_delete_variants(mock_app, test_dataset_cli, database):
+def test_delete_variants(mock_app, public_dataset, database):
     """Test the command to delete variants"""
 
     runner = mock_app.test_cli_runner()
 
     # Having a database containing a dataset
-    dataset = test_dataset_cli
+    dataset = public_dataset
     database["dataset"].insert_one(dataset)
 
     # And a variants from 2 different samples of a dataset
@@ -88,7 +88,7 @@ def test_delete_variants(mock_app, test_dataset_cli, database):
     # Then when using the cli command to remove onw of the samples
     result = runner.invoke(
         cli,
-        ["delete", "variants", "-ds", test_dataset_cli["_id"], "-sample", sample],
+        ["delete", "variants", "-ds", public_dataset["_id"], "-sample", sample],
         input="y\n",
     )
 

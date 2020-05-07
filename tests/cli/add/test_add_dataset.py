@@ -4,13 +4,13 @@ import datetime
 from cgbeacon2.cli.commands import cli
 
 
-def test_add_dataset_no_id(test_dataset_cli, mock_app):
+def test_add_dataset_no_id(public_dataset, mock_app):
     """Test the cli command which adds a dataset to db without a required param"""
 
     # test add a dataset_obj using the app cli
     runner = mock_app.test_cli_runner()
 
-    dataset = test_dataset_cli
+    dataset = public_dataset
 
     # When invoking the command without the -id parameter
     result = runner.invoke(cli, ["add", "dataset", "-name", dataset["name"]])
@@ -19,13 +19,13 @@ def test_add_dataset_no_id(test_dataset_cli, mock_app):
     assert "Missing option '-id'" in result.output
 
 
-def test_add_dataset_no_name(test_dataset_cli, mock_app):
+def test_add_dataset_no_name(public_dataset, mock_app):
     """Test the cli command which adds a dataset to db without a required param"""
 
     # test add a dataset_obj using the app cli
     runner = mock_app.test_cli_runner()
 
-    dataset = test_dataset_cli
+    dataset = public_dataset
 
     # When invoking the command without the -name parameter
     result = runner.invoke(cli, ["add", "dataset", "-id", dataset["_id"]])
@@ -34,13 +34,13 @@ def test_add_dataset_no_name(test_dataset_cli, mock_app):
     assert "Missing option '-name'" in result.output
 
 
-def test_add_dataset_wrong_build(test_dataset_cli, mock_app):
+def test_add_dataset_wrong_build(public_dataset, mock_app):
     """Test the cli command which adds a dataset to db without a required param"""
 
     # test add a dataset_obj using the app cli
     runner = mock_app.test_cli_runner()
 
-    dataset = test_dataset_cli
+    dataset = public_dataset
 
     # When invoking the command without a valid genome build
     result = runner.invoke(
@@ -61,13 +61,13 @@ def test_add_dataset_wrong_build(test_dataset_cli, mock_app):
     assert "Invalid value for '-build': invalid choice" in result.output
 
 
-def test_add_dataset_complete(test_dataset_cli, mock_app, database):
+def test_add_dataset_complete(public_dataset, mock_app, database):
     """Test the cli command which adds a dataset to db with all available params"""
 
     # test add a dataset_obj using the app cli
     runner = mock_app.test_cli_runner()
 
-    dataset = test_dataset_cli
+    dataset = public_dataset
 
     # When invoking the command providing all parameters
     result = runner.invoke(
@@ -81,6 +81,8 @@ def test_add_dataset_complete(test_dataset_cli, mock_app, database):
             dataset["name"],
             "-build",
             dataset["assembly_id"],
+            "-authlevel",
+            dataset["authlevel"],
             "-desc",
             dataset["description"],
             "-version",
@@ -108,6 +110,7 @@ def test_add_dataset_complete(test_dataset_cli, mock_app, database):
     assert new_dataset["_id"] == dataset["_id"]
     assert new_dataset["name"] == dataset["name"]
     assert new_dataset["assembly_id"] == dataset["assembly_id"]
+    assert new_dataset["authlevel"] == dataset["authlevel"]
     assert new_dataset["description"] == dataset["description"]
     assert new_dataset["version"] == dataset["version"]
     assert new_dataset["external_url"] == dataset["url"]
@@ -117,13 +120,13 @@ def test_add_dataset_complete(test_dataset_cli, mock_app, database):
     assert new_dataset["created"]
 
 
-def test_add_dataset_wrong_consent(test_dataset_cli, mock_app, database):
+def test_add_dataset_wrong_consent(public_dataset, mock_app, database):
     """Test the cli command which adds a dataset to db without a valid consent code"""
 
     # test add a dataset_obj using the app cli
     runner = mock_app.test_cli_runner()
 
-    dataset = test_dataset_cli
+    dataset = public_dataset
 
     # When invoking the command providing all params + non valid consent code
     result = runner.invoke(
@@ -137,6 +140,8 @@ def test_add_dataset_wrong_consent(test_dataset_cli, mock_app, database):
             dataset["name"],
             "-build",
             dataset["assembly_id"],
+            "-authlevel",
+            dataset["authlevel"],
             "-desc",
             dataset["description"],
             "-version",
@@ -163,13 +168,13 @@ def test_add_dataset_wrong_consent(test_dataset_cli, mock_app, database):
     assert new_dataset is None
 
 
-def test_update_non_existent_dataset(test_dataset_cli, mock_app, database):
+def test_update_non_existent_dataset(public_dataset, mock_app, database):
     """Test try to update a dataset that doesn't exist. Should return error"""
 
     # test add a dataset_obj using the app cli
     runner = mock_app.test_cli_runner()
 
-    dataset = test_dataset_cli
+    dataset = public_dataset
 
     # Having an empty dataset collection
     result = database["dataset"].find_one()
@@ -187,6 +192,8 @@ def test_update_non_existent_dataset(test_dataset_cli, mock_app, database):
             dataset["name"],
             "-build",
             dataset["assembly_id"],
+            "-authlevel",
+            dataset["authlevel"],
             "-desc",
             dataset["description"],
             "-version",
@@ -209,13 +216,13 @@ def test_update_non_existent_dataset(test_dataset_cli, mock_app, database):
     assert "An error occurred while updating dataset collection" in result.output
 
 
-def test_update_dataset(test_dataset_cli, mock_app, database):
+def test_update_dataset(public_dataset, mock_app, database):
     """Test try to update a dataset that exists."""
 
     # test add a dataset_obj using the app cli
     runner = mock_app.test_cli_runner()
 
-    dataset = test_dataset_cli
+    dataset = public_dataset
     dataset["created"] = datetime.datetime.now()
 
     # Having a database dataset collection with one item
@@ -234,6 +241,8 @@ def test_update_dataset(test_dataset_cli, mock_app, database):
             dataset["name"],
             "-build",
             dataset["assembly_id"],
+            "-authlevel",
+            dataset["authlevel"],
             "-desc",
             dataset["description"],
             "-version",

@@ -49,7 +49,7 @@ def test_snv():
         "referenceBases": "TA",
         "alternateBases": "T",
         "assemblyId": "GRCh37",
-        "datasetIds": {"dataset1": {"samples": ["ADM1059A1"]}},
+        "datasetIds": {"public_ds": {"samples": ["ADM1059A1"]}},
     }
     return variant
 
@@ -66,19 +66,20 @@ def test_sv():
         "alternateBases": "GT",
         "variantType": "DEL",
         "assemblyId": "GRCh37",
-        "datasetIds": {"test_ds": {"samples": ["ADM1059A1"]}},
+        "datasetIds": {"public_ds": {"samples": ["ADM1059A1"]}},
     }
     return variant
 
 
 @pytest.fixture
-def test_dataset_cli():
-    """A test dataset dictionary"""
+def public_dataset():
+    """A test public dataset dictionary"""
     dataset = dict(
-        _id="dataset1",
-        name="Test dataset",
+        _id="public_ds",
+        name="Public dataset",
         assembly_id="GRCh37",
-        description="Test dataset description",
+        authlevel="public",
+        description="Public dataset description",
         version=1.0,
         url="external_url.url",
         consent_code="HMB",
@@ -87,12 +88,45 @@ def test_dataset_cli():
 
 
 @pytest.fixture
-def test_dataset_no_variants():
+def registered_dataset():
+    """A test dataset dictionary with registered authlevel"""
+    dataset = dict(
+        _id="registered_ds",
+        name="Registered dataset",
+        assembly_id="GRCh37",
+        authlevel="registered",
+        description="Registered dataset description",
+        version=1.0,
+        url="external_regostered_url.url",
+        consent_code="RUO",
+    )
+    return dataset
+
+
+@pytest.fixture
+def controlled_dataset():
+    """A test dataset dictionary with controlled authlevel"""
+    dataset = dict(
+        _id="controlled_ds",
+        name="Controlled dataset",
+        assembly_id="GRCh37",
+        authlevel="controlled",
+        description="Controlled dataset description",
+        version=1.0,
+        url="external_regostered_url.url",
+        consent_code="IRB",
+    )
+    return dataset
+
+
+@pytest.fixture
+def public_dataset_no_variants():
     """A test dataset dictionary"""
     dataset = dict(
         _id="dataset2",
         name="Test dataset 2",
         assembly_id="GRCh37",
+        authlevel="public",
         description="Test dataset 2 description",
         version=1.0,
         url="external_url2.url",
