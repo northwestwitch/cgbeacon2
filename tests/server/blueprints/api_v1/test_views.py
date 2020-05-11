@@ -266,6 +266,8 @@ def test_post_query(mock_app, test_snv, public_dataset):
         curl -X POST \
         localhost:5000/apiv1.0/query \
         -H 'Content-Type: application/json' \
+        -H 'Accept: application/json' \
+        -H 'Authorization: token 941c07448c57e0360fe1ac35e9a5be83'
         -d '{"referenceName": "1",
         "start": 156146085,
         "referenceBases": "C",
