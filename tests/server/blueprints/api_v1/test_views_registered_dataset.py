@@ -1,23 +1,24 @@
 # -*- coding: utf-8 -*-
 import json
 
-def test_cassivari(mock_app):
+def test_post_query_auth_token(mock_app, auth_headers, registered_dataset, test_snv):
+    """Test receiving classical POST json request with auth token
+        curl -X POST \
+        localhost:5000/apiv1.0/query \
+        -H 'Content-Type: application/json' \
+        -H 'Accept: application/json' \
+        -H 'Authorization: Bearer asaklSJKlajsISJIJDwqjKjskjSajskK' \
+        -d '{"referenceName": "1",
+        "start": 156146085,
+        "referenceBases": "C",
+        "alternateBases": "A",
+        "assemblyId": "GRCh37",
+        "includeDatasetResponses": "HIT"}'
+    """
 
-
-
-
-"""
-def test_post_query_registered(mock_app, test_snv, registered_dataset):
-    Test receiving classical POST json request and returning a response
-
-
-
-    # Having a database with a variant:
-    test_snv["datasetIds"] = {"registered_ds" : {"samples": ["ADM1059A1"]}}
+    # Having a database
     database = mock_app.db
-    database["variant"].insert_one(test_snv)
-
-    # And a registered dataset
+    # with a REGISTERED dataset
     database["dataset"].insert_one(registered_dataset)
 
     data = json.dumps(
@@ -28,29 +29,13 @@ def test_post_query_registered(mock_app, test_snv, registered_dataset):
             "alternateBases": test_snv["alternateBases"],
             "assemblyId": test_snv["assemblyId"],
             "datasetIds": [registered_dataset["_id"]],
-            "includeDatasetResponses": "ALL",
+            "includeDatasetResponses": "HIT",
         }
     )
 
     # When calling the endpoing with the POST method
-    response = mock_app.test_client().post("/apiv1.0/query", data=data, headers=HEADERS)
+    response = mock_app.test_client().post("/apiv1.0/query", data=data, headers=auth_headers)
 
     # Should not return error
     assert response.status_code == 200
     resp_data = json.loads(response.data)
-
-    assert resp_data
-    """
-    """
-    # And all the expected fields should be present in the response
-    assert resp_data["allelRequest"]["referenceName"] == test_snv["referenceName"]
-    assert resp_data["allelRequest"]["start"] == test_snv["start"]
-    assert resp_data["allelRequest"]["referenceBases"] == test_snv["referenceBases"]
-    assert resp_data["allelRequest"]["alternateBases"] == test_snv["alternateBases"]
-    assert resp_data["allelRequest"]["assemblyId"] == test_snv["assemblyId"]
-    assert resp_data["allelRequest"]["includeDatasetResponses"] == "HIT"
-
-    # Including the hit result
-    assert resp_data["datasetAlleleResponses"][0]["datasetId"] == public_dataset["_id"]
-    assert resp_data["datasetAlleleResponses"][0]["exists"] == True
-    """

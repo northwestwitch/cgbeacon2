@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from authlib.jose import jwt
 import mongomock
 import pytest
 from cgbeacon2.server import create_app
@@ -136,3 +137,39 @@ def public_dataset_no_variants():
 
 
 ########### Security-related fixtures ###########
+
+@pytest.fixture
+def generate_token():
+    """Mock ELIXIR AAI token."""
+    header = {
+        "jku": "http://test.csc.fi/jwk",
+        "kid": "018c0ae5-4d9b-471b-bfd6-eef314bc7037",
+        "alg": "HS256"
+    }
+    payload = {
+        "iss": "http://scilifelab.se/",
+        "aud": "audience",
+        "exp": 9999999999,
+        "sub": "smth@smth.org"
+    }
+    sign = {
+        "kty": "oct",
+        "kid": "018c0ae5-4d9b-471b-bfd6-eef314bc7037",
+        "use": "sig",
+        "alg": "HS256",
+        "k": "hJtXIZ2uSN5kbQfbtTNWbpdmhkV8FJG-Onbc6mxCcYg"
+    }
+    token = jwt.encode(header, payload, sign).decode('utf-8')
+    return token
+
+
+@pytest.fixture
+def auth_headers(generate_token):
+    """Return auth request headers"""
+
+    headers = {
+        "Content-type": "application/json",
+        "Accept": "application/json",
+        "Authorization": "Bearer " + generate_token
+    }
+    return headers
