@@ -133,3 +133,6 @@ def public_dataset_no_variants():
         consent_code="FOO",
     )
     return dataset
+
+
+########### Security-related fixtures ###########
