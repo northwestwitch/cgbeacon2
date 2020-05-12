@@ -12,7 +12,7 @@ from flask import (
 from flask_negotiate import produces
 from cgbeacon2.constants import CHROMOSOMES
 from cgbeacon2.models import Beacon
-from cgbeacon2.utils.auth import authlevels
+from cgbeacon2.utils.auth import authlevel
 from .controllers import create_allele_query, dispatch_query
 
 API_VERSION = "1.0.0"
@@ -104,7 +104,12 @@ def query():
     resp_status = 200
 
     # Check request headers to define user access level
-    auth_levels = authlevels(request)
+    auth_levels = authlevel(request)
+
+    if isinstance(auth_levels, dict):  # an error must have occurred
+        resp = jsonify(auth_levels)
+        resp.status_code = auth_levels.get("errorCode", 401)
+        return resp
 
     # Create database query object
     query = create_allele_query(resp_obj, request)

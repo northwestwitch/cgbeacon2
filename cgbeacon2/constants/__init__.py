@@ -9,4 +9,6 @@ from .response_objs import (
     INVALID_COORD_RANGE,
     BUILD_MISMATCH,
     QUERY_PARAMS_API_V1,
+    MISSING_TOKEN,
+    WRONG_SCHEME,
 )

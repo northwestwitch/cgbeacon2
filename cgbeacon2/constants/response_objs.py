@@ -1,4 +1,4 @@
-# Error objects
+####### WRONG REQUEST PARAMS #######
 NO_MANDATORY_PARAMS = dict(
     errorCode=400,
     errorMessage="Missing one or more mandatory parameters (referenceName, referenceBases, assemblyId)",
@@ -34,6 +34,12 @@ BUILD_MISMATCH = dict(
     errorMessage="Requested genome assembly is in conflict with the assembly of one or more requested datasets",
 )
 
+####### WRONG HEADERS OBJS #######
+MISSING_TOKEN = dict(errorCode=401, errorMessage="Missing authentication token")
+
+WRONG_SCHEME = dict(errorCode=401, errorMessage="Bearer token scheme required")
+
+####### QUERY PARAMS #######
 QUERY_PARAMS_API_V1 = [
     "referenceName",
     "referenceBases",
