@@ -11,12 +11,12 @@ LOG = logging.getLogger(__name__)
 # Authentication code is based on:
 # https://elixir-europe.org/services/compute/aai
 
-def authlevel(request, elixir_settings):
+def authlevel(request, oauth2_settings):
     """Returns auth level from a request object
 
     Accepts:
         request(flask.request) request received by server
-        elixir_settings(dict) Elixie AAI Oauth2 settings (server, issuers, userinfo)
+        oauth2_settings(dict) Elixie AAI Oauth2 settings (server, issuers, userinfo)
 
     Returns:
         auth_level(tuple): (bool,bool,bool) == (public_access, registered_access, controlled_access)
@@ -46,11 +46,15 @@ def authlevel(request, elixir_settings):
         elif token == "":
             return MISSING_TOKEN
 
-    public_key = elixir_key(elixir_settings["server"])
+    public_key = elixir_key(oauth2_settings["server"])
     if public_key == MISSING_PUBLIC_KEY:
         return MISSING_PUBLIC_KEY
 
-    
+    claims_otions=claims(oauth2_settings)
+
+
+
+
 
     return True  # Return only public access
 
@@ -62,7 +66,7 @@ def elixir_key(server):
         server(str). HTTP address to an Elixir server providing public key
 
     Returns:
-        key(json) json content of the server response
+        key(json) json content of the server response or Error
     """
     try:
         r = requests.get(server)
@@ -70,3 +74,29 @@ def elixir_key(server):
 
     except Exception as ex:
         return MISSING_PUBLIC_KEY
+
+
+def claims(oauth2_settings):
+    """Set up web tokens claims
+
+    Accepts:
+        oauth2_settings(dict): dictionary of OAuth2 settings
+
+    Returns:
+        claims(dict): a dictionary describing json token web claims
+    """
+
+    claims = dict(
+        iss=dict(
+            essential=True,
+            values=",".join(oauth2_settings.get("issuers",[]))
+        ),
+        aud=dict(
+            essential=oauth2_settings.get("verify_aud", False),
+            values=",".join(oauth2_settings.get("audience",[]))
+        ),
+        exp=dict(
+            essential=True
+        )
+    )
+    return claims
