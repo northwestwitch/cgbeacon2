@@ -11,4 +11,5 @@ from .response_objs import (
     QUERY_PARAMS_API_V1,
     MISSING_TOKEN,
     WRONG_SCHEME,
+    MISSING_PUBLIC_KEY
 )

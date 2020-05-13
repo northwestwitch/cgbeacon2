@@ -39,6 +39,15 @@ MISSING_TOKEN = dict(errorCode=401, errorMessage="Missing authentication token")
 
 WRONG_SCHEME = dict(errorCode=401, errorMessage="Bearer token scheme required")
 
+###### OAUTH2 ERRORS #######
+
+MISSING_PUBLIC_KEY = dict(
+    errorCode=401,
+    errorMessage="Could not retrieve OAuth2 public key from Elixir"
+)
+
+
+
 ####### QUERY PARAMS #######
 QUERY_PARAMS_API_V1 = [
     "referenceName",
