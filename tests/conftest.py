@@ -28,10 +28,27 @@ def database(request, pymongo_client):
 
 
 @pytest.fixture
-def mock_app(database):
+def mock_oauth2():
+    """Mock OAuth2 params for the mock app"""
+
+    mock_params = dict(
+        server= "mock_public_key_jwt_server",
+        issuers=["http://scilifelab.se"],
+        userinfo="mock_oidc_server",
+        audience=["audience"],
+        verify_aud=True
+    )
+    return mock_params
+
+
+@pytest.fixture
+def mock_app(database, mock_oauth2):
     """Create a test app to be used in the tests"""
     app = create_app()
     app.db = database
+
+    # fix test oauth2 params for the mock app
+    app.config["ELIXIR_OAUTH2"] = mock_oauth2
     return app
 
 
@@ -138,50 +155,46 @@ def public_dataset_no_variants():
 
 ########### Security-related fixtures ###########
 
-# original code taken from: https://github.com/CSCfi/beacon-python/blob/master/tests/test_app.py
-def generate_token(issuer):
-    """Mock ELIXIR AAI token."""
+@pytest.fixture
+def header():
+    """Token header"""
     header = {
-        "jku": "http://test.csc.fi/jwk",
+        "jku": "http://scilifelab.se/jwk",
         "kid": "018c0ae5-4d9b-471b-bfd6-eef314bc7037",
-        "alg": "HS256",
+        "alg": "HS256"
     }
-    payload = {
-        "iss": issuer,
+    return header
+
+
+@pytest.fixture
+def payload():
+    """Token payload"""
+    payload={
+        "iss": "http://scilifelab.se",
         "aud": "audience",
-        "exp": 9999999999,
-        "sub": "smth@smth.org",
+        "exp": 99999999999,
+        "sub": "someone@cgbeacon2.scilifelab.se"
     }
-    sign = {
+    return payload
+
+
+@pytest.fixture
+def pem():
+    """Test pem to include in the key
+    https://python-jose.readthedocs.io/en/latest/jwk/index.html#examples
+    """
+    pem = {
         "kty": "oct",
         "kid": "018c0ae5-4d9b-471b-bfd6-eef314bc7037",
         "use": "sig",
         "alg": "HS256",
-        "k": "hJtXIZ2uSN5kbQfbtTNWbpdmhkV8FJG-Onbc6mxCcYg",
+        "k": "hJtXIZ2uSN5kbQfbtTNWbpdmhkV8FJG-Onbc6mxCcYg"
     }
-    token = jwt.encode(header, payload, sign).decode("utf-8")
+    return pem
+
+
+@pytest.fixture
+def test_token(header, payload, pem):
+    """Generate and return JWT based on a demo private key"""
+    token = jwt.encode(header, payload, pem).decode('utf-8')
     return token
-
-
-@pytest.fixture
-def auth_headers():
-    """Return auth request headers"""
-
-    headers = {
-        "Content-type": "application/json",
-        "Accept": "application/json",
-        "Authorization": "Bearer " + generate_token("http://scilifelab.se"),
-    }
-    return headers
-
-
-@pytest.fixture
-def unath_headers():
-    """Return unathorized headers"""
-
-    headers = {
-        "Content-type": "application/json",
-        "Accept": "application/json",
-        "Authorization": "Bearer " + generate_token("wrong_issuer"),
-    }
-    return headers

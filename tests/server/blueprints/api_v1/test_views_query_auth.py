@@ -1,7 +1,9 @@
 # -*- coding: utf-8 -*-
 import json
 from authlib.jose import jwt
+from authlib.jose.rfc7519.claims import JWTClaims
 from cgbeacon2.constants import MISSING_TOKEN,WRONG_SCHEME
+from cgbeacon2.utils import auth
 
 HEADERS = {"Content-type": "application/json", "Accept": "application/json"}
 
@@ -62,18 +64,38 @@ def test_verify_test_token(test_token, payload, pem):
     # Decoding it
     decoded_token = jwt.decode(test_token, pem, claims_options=payload)
 
-    # Should return stated claims
+    # Should return the stated claims
     assert decoded_token == payload
 
 
-def test_post_request_valid_token(mock_app, test_token):
+def test_post_request_valid_token(mock_app, test_token, pem, payload, monkeypatch):
     """Test receiving a get request with valid token"""
+
+    # Monkeypatch Elixir claims
+    def mock_claims(*args, **kwargs):
+        return json.loads(payload)
+
+    # Monkeypatch Elixir JWT server public key
+    def mock_public_server(*args, **kwargs):
+        return pem
+
+    def validate_ok(args, **kwargs):
+        pass
+
+    # Elixir key is not collected from elixir server, but mocked
+    monkeypatch.setattr(auth, "elixir_key", mock_public_server)
+
+    # Elixir claims are also patched
+    monkeypatch.setattr(auth, "claims", mock_claims)
+    monkeypatch.setattr(JWTClaims, "validate", validate_ok)
 
     headers = HEADERS
     headers["Authorization"] = "Bearer "+test_token
 
     # When a POST request with Authorization Bearer token is sent
-    #response = mock_app.test_client().post("/apiv1.0/query?", headers=headers)
+    response = mock_app.test_client().post("/apiv1.0/query?", headers=headers)
 
     # Then it should return a valid response
     #assert response.status_code == 200
+    data = json.loads(response.data)
+    assert data == "jkd"

@@ -3,7 +3,9 @@ import logging
 import requests
 
 from authlib.jose import jwt
-from cgbeacon2.constants import MISSING_TOKEN, WRONG_SCHEME, MISSING_PUBLIC_KEY
+from authlib.jose.errors import MissingClaimError, InvalidClaimError, ExpiredTokenError, InvalidTokenError
+
+from cgbeacon2.constants import MISSING_TOKEN, WRONG_SCHEME, MISSING_PUBLIC_KEY, MISSING_TOKEN_CLAIMS, INVALID_TOKEN_CLAIMS, EXPIRED_TOKEN_SIGNATURE, INVALID_TOKEN_AUTH
 
 
 LOG = logging.getLogger(__name__)
@@ -34,29 +36,42 @@ def authlevel(request, oauth2_settings):
     "includeDatasetResponses": "HIT"}'
 
     """
-    auth_level = True  # public access is always True
+    token = None
 
-    if "Authorization" in request.headers:
-        try:
-            scheme, token = request.headers.get("Authorization").split(" ")
-        except ValueError:
-            return MISSING_TOKEN
-        if scheme != "Bearer":
-            return WRONG_SCHEME
-        elif token == "":
-            return MISSING_TOKEN
+    if "Authorization" not in request.headers:
+        return (True, False, False)
+
+    try:
+        scheme, token = request.headers.get("Authorization").split(" ")
+    except ValueError:
+        return MISSING_TOKEN
+    if scheme != "Bearer":
+        return WRONG_SCHEME
+    elif token == "":
+        return MISSING_TOKEN
 
     public_key = elixir_key(oauth2_settings["server"])
     if public_key == MISSING_PUBLIC_KEY:
         return MISSING_PUBLIC_KEY
 
-    claims_otions=claims(oauth2_settings)
+    claims_options=claims(oauth2_settings)
 
+    # try decoding the token and getting query permissions
+    try:
+        decoded_token = jwt.decode(token, public_key, claims_options=claims_options)
+        decoded_token.validate()  # validate the token contents
+        LOG.info('Auth Token validated.')
+        LOG.info(f'Identified as {decoded_token["sub"]} user by {decoded_token["iss"]}.')
+    except MissingClaimError as ex:
+        return MISSING_TOKEN_CLAIMS
+    except InvalidClaimError as ex:
+        return INVALID_TOKEN_CLAIMS
+    except InvalidTokenError as ex:
+        return INVALID_TOKEN_AUTH
+    except ExpiredTokenError as ex:
+        EXPIRED_TOKEN_SIGNATURE
 
-
-
-
-    return True  # Return only public access
+    return True, True, True  # Return only public access
 
 
 def elixir_key(server):

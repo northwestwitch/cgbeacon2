@@ -104,7 +104,7 @@ def query():
     resp_status = 200
 
     # Check request headers to define user access level
-    auth_levels = authlevel(request, current_app.config("ELIXIR_OAUTH2"))
+    auth_levels = authlevel(request, current_app.config.get("ELIXIR_OAUTH2"))
 
     if isinstance(auth_levels, dict):  # an error must have occurred
         resp = jsonify(auth_levels)
