@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
-from authlib.jose import jwt, JWTClaims
-import json
+from authlib.jose import jwt
 import time
 import mongomock
 import pytest
