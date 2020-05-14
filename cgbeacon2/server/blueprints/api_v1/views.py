@@ -108,7 +108,7 @@ def query():
 
     if isinstance(auth_levels, dict):  # an error must have occurred
         resp = jsonify(auth_levels)
-        resp.status_code = auth_levels.get("errorCode", 401)
+        resp.status_code = auth_levels.get("errorCode", 403)
         return resp
 
     # Create database query object

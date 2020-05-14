@@ -23,3 +23,4 @@
 - Run queries and display results on the web interface
 - Add 3 level of authentication when creating datasets and fix tests accordingly
 - Important request/response syntax fixes
+- Included OAuth2 JWT validation layer
