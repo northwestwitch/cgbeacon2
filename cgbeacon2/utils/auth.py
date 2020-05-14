@@ -20,7 +20,6 @@ from cgbeacon2.constants import (
     INVALID_TOKEN_AUTH,
 )
 
-
 LOG = logging.getLogger(__name__)
 
 # Authentication code is based on:
@@ -41,7 +40,7 @@ def authlevel(request, oauth2_settings):
     localhost:5000/apiv1.0/query \
     -H 'Content-Type: application/json' \
     -H 'Accept: application/json' \
-    -H 'Authorization: Bearer ' \
+    -H 'Authorization: Bearer ajsklSJKAJSKAJ' \
     -d '{"referenceName": "1",
     "start": 156146085,
     "referenceBases": "C",
@@ -69,12 +68,12 @@ def authlevel(request, oauth2_settings):
         return MISSING_PUBLIC_KEY
 
     claims_options = claims(oauth2_settings)
-    LOG.info(f"----------------------->CLAIM OPTIONS IS {claims_options}")
 
     # try decoding the token and getting query permissions
     try:
         decoded_token = jwt.decode(token, public_key, claims_options=claims_options)
         decoded_token.validate()  # validate the token contents
+
         LOG.info("Auth Token validated.")
         LOG.info(
             f'Identified as {decoded_token["sub"]} user by {decoded_token["iss"]}.'
@@ -86,7 +85,9 @@ def authlevel(request, oauth2_settings):
     except InvalidTokenError as ex:
         return INVALID_TOKEN_AUTH
     except ExpiredTokenError as ex:
-        EXPIRED_TOKEN_SIGNATURE
+        return EXPIRED_TOKEN_SIGNATURE
+    except Exception as ex:
+        return {"errorCode": 401, "errorMessage": str(ex)}
 
     return True, True, True  # Return only public access
 
