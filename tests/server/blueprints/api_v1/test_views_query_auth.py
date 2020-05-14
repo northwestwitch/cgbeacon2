@@ -2,7 +2,7 @@
 import json
 from authlib.jose import jwt
 from authlib.jose.rfc7519.claims import JWTClaims
-from cgbeacon2.constants import MISSING_TOKEN,WRONG_SCHEME
+from cgbeacon2.constants import MISSING_TOKEN, WRONG_SCHEME
 from cgbeacon2.utils import auth
 
 HEADERS = {"Content-type": "application/json", "Accept": "application/json"}
@@ -42,11 +42,8 @@ def test_post_request_wrong_token_null_token(mock_app):
 def test_verify_test_token(test_token, payload, pem):
     """Test validate demo token"""
 
-
     # Having a test token
     assert test_token
-
-
 
     # Decoding it
     claims = jwt.decode(test_token, pem)
@@ -61,7 +58,7 @@ def test_post_request_wrong_token_wrong_scheme(mock_app, test_token):
     """test receiving a post request with Auth headers and wrong scheme"""
 
     headers = HEADERS
-    headers["Authorization"] = "Basic "+test_token
+    headers["Authorization"] = "Basic " + test_token
 
     # When a POST request Authorization="" is sent
     response = mock_app.test_client().post("/apiv1.0/query?", headers=headers)
@@ -84,7 +81,7 @@ def test_post_request_valid_token(mock_app, test_token, pem, payload, monkeypatc
     monkeypatch.setattr(auth, "elixir_key", mock_public_server)
 
     headers = HEADERS
-    headers["Authorization"] = "Bearer "+test_token
+    headers["Authorization"] = "Bearer " + test_token
 
     # When a POST request with Authorization Bearer token is sent
     response = mock_app.test_client().post("/apiv1.0/query?", headers=headers)

@@ -144,18 +144,20 @@ def public_dataset_no_variants():
 
 ########### Security-related fixtures ###########
 
+
 @pytest.fixture
 def mock_oauth2():
     """Mock OAuth2 params for the mock app"""
 
     mock_params = dict(
-        server= "mock_public_key_jwt_server",
+        server="mock_public_key_jwt_server",
         issuers=["http://scilifelab.se"],
-        userinfo="mock_oidc_server", # Where to send access token to view user data (permissions, statuses, ...)
+        userinfo="mock_oidc_server",  # Where to send access token to view user data (permissions, statuses, ...)
         audience=["audience"],
-        verify_aud=True
+        verify_aud=True,
     )
     return mock_params
+
 
 @pytest.fixture
 def header():
@@ -163,7 +165,7 @@ def header():
     header = {
         "jku": "http://scilifelab.se/jwk",
         "kid": "018c0ae5-4d9b-471b-bfd6-eef314bc7037",
-        "alg": "HS256"
+        "alg": "HS256",
     }
     return header
 
@@ -172,13 +174,14 @@ def header():
 def payload():
     """Token payload"""
     expiry_time = round(time.time()) + 20
-    claims={
+    claims = {
         "iss": "https://login.elixir-czech.org/oidc/",
         "exp": expiry_time,
         "aud": "audience",
-        "sub": "someone@somewhere.se"
+        "sub": "someone@somewhere.se",
     }
     return claims
+
 
 @pytest.fixture
 def pem():
@@ -190,7 +193,7 @@ def pem():
         "kid": "018c0ae5-4d9b-471b-bfd6-eef314bc7037",
         "use": "sig",
         "alg": "HS256",
-        "k": "hJtXIZ2uSN5kbQfbtTNWbpdmhkV8FJG-Onbc6mxCcYg"
+        "k": "hJtXIZ2uSN5kbQfbtTNWbpdmhkV8FJG-Onbc6mxCcYg",
     }
     return pem
 
@@ -199,4 +202,4 @@ def pem():
 def test_token(header, payload, pem):
     """Generate and return JWT based on a demo private key"""
     token = jwt.encode(header, payload, pem)
-    return token.decode('utf-8')
+    return token.decode("utf-8")

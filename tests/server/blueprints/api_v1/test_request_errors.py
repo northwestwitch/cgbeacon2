@@ -7,13 +7,14 @@ from cgbeacon2.constants import (
     NO_SV_END_PARAM,
     INVALID_COORDINATES,
     INVALID_COORD_RANGE,
-    BUILD_MISMATCH
+    BUILD_MISMATCH,
 )
 
 HEADERS = {"Content-type": "application/json", "Accept": "application/json"}
 
 BASE_ARGS = "query?assemblyId=GRCh37&referenceName=1&referenceBases=TA"
 ################## TESTS FOR HANDLING WRONG REQUESTS ################
+
 
 def test_post_empty_query(mock_app):
     """Test receiving an empty POST query"""

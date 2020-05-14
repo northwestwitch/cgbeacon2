@@ -3,15 +3,29 @@ import logging
 import requests
 
 from authlib.jose import jwt
-from authlib.jose.errors import MissingClaimError, InvalidClaimError, ExpiredTokenError, InvalidTokenError
+from authlib.jose.errors import (
+    MissingClaimError,
+    InvalidClaimError,
+    ExpiredTokenError,
+    InvalidTokenError,
+)
 
-from cgbeacon2.constants import MISSING_TOKEN, WRONG_SCHEME, MISSING_PUBLIC_KEY, MISSING_TOKEN_CLAIMS, INVALID_TOKEN_CLAIMS, EXPIRED_TOKEN_SIGNATURE, INVALID_TOKEN_AUTH
+from cgbeacon2.constants import (
+    MISSING_TOKEN,
+    WRONG_SCHEME,
+    MISSING_PUBLIC_KEY,
+    MISSING_TOKEN_CLAIMS,
+    INVALID_TOKEN_CLAIMS,
+    EXPIRED_TOKEN_SIGNATURE,
+    INVALID_TOKEN_AUTH,
+)
 
 
 LOG = logging.getLogger(__name__)
 
 # Authentication code is based on:
 # https://elixir-europe.org/services/compute/aai
+
 
 def authlevel(request, oauth2_settings):
     """Returns auth level from a request object
@@ -54,15 +68,17 @@ def authlevel(request, oauth2_settings):
     if public_key == MISSING_PUBLIC_KEY:
         return MISSING_PUBLIC_KEY
 
-    claims_options=claims(oauth2_settings)
+    claims_options = claims(oauth2_settings)
     LOG.info(f"----------------------->CLAIM OPTIONS IS {claims_options}")
 
     # try decoding the token and getting query permissions
     try:
         decoded_token = jwt.decode(token, public_key, claims_options=claims_options)
         decoded_token.validate()  # validate the token contents
-        LOG.info('Auth Token validated.')
-        LOG.info(f'Identified as {decoded_token["sub"]} user by {decoded_token["iss"]}.')
+        LOG.info("Auth Token validated.")
+        LOG.info(
+            f'Identified as {decoded_token["sub"]} user by {decoded_token["iss"]}.'
+        )
     except MissingClaimError as ex:
         return MISSING_TOKEN_CLAIMS
     except InvalidClaimError as ex:
@@ -103,16 +119,11 @@ def claims(oauth2_settings):
     """
 
     claims = dict(
-        iss=dict(
-            essential=True,
-            values=",".join(oauth2_settings.get("issuers",[]))
-        ),
+        iss=dict(essential=True, values=",".join(oauth2_settings.get("issuers", []))),
         aud=dict(
             essential=oauth2_settings.get("verify_aud", False),
-            values=",".join(oauth2_settings.get("audience",[]))
+            values=",".join(oauth2_settings.get("audience", [])),
         ),
-        exp=dict(
-            essential=True
-        )
+        exp=dict(essential=True),
     )
     return claims
