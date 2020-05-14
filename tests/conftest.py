@@ -1,7 +1,9 @@
 # -*- coding: utf-8 -*-
-from authlib.jose import jwt
+from authlib.jose import jwt, JWTClaims
+import time
 import mongomock
 import pytest
+
 from cgbeacon2.server import create_app
 
 DATABASE_NAME = "testdb"
@@ -28,27 +30,14 @@ def database(request, pymongo_client):
 
 
 @pytest.fixture
-def mock_oauth2():
-    """Mock OAuth2 params for the mock app"""
-
-    mock_params = dict(
-        server= "mock_public_key_jwt_server",
-        issuers=["http://scilifelab.se"],
-        userinfo="mock_oidc_server",
-        audience=["audience"],
-        verify_aud=True
-    )
-    return mock_params
-
-
-@pytest.fixture
-def mock_app(database, mock_oauth2):
+def mock_app(database):
     """Create a test app to be used in the tests"""
     app = create_app()
     app.db = database
 
     # fix test oauth2 params for the mock app
-    app.config["ELIXIR_OAUTH2"] = mock_oauth2
+    test_oauth = mock_oauth2
+    app.config["ELIXIR_OAUTH2"]
     return app
 
 
@@ -156,6 +145,19 @@ def public_dataset_no_variants():
 ########### Security-related fixtures ###########
 
 @pytest.fixture
+def mock_oauth2():
+    """Mock OAuth2 params for the mock app"""
+
+    mock_params = dict(
+        server= "mock_public_key_jwt_server",
+        issuers=["http://scilifelab.se"],
+        userinfo="mock_oidc_server", # Where to send access token to view user data (permissions, statuses, ...)
+        audience=["audience"],
+        verify_aud=True
+    )
+    return mock_params
+
+@pytest.fixture
 def header():
     """Token header"""
     header = {
@@ -169,14 +171,14 @@ def header():
 @pytest.fixture
 def payload():
     """Token payload"""
-    payload={
-        "iss": "http://scilifelab.se",
+    expiry_time = round(time.time()) + 20
+    claims={
+        "iss": "https://login.elixir-czech.org/oidc/",
+        "exp": expiry_time,
         "aud": "audience",
-        "exp": 99999999999,
-        "sub": "someone@cgbeacon2.scilifelab.se"
+        "sub": "someone@somewhere.se"
     }
-    return payload
-
+    return claims
 
 @pytest.fixture
 def pem():
@@ -196,5 +198,5 @@ def pem():
 @pytest.fixture
 def test_token(header, payload, pem):
     """Generate and return JWT based on a demo private key"""
-    token = jwt.encode(header, payload, pem).decode('utf-8')
-    return token
+    token = jwt.encode(header, payload, pem)
+    return token.decode('utf-8')

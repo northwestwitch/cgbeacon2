@@ -55,6 +55,7 @@ def authlevel(request, oauth2_settings):
         return MISSING_PUBLIC_KEY
 
     claims_options=claims(oauth2_settings)
+    LOG.info(f"----------------------->CLAIM OPTIONS IS {claims_options}")
 
     # try decoding the token and getting query permissions
     try:
@@ -92,7 +93,7 @@ def elixir_key(server):
 
 
 def claims(oauth2_settings):
-    """Set up web tokens claims
+    """Set up web tokens claims options
 
     Accepts:
         oauth2_settings(dict): dictionary of OAuth2 settings
