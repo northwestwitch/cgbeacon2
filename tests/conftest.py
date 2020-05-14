@@ -36,8 +36,6 @@ def mock_app(database):
     app.db = database
 
     # fix test oauth2 params for the mock app
-    test_oauth = mock_oauth2
-    app.config["ELIXIR_OAUTH2"]
     return app
 
 
