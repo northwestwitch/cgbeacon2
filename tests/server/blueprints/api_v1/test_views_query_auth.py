@@ -3,7 +3,12 @@ import json
 import pytest
 from authlib.jose import jwt
 from authlib.jose.errors import ExpiredTokenError
-from cgbeacon2.constants import MISSING_TOKEN, WRONG_SCHEME
+from cgbeacon2.constants import (
+    MISSING_TOKEN,
+    WRONG_SCHEME,
+    EXPIRED_TOKEN_SIGNATURE,
+    INVALID_TOKEN_CLAIMS,
+)
 from cgbeacon2.utils import auth
 
 HEADERS = {"Content-type": "application/json", "Accept": "application/json"}
@@ -87,14 +92,8 @@ def test_post_request_expired_token(mock_app, expired_token, pem, monkeypatch):
     def mock_public_server(*args, **kwargs):
         return pem
 
-    def mock_null_claims_options(*args, **kwargs):
-        return None
-
     # Elixir key is not collected from elixir server, but mocked
     monkeypatch.setattr(auth, "elixir_key", mock_public_server)
-
-    # Skip validating using claims_options
-    monkeypatch.setattr(auth, "claims", mock_null_claims_options)
 
     headers = HEADERS
     headers["Authorization"] = "Bearer " + expired_token
@@ -105,7 +104,28 @@ def test_post_request_expired_token(mock_app, expired_token, pem, monkeypatch):
 
     # Should return expired token error
     assert response.status_code == 403
-    assert data["errorMessage"] == "Auth token contains an expired signature"
+    assert data == EXPIRED_TOKEN_SIGNATURE
+
+
+def test_post_request_invalid_token(mock_app, bad_token, pem, monkeypatch):
+    """test receiving a POST request containing a token with wrong issuers"""
+
+    # Monkeypatch Elixir JWT server public key
+    def mock_public_server(*args, **kwargs):
+        return pem
+
+    # Elixir key is not collected from elixir server, but mocked
+    monkeypatch.setattr(auth, "elixir_key", mock_public_server)
+
+    headers = HEADERS
+    headers["Authorization"] = "Bearer " + bad_token
+
+    # When a POST request with a token with wrong issuers is sent
+    response = mock_app.test_client().post("/apiv1.0/query?", headers=headers)
+    data = json.loads(response.data)
+    # it should return invalid token claims error
+    assert response.status_code == 403
+    assert data == INVALID_TOKEN_CLAIMS
 
 
 def test_post_request_valid_token(
@@ -117,14 +137,8 @@ def test_post_request_valid_token(
     def mock_public_server(*args, **kwargs):
         return pem
 
-    def mock_null_claims_options(*args, **kwargs):
-        return None
-
     # Elixir key is not collected from elixir server, but mocked
     monkeypatch.setattr(auth, "elixir_key", mock_public_server)
-
-    # Skip validating using claims_options
-    monkeypatch.setattr(auth, "claims", mock_null_claims_options)
 
     headers = HEADERS
     headers["Authorization"] = "Bearer " + test_token
