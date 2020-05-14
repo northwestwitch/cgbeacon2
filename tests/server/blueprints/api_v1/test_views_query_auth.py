@@ -8,6 +8,8 @@ from cgbeacon2.constants import (
     WRONG_SCHEME,
     EXPIRED_TOKEN_SIGNATURE,
     INVALID_TOKEN_CLAIMS,
+    MISSING_TOKEN_CLAIMS,
+    MISSING_PUBLIC_KEY,
 )
 from cgbeacon2.utils import auth
 
@@ -61,7 +63,7 @@ def test_post_request_wrong_token_wrong_scheme(mock_app, test_token):
     assert data["errorMessage"] == WRONG_SCHEME["errorMessage"]
 
 
-def test_validate_test_token(test_token, payload, pem):
+def test_validate_test_token(test_token, pem):
     """Test validate demo token"""
 
     # Having a test token
@@ -107,7 +109,9 @@ def test_post_request_expired_token(mock_app, expired_token, pem, monkeypatch):
     assert data == EXPIRED_TOKEN_SIGNATURE
 
 
-def test_post_request_invalid_token(mock_app, bad_token, pem, monkeypatch):
+def test_post_request_wrong_issuers_token(
+    mock_app, wrong_issuers_token, pem, monkeypatch
+):
     """test receiving a POST request containing a token with wrong issuers"""
 
     # Monkeypatch Elixir JWT server public key
@@ -118,7 +122,7 @@ def test_post_request_invalid_token(mock_app, bad_token, pem, monkeypatch):
     monkeypatch.setattr(auth, "elixir_key", mock_public_server)
 
     headers = HEADERS
-    headers["Authorization"] = "Bearer " + bad_token
+    headers["Authorization"] = "Bearer " + wrong_issuers_token
 
     # When a POST request with a token with wrong issuers is sent
     response = mock_app.test_client().post("/apiv1.0/query?", headers=headers)
@@ -128,9 +132,78 @@ def test_post_request_invalid_token(mock_app, bad_token, pem, monkeypatch):
     assert data == INVALID_TOKEN_CLAIMS
 
 
-def test_post_request_valid_token(
-    mock_app, test_token, pem, payload, monkeypatch, basic_query
+def test_post_request_missing_claims_token(mock_app, no_claims_token, pem, monkeypatch):
+    """test receiving a POST request containing a token with no claims"""
+
+    # Monkeypatch Elixir JWT server public key
+    def mock_public_server(*args, **kwargs):
+        return pem
+
+    # Elixir key is not collected from elixir server, but mocked
+    monkeypatch.setattr(auth, "elixir_key", mock_public_server)
+
+    headers = HEADERS
+    headers["Authorization"] = "Bearer " + no_claims_token
+
+    # When a POST request with a token with missing claims
+    response = mock_app.test_client().post("/apiv1.0/query?", headers=headers)
+    data = json.loads(response.data)
+
+    # it should return missing claims error
+    assert response.status_code == 403
+    assert data == MISSING_TOKEN_CLAIMS
+
+
+def test_post_request_missing_public_key(
+    mock_app, test_token, monkeypatch, mock_oauth2
 ):
+    """test receiving a post request with a token when the public key to decode it is available"""
+
+    headers = HEADERS
+    headers["Authorization"] = "Bearer " + test_token
+
+    mock_app.config["ELIXIR_OAUTH2"] = mock_oauth2
+
+    # When a POST request with token is sent, but public key is not available
+    response = mock_app.test_client().post("/apiv1.0/query?", headers=headers)
+    data = json.loads(response.data)
+
+    # it should return missing public key error
+    assert response.status_code == 403
+    assert data == MISSING_PUBLIC_KEY
+
+
+def test_post_request_invalid_token_signature(mock_app, pem, monkeypatch, basic_query):
+    """test receiving a POST request containing a token that triggers the InvalidTokenError"""
+
+    # generate a random token not using the test public key
+    wrong_token = jwt.encode({"alg": "HS256"}, {"aud": ["foo", "bar"]}, "k").decode(
+        "utf-8"
+    )
+    assert wrong_token
+
+    # Monkeypatch Elixir JWT server public key
+    def mock_public_server(*args, **kwargs):
+        return pem
+
+    # Elixir key is not collected from elixir server, but mocked
+    monkeypatch.setattr(auth, "elixir_key", mock_public_server)
+
+    headers = HEADERS
+    headers["Authorization"] = "Bearer " + wrong_token
+
+    # When a POST request with the wrong token is sent
+    response = mock_app.test_client().post(
+        "/apiv1.0/query?", headers=headers, data=json.dumps(basic_query)
+    )
+    data = json.loads(response.data)
+
+    # it should return a valid response
+    assert response.status_code == 403
+    assert "bad_signature" in data["errorMessage"]
+
+
+def test_post_request_valid_token(mock_app, test_token, pem, monkeypatch, basic_query):
     """Test receiving a POST request with valid token"""
 
     # Monkeypatch Elixir JWT server public key
@@ -147,7 +220,6 @@ def test_post_request_valid_token(
     response = mock_app.test_client().post(
         "/apiv1.0/query?", headers=headers, data=json.dumps(basic_query)
     )
-    data = json.loads(response.data)
 
     # it should return a valid response
     assert response.status_code == 200

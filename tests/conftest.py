@@ -162,7 +162,7 @@ def mock_oauth2(pem):
     """Mock OAuth2 params for the mock app"""
 
     mock_params = dict(
-        server=pem,
+        server="FOO",
         issuers=["https://login.elixir-czech.org/oidc/"],
         userinfo="mock_oidc_server",  # Where to send access token to view user data (permissions, statuses, ...)
         audience=["audience"],
@@ -233,8 +233,8 @@ def expired_token(header, pem):
 
 
 @pytest.fixture
-def bad_token(header, pem):
-    """Returns a bad token"""
+def wrong_issuers_token(header, pem):
+    """Returns a token with issuers different from those in the public key"""
 
     expiry_time = round(time.time()) + 60
     claims = {
@@ -243,6 +243,16 @@ def bad_token(header, pem):
         "aud": "audience",
         "sub": "someone@somewhere.se",
     }
+
+    token = jwt.encode(header, claims, pem)
+    return token.decode("utf-8")
+
+
+@pytest.fixture
+def no_claims_token(header, pem):
+    """Returns a token, with no claims"""
+
+    claims = {}
 
     token = jwt.encode(header, claims, pem)
     return token.decode("utf-8")

@@ -87,7 +87,7 @@ def authlevel(request, oauth2_settings):
     except ExpiredTokenError as ex:
         return EXPIRED_TOKEN_SIGNATURE
     except Exception as ex:
-        return {"errorCode": 401, "errorMessage": str(ex)}
+        return {"errorCode": 403, "errorMessage": str(ex)}
 
     return True, True, True  # Return only public access
 
