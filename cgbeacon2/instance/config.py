@@ -34,3 +34,15 @@ BEACON_OBJ = dict(
     info=[],
     welcomeUrl="http//scilifelab.beacon.se",
 )
+
+############## OAUTH2 permissions layer ##############
+### https://elixir-europe.org/services/compute/aai ###
+ELIXIR_OAUTH2 = dict(
+    server="https://login.elixir-czech.org/oidc/jwk",  # OAuth2 server that returns JWK public key
+    issuers=[
+        "https://login.elixir-czech.org/oidc/"
+    ],  # Authenticated Bearer token issuers
+    userinfo="https://login.elixir-czech.org/oidc/userinfo",  # Where to send access token to view user data (permissions, statuses, ...)
+    audience=[],  # List of strings. Sservice(s) the token is intended for. (key provided by the Beacon Network administrator)
+    verify_aud=False,  # if True, force verify audience for provided token
+)

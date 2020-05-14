@@ -16,6 +16,16 @@ BASE_ARGS = "query?assemblyId=GRCh37&referenceName=1&referenceBases=TA"
 ################## TESTS FOR HANDLING WRONG REQUESTS ################
 
 
+def test_post_empty_query(mock_app):
+    """Test receiving an empty POST query"""
+
+    # When a POST request is missing data
+    response = mock_app.test_client().post("/apiv1.0/query?", headers=HEADERS)
+
+    # Then it should return error
+    assert response.status_code == 400
+
+
 def test_query_get_request_missing_mandatory_params(mock_app):
     """Test the query endpoint by sending a request without mandatory params:
     referenceName, referenceBases, assemblyId

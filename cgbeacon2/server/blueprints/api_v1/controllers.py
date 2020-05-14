@@ -37,7 +37,7 @@ def create_allele_query(resp_obj, req):
     else:  # POST method
         if req.headers["Content-type"] == "application/json":
             data = req.get_json(force=True, cache=False)
-            customer_query["datasetIds"] = data.get("datasetIds")
+            customer_query["datasetIds"] = data.get("datasetIds", [])
         else:
             data = dict(req.form)
             customer_query["datasetIds"] = req.form.getlist("datasetIds")
@@ -68,7 +68,6 @@ def create_allele_query(resp_obj, req):
         return
 
     resp_obj["allelRequest"] = customer_query
-
     return mongo_query
 
 
@@ -114,7 +113,7 @@ def check_allele_request(resp_obj, customer_query, mongo_query):
         return
 
     # check if genome build requested corresponds to genome build of the available datasets:
-    if len(customer_query["datasetIds"]) > 0:
+    if len(customer_query.get("datasetIds", [])) > 0:
         dset_builds = current_app.db["dataset"].find(
             {"_id": {"$in": customer_query["datasetIds"]}}, {"assembly_id": 1, "_id": 0}
         )

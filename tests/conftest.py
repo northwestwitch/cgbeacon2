@@ -1,6 +1,9 @@
 # -*- coding: utf-8 -*-
+from authlib.jose import jwt
+import time
 import mongomock
 import pytest
+
 from cgbeacon2.server import create_app
 
 DATABASE_NAME = "testdb"
@@ -31,7 +34,22 @@ def mock_app(database):
     """Create a test app to be used in the tests"""
     app = create_app()
     app.db = database
+
+    # fix test oauth2 params for the mock app
     return app
+
+
+@pytest.fixture
+def basic_query():
+    """A basic allele query"""
+    params = dict(
+        assemblyId="GRCh37",
+        referenceName=1,
+        start=345790,
+        referenceBases="A",
+        alternateBases="g",
+    )
+    return params
 
 
 @pytest.fixture
@@ -133,3 +151,82 @@ def public_dataset_no_variants():
         consent_code="FOO",
     )
     return dataset
+
+
+########### Security-related fixtures ###########
+# https://github.com/mpdavis/python-jose/blob/master/tests/test_jwt.py
+
+
+@pytest.fixture
+def mock_oauth2(pem):
+    """Mock OAuth2 params for the mock app"""
+
+    mock_params = dict(
+        server=pem,
+        issuers=["http://scilifelab.se"],
+        userinfo="mock_oidc_server",  # Where to send access token to view user data (permissions, statuses, ...)
+        audience=["audience"],
+        verify_aud=True,
+    )
+    return mock_params
+
+
+@pytest.fixture
+def payload():
+    """Token payload"""
+    expiry_time = round(time.time()) + 20
+    claims = {
+        "iss": "https://login.elixir-czech.org/oidc/",
+        "exp": expiry_time,
+        "aud": "audience",
+        "sub": "someone@somewhere.se",
+    }
+    return claims
+
+
+@pytest.fixture
+def pem():
+    """Test pem to include in the key
+    https://python-jose.readthedocs.io/en/latest/jwk/index.html#examples
+    """
+    pem = {
+        "kty": "oct",
+        "kid": "018c0ae5-4d9b-471b-bfd6-eef314bc7037",
+        "use": "sig",
+        "alg": "HS256",
+        "k": "hJtXIZ2uSN5kbQfbtTNWbpdmhkV8FJG-Onbc6mxCcYg",
+    }
+    return pem
+
+
+@pytest.fixture
+def header():
+    """Token header"""
+    header = {
+        "jku": "http://scilifelab.se/jkw",
+        "kid": "018c0ae5-4d9b-471b-bfd6-eef314bc7037",
+        "alg": "HS256",
+    }
+    return header
+
+
+@pytest.fixture
+def test_token(header, payload, pem):
+    """Generate and return JWT based on a demo private key"""
+    token = jwt.encode(header, payload, pem)
+    return token.decode("utf-8")
+
+
+@pytest.fixture
+def expired_token(header, pem):
+    """Returns an expired token"""
+
+    expiry_time = round(time.time()) - 60
+    claims = {
+        "iss": "https://login.elixir-czech.org/oidc/",
+        "exp": expiry_time,
+        "aud": "audience",
+        "sub": "someone@somewhere.se",
+    }
+    token = jwt.encode(header, claims, pem)
+    return token.decode("utf-8")

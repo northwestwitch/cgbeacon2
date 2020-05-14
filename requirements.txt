@@ -9,6 +9,9 @@ progress
 flask
 flask_negotiate
 
+# security
+authlib
+
 # utils
 cyvcf2
 pybedtools
