@@ -24,7 +24,7 @@ def test_elixir_key(mock_app):
     assert public_key["keys"][0]["kty"]
 
 
-def test_decode_token(test_token, header, payload):
+def test_decode_passport(test_token, header, payload):
     """Test the function that extracts header and payload from a Base64url encoded token"""
 
     decode_header, decoded_payload = decode_passport(test_token)

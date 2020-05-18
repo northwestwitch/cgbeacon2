@@ -2,7 +2,7 @@
 import logging
 import requests
 
-import jwt #https://github.com/jpadilla/pyjwt
+import jwt  # https://github.com/jpadilla/pyjwt
 from authlib.jose import jwt as jjwt
 
 from authlib.jose.errors import (
@@ -21,7 +21,7 @@ from cgbeacon2.constants import (
     EXPIRED_TOKEN_SIGNATURE,
     INVALID_TOKEN_AUTH,
     NO_GA4GH_USERDATA,
-    PASSPORTS_ERROR
+    PASSPORTS_ERROR,
 )
 
 LOG = logging.getLogger(__name__)
@@ -29,6 +29,7 @@ GA4GH_SCOPES = ["openid", "ga4gh_passport_v1"]
 
 # Authentication code is based on:
 # https://elixir-europe.org/services/compute/aai
+
 
 def authlevel(request, oauth2_settings):
     """Returns auth level from a request object
@@ -71,22 +72,17 @@ def authlevel(request, oauth2_settings):
             f'Identified as {decoded_token["sub"]} user by {decoded_token["iss"]}.'
         )
 
-        # Check the bona fide status against ELIXIR AAI (URL provided in config file)
-
         # retrieve Elixir AAI passports associated to the user described by the auth token
-        g44gh_passports = ga4gh_passports(decoded_token, token, oauth2_settings)
-        if g44gh_passports == NO_GA4GH_USERDATA:
+        all_passports = ga4gh_passports(decoded_token, token, oauth2_settings)
+        if all_passports == NO_GA4GH_USERDATA:
             return NO_GA4GH_USERDATA
-        elif g44gh_passports is None:
+        elif all_passports is None:
             return (True, False, False)
 
-        #controlled_ds, bona_fide_ds = check_passports(g44gh_passports)
-        appo = check_passports(g44gh_passports)
+        # controlled_ds, bona_fide_ds = check_passports(g44gh_passports)
+        appo = check_passports(all_passports)
         if appo == PASSPORTS_ERROR:
             return PASSPORTS_ERROR
-
-
-
 
     except MissingClaimError as ex:
         return MISSING_TOKEN_CLAIMS
@@ -159,12 +155,12 @@ def check_passports(passports):
             # Decode encoded passport
             header, payload = decode_passport(passport)
             # get passport passport type
-            type =  payload.get('ga4gh_visa_v1', {}).get('type')
+            type = payload.get("ga4gh_visa_v1", {}).get("type")
             # has access to controlled access datasets
-            if type == 'ControlledAccessGrants':
+            if type == "ControlledAccessGrants":
                 controlled_passports.append((passport, header))
             # possible bona fide passport
-            if type in ['AcceptedTermsAndPolicies', 'ResearcherStatus']:
+            if type in ["AcceptedTermsAndPolicies", "ResearcherStatus"]:
                 bona_fide_passports.append((passport, header, payload))
     except Exception as ex:
         return PASSPORTS_ERROR
@@ -188,7 +184,6 @@ def get_ga4gh_bona_fide_datasets(bona_fide_passports):
         datasets(set): a set of bona fide datasets the user has access to
     """
     LOG.info("Getting passport-specific datasets with bona fide access from GA4GH")
-    
 
 
 def get_ga4gh_controlled_datasets(controlled_passports):
@@ -206,7 +201,7 @@ def get_ga4gh_controlled_datasets(controlled_passports):
         validated_pass = validate_passport(controlled)
         if validated_pass is None:
             continue
-        dataset = validated_pass.get('ga4gh_visa_v1', {}).get('value').split('/')[-1]
+        dataset = validated_pass.get("ga4gh_visa_v1", {}).get("value").split("/")[-1]
         datasets.add(dataset)
 
     return datasets
@@ -219,19 +214,15 @@ def validate_passport(passport):
         passport(tuple) : ( passport(str), header ) or ( passport(str), header, payload )
 
     """
-    LOG.info('Validating passport')
+    LOG.info("Validating passport")
     token = passport[0]
     header = passport[1]
 
     # Beacon can't verify audience because it does not know where the token originated in the first place
-    claims_options = {
-        "aud": {
-            "essential": False
-        }
-    }
+    claims_options = {"aud": {"essential": False}}
     try:
         # obtain public key for this passport
-        public_key = elixir_key(header.get('jku'))
+        public_key = elixir_key(header.get("jku"))
         # Try decoding the token using the public key
         decoded_passport = jjwt.decode(token, public_key, claims_options=claims_options)
         # And validating the signature
@@ -246,6 +237,7 @@ def decode_passport(encoded):
     Passport is a JWT token consisting of 3 strings separated by dots.
     This function extracts info from first and second string (header, payload).
     Signature (3rd string of token) is not used
+    (https://pyjwt.readthedocs.io/en/latest/usage.html)
 
     Accepts:
         passport(str): example --> 76hqhsfyFTJsguays7.88652tgbsjdiaoHGJ5as.99kkd76hhFFRP4g, but longer!
@@ -253,7 +245,7 @@ def decode_passport(encoded):
     Returns:
         header(dict), payload(dict). Token's decoded header and payload
     """
-    LOG.debug('Decoding a GA4GH passport')
+    LOG.debug("Decoding a GA4GH passport")
 
     header = jwt.get_unverified_header(encoded)
     payload = jwt.decode(encoded, verify=False)
