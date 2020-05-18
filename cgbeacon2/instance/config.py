@@ -45,4 +45,5 @@ ELIXIR_OAUTH2 = dict(
     userinfo="https://login.elixir-czech.org/oidc/userinfo",  # Where to send access token to view user data (permissions, statuses, ...)
     audience=[],  # List of strings. Sservice(s) the token is intended for. (key provided by the Beacon Network administrator)
     verify_aud=False,  # if True, force verify audience for provided token
+    bona_fide_requirements="https://doi.org/10.1038/s41431-018-0219-y",
 )

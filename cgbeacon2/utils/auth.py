@@ -79,9 +79,11 @@ def authlevel(request, oauth2_settings):
         elif all_passports is None:
             return (True, False, False)
 
+        # collect bona fide requirements from app config file
+        bona_fide_terms = oauth2_settings.get("bona_fide_requirements")
         # controlled_ds, bona_fide_ds = check_passports(g44gh_passports)
-        appo = check_passports(all_passports)
-        if appo == PASSPORTS_ERROR:
+        controlled_permissions = check_passports(all_passports, bona_fide_terms)
+        if controlled_permissions == PASSPORTS_ERROR:
             return PASSPORTS_ERROR
 
     except MissingClaimError as ex:
@@ -136,13 +138,14 @@ def claims(oauth2_settings):
     return claims
 
 
-def check_passports(passports):
+def check_passports(passports, bona_fide_terms):
     """Check userinfo provided by GA4GH
     GA4GH passports are described in this document: https://github.com/ga4gh-duri/ga4gh-duri.github.io/blob/master/researcher_ids/ga4gh_passport_v1.md
     # Code based on https://github.com/CSCfi/beacon-python/blob/master/beacon_api/permissions/ga4gh.py
 
     Accepts:
         passports(list)
+        bona_fide_terms(str): link to a document where the terms to be a bona fide researcher are stated
 
     Returns:
         controlled_datasets(set), bona_fide_datasets(set)
@@ -169,21 +172,50 @@ def check_passports(passports):
     controlled_datasets = get_ga4gh_controlled_datasets(controlled_passports)
 
     # validate bona fide passports and retrieve datasets user has access to
-    bona_fide_datasets = get_ga4gh_bona_fide_datasets(bona_fide_passports)
+    bona_fide_status = is_bona_fide(bona_fide_passports, bona_fide_terms)
 
-    return controlled_datasets, bona_fide_datasets
+    return (controlled_datasets, bona_fide_datasets)
 
 
-def get_ga4gh_bona_fide_datasets(bona_fide_passports):
+def is_bona_fide(bona_fide_passports, bona_fide_terms):
     """Retrieve bona fide datasets based on provided passports
+
+    Documentation from GA4GH: https://github.com/ga4gh-duri/ga4gh-duri.github.io/blob/master/researcher_ids/ga4gh_passport_v1.md#registered-access
 
     Accepts:
         bona_fide_passports(list): [ (passport(str), header, payload),.. ]
+        bona_fide_terms(str): link to a document where the terms to be a bona fide researcher are stated
 
     Returns:
-        datasets(set): a set of bona fide datasets the user has access to
+        True or False
     """
     LOG.info("Getting passport-specific datasets with bona fide access from GA4GH")
+
+    etics = False
+    status = False
+
+    for passport in bona_fide_passports:
+        validates_status = validate_passport(passport)
+        # check if passport is validated. If it's not, skip it
+        if validated_status is None:
+            continue
+
+        payload = passport[2]
+        pass_value = payload.get("ga4gh_visa_v1", {}).get("value")
+
+        if pass_value == bona_fide_terms:
+
+            pass_type = payload.get("ga4gh_visa_v1", {}).get("type")
+
+            if pass_type in "AcceptedTermsAndPolicies":
+                # User accepted bona fide terms specified by bona_fide_terms
+                etics = True
+
+            if pass_type == "ResearcherStatus":
+                # User was recognized as a researcher -> bona fide status ok
+                status = True
+
+    return etics and status
 
 
 def get_ga4gh_controlled_datasets(controlled_passports):
