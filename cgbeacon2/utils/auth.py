@@ -149,7 +149,7 @@ def check_passports(passports):
         passports(list)
 
     Returns:
-        BOH
+        controlled_datasets(set), bona_fide_datasets(set)
     """
     controlled_passports = []
     bona_fide_passports = []
@@ -169,20 +169,38 @@ def check_passports(passports):
     except Exception as ex:
         return PASSPORTS_ERROR
 
-    # validate controlled_passports passports
-    controlled_datasets = get_ga4gh_controlled(controlled_passports)
+    # validate controlled passports and retrieve datasets user has access to
+    controlled_datasets = get_ga4gh_controlled_datasets(controlled_passports)
+
+    # validate bona fide passports and retrieve datasets user has access to
+    bona_fide_datasets = get_ga4gh_bona_fide_datasets(bona_fide_passports)
+
+    return controlled_datasets, bona_fide_datasets
 
 
+def get_ga4gh_bona_fide_datasets(bona_fide_passports):
+    """Retrieve bona fide datasets based on provided passports
 
-def get_ga4gh_controlled(controlled_passports):
+    Accepts:
+        bona_fide_passports(list): [ (passport(str), header, payload),.. ]
+
+    Returns:
+        datasets(set): a set of bona fide datasets the user has access to
+    """
+    LOG.info("Getting passport-specific datasets with bona fide access from GA4GH")
+    
+
+
+def get_ga4gh_controlled_datasets(controlled_passports):
     """Retrieve controlled datasets based on provided passports
 
     Accepts:
-        controlled_passports(list): [ (passport(str), header),..]
+        controlled_passports(list): [ (passport(str), header),.. ]
 
     Returns:
         datasets(set): a set of controlled datasets the user has access to
     """
+    LOG.info("Getting passport-specific datasets with controlled access from GA4GH")
     datasets = set()
     for controlled in controlled_passports:
         validated_pass = validate_passport(controlled)
