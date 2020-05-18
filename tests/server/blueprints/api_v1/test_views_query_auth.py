@@ -199,17 +199,15 @@ def test_post_request_invalid_token_signature(mock_app, pem, monkeypatch, basic_
     )
     data = json.loads(response.data)
 
-    # it should return a valid response
+    # it should return bad signature error
     assert response.status_code == 403
     assert "bad_signature" in data["errorMessage"]
 
 
-def test_post_request_valid_token(
+def test_post_request_token_no_oidc(
     mock_app, test_token, pem, monkeypatch, basic_query, mock_oauth2
 ):
-    """Test receiving a POST request with valid token"""
-
-    mock_app.config["ELIXIR_OAUTH2"]["userinfo"] = mock_oauth2["userinfo"]
+    """Test receiving a POST request with valid token, but a non-valid OIDC is set"""
 
     # Monkeypatch Elixir JWT server public key
     def mock_public_server(*args, **kwargs):
@@ -221,15 +219,47 @@ def test_post_request_valid_token(
     headers = HEADERS
     headers["Authorization"] = "Bearer " + test_token
 
-    # When a POST request with a valid Authorization Bearer token is sent
+    mock_app.config["ELIXIR_OAUTH2"]["userinfo"] = mock_oauth2["userinfo"]
+
+    # When a POST request with a valid token, but in absence of OIDC provider is sent
+    response = mock_app.test_client().post(
+        "/apiv1.0/query?", headers=headers, data=json.dumps(basic_query)
+    )
+    data = json.loads(response.data)
+
+    # it should return a 403 error
+    assert response.status_code == 403
+    # With OIDC unreachable error
+    assert data == NO_GA4GH_USERDATA
+
+
+def test_post_request_token_ok_passports(mock_app, test_token, pem, monkeypatch, basic_query, mock_oauth2):
+    """Test receiving a POST request with valid token, valid userdata passports"""
+
+    # Monkeypatch Elixir JWT server public key
+    def mock_public_server(*args, **kwargs):
+        return pem
+
+    def mock_ga4gh_userdata(*args, **kwargs):
+        pass
+
+    # Elixir key is not collected from elixir server, but mocked
+    monkeypatch.setattr(auth, "elixir_key", mock_public_server)
+    # And OIDC provider is mocked
+    monkeypatch.setattr(auth, "ga4gh_userdata", mock_ga4gh_userdata)
+
+    headers = HEADERS
+    headers["Authorization"] = "Bearer " + test_token
+
+    mock_app.config["ELIXIR_OAUTH2"]["userinfo"] = mock_oauth2["userinfo"]
+
+    # When a POST request with a valid token, but in absence of OIDC provider is sent
     response = mock_app.test_client().post(
         "/apiv1.0/query?", headers=headers, data=json.dumps(basic_query)
     )
     data = json.loads(response.data)
 
     # it should return a valid response
-    assert response.status_code == 403
-    assert data == NO_GA4GH_USERDATA
+    assert response.status_code ==200
 
-
-# def test_unreachable_oidc
+    assert data == "asks"

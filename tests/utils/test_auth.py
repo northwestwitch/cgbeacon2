@@ -1,5 +1,7 @@
+import jwt
+
 from cgbeacon2.constants import MISSING_PUBLIC_KEY
-from cgbeacon2.utils.auth import elixir_key, claims, ga4gh_userdata
+from cgbeacon2.utils.auth import elixir_key, claims, decode_passport
 
 
 def test_elixir_key_wrong_key():
@@ -22,6 +24,14 @@ def test_elixir_key(mock_app):
     assert public_key["keys"][0]["kid"]
     assert public_key["keys"][0]["n"]
     assert public_key["keys"][0]["kty"]
+
+
+def test_decode_token(test_token, header, payload):
+    """Test the function that extracts header and payload from a Base64url encoded token"""
+
+    decode_header, decoded_payload = decode_passport(test_token)
+    assert decode_header == header
+    assert decoded_payload == payload
 
 
 def test_claims_no_aud(mock_app):

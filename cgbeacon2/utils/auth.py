@@ -2,7 +2,9 @@
 import logging
 import requests
 
-from authlib.jose import jwt
+import jwt #https://github.com/jpadilla/pyjwt
+from authlib.jose import jwt as jjwt
+
 from authlib.jose.errors import (
     MissingClaimError,
     InvalidClaimError,
@@ -26,7 +28,6 @@ GA4GH_SCOPES = ["openid", "ga4gh_passport_v1"]
 
 # Authentication code is based on:
 # https://elixir-europe.org/services/compute/aai
-
 
 def authlevel(request, oauth2_settings):
     """Returns auth level from a request object
@@ -61,7 +62,7 @@ def authlevel(request, oauth2_settings):
 
     # try decoding the token and getting query permissions
     try:
-        decoded_token = jwt.decode(token, public_key, claims_options=claims_options)
+        decoded_token = jjwt.decode(token, public_key, claims_options=claims_options)
         decoded_token.validate()  # validate the token contents
 
         LOG.info("Auth Token validated.")
@@ -77,10 +78,9 @@ def authlevel(request, oauth2_settings):
         g44gh_passports = ga4gh_passports(decoded_token, token, oauth2_settings)
         if g44gh_passports == NO_GA4GH_USERDATA:
             return NO_GA4GH_USERDATA
+        elif g44gh_passports is None:
+            return (True, False, False)
 
-        LOG.info(
-            f"------------------>DS PERMISSIONS:{dataset_permissions, bona_fide}----BONA FIDE:{bona_fide}"
-        )
 
     except MissingClaimError as ex:
         return MISSING_TOKEN_CLAIMS
@@ -134,6 +134,40 @@ def claims(oauth2_settings):
     return claims
 
 
+def check_passports(passports):
+    """Check userinfo provided by GA4GH
+    GA4GH passports are described in this document: https://github.com/ga4gh-duri/ga4gh-duri.github.io/blob/master/researcher_ids/ga4gh_passport_v1.md
+
+    Accepts:
+        passports(list)
+
+    Returns:
+        BOH
+    """
+    for passport in passports:
+        # Decode encoded passport
+        decoded_pass = decode_passport(passport)
+
+
+def decode_passport(encoded):
+    """Decode GA4GH passport info
+    Passport is a JWT token consisting of 3 strings separated by dots.
+    This function extracts info from first and second string (header, payload).
+    Signature (3rd string of token) is not used
+
+    Accepts:
+        passport(str): example --> 76hqhsfyFTJsguays7.88652tgbsjdiaoHGJ5as.99kkd76hhFFRP4g, but longer!
+
+    Returns:
+    """
+    LOG.debug('Decoding a GA4GH passport')
+
+    header = jwt.get_unverified_header(encoded)
+    payload = jwt.decode(encoded, verify=False)
+
+    return header, payload
+
+
 def ga4gh_passports(decoded_token, token, oauth2_settings):
     """Check dataset permissions and bona fide status from ga4gh token payload info
 
@@ -145,9 +179,7 @@ def ga4gh_passports(decoded_token, token, oauth2_settings):
         oauth2_settings(dict): Elixir Oauth2 settings
 
     Returns:
-        passports(dict):
-
-
+        passports(list)
     """
     passports = None
 
@@ -171,13 +203,12 @@ def ga4gh_passports(decoded_token, token, oauth2_settings):
 def ga4gh_userdata(token, elixir_oidc):
     """Sends a request to the Elixir OIDC Broker to retrieve user info (permissions)
 
-
     Accepts:
         token(str): token provided by initial request
         elixir_oidc(str): url to Elixir OIDC broker
 
     Returns:
-        passport_info()
+        passport_info(list)
 
     """
     LOG.info("Sending a request to Elixir AAI to get userinfo associated to token")

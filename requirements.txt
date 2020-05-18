@@ -11,6 +11,7 @@ flask_negotiate
 
 # security
 authlib
+PyJWT
 
 # utils
 cyvcf2
