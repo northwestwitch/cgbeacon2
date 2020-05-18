@@ -311,7 +311,7 @@ def ga4gh_passports(decoded_token, token, oauth2_settings):
 
     token_scopes = decoded_token["scope"].split(" ")
 
-    # If token scopes does overlap with GA4GH scopes, return
+    # If token scopes does NOT overlap with GA4GH scopes, return
     if not all(scope in token_scopes for scope in GA4GH_SCOPES):
         return passports
 
