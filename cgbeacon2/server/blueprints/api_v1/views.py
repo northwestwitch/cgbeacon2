@@ -95,7 +95,21 @@ def query_form():
 @api1_bp.route("/apiv1.0/query", methods=["GET", "POST"])
 @produces("application/json")
 def query():
-    """Create a query from params provided in the request and return a response with eventual results"""
+    """Create a query from params provided in the request and return a response with eventual results
+
+    curl -X POST \
+    localhost:5000/apiv1.0/query \
+    -H 'Content-Type: application/json' \
+    -H 'Accept: application/json' \
+    -H 'Authorization: Bearer ajsklSJKAJSKAJ' \
+    -d '{"referenceName": "1",
+    "start": 156146085,
+    "referenceBases": "C",
+    "alternateBases": "A",
+    "assemblyId": "GRCh37",
+    "includeDatasetResponses": "HIT"}'
+
+    """
 
     beacon_config = current_app.config.get("BEACON_OBJ")
     beacon_obj = Beacon(beacon_config, API_VERSION, current_app.db)

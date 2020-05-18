@@ -7,6 +7,7 @@ import pytest
 from cgbeacon2.server import create_app
 
 DATABASE_NAME = "testdb"
+GA4GH_SCOPES = ["openid", "ga4gh_passport_v1"]
 
 
 @pytest.fixture(scope="function")
@@ -180,6 +181,7 @@ def payload():
         "exp": expiry_time,
         "aud": "audience",
         "sub": "someone@somewhere.se",
+        "scope": " ".join(GA4GH_SCOPES),
     }
     return claims
 

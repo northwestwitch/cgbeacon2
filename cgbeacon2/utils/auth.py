@@ -18,9 +18,11 @@ from cgbeacon2.constants import (
     INVALID_TOKEN_CLAIMS,
     EXPIRED_TOKEN_SIGNATURE,
     INVALID_TOKEN_AUTH,
+    NO_GA4GH_USERDATA,
 )
 
 LOG = logging.getLogger(__name__)
+GA4GH_SCOPES = ["openid", "ga4gh_passport_v1"]
 
 # Authentication code is based on:
 # https://elixir-europe.org/services/compute/aai
@@ -35,18 +37,6 @@ def authlevel(request, oauth2_settings):
 
     Returns:
         auth_level(tuple): (bool,bool,bool) == (public_access, registered_access, controlled_access)
-
-    curl -X POST \
-    localhost:5000/apiv1.0/query \
-    -H 'Content-Type: application/json' \
-    -H 'Accept: application/json' \
-    -H 'Authorization: Bearer ajsklSJKAJSKAJ' \
-    -d '{"referenceName": "1",
-    "start": 156146085,
-    "referenceBases": "C",
-    "alternateBases": "A",
-    "assemblyId": "GRCh37",
-    "includeDatasetResponses": "HIT"}'
 
     """
     token = None
@@ -78,6 +68,20 @@ def authlevel(request, oauth2_settings):
         LOG.info(
             f'Identified as {decoded_token["sub"]} user by {decoded_token["iss"]}.'
         )
+
+        # Check the bona fide status against ELIXIR AAI by default or the URL from config
+        # dataset_permissions = set()
+        # bona_fide = False
+
+        # retrieve Elixir AAI passports associated to the user described by the auth token
+        g44gh_passports = ga4gh_passports(decoded_token, token, oauth2_settings)
+        if g44gh_passports == NO_GA4GH_USERDATA:
+            return NO_GA4GH_USERDATA
+
+        LOG.info(
+            f"------------------>DS PERMISSIONS:{dataset_permissions, bona_fide}----BONA FIDE:{bona_fide}"
+        )
+
     except MissingClaimError as ex:
         return MISSING_TOKEN_CLAIMS
     except InvalidClaimError as ex:
@@ -128,3 +132,62 @@ def claims(oauth2_settings):
         exp=dict(essential=True),
     )
     return claims
+
+
+def ga4gh_passports(decoded_token, token, oauth2_settings):
+    """Check dataset permissions and bona fide status from ga4gh token payload info
+
+    Auth system is described by this document: https://github.com/ga4gh/data-security/blob/master/AAI/AAIConnectProfile.md
+
+    Accepts:
+        decoded_token(dict): A JWT token's payload
+        token(str): Token provided by request to this beacon
+        oauth2_settings(dict): Elixir Oauth2 settings
+
+    Returns:
+        passports(dict):
+
+
+    """
+    passports = None
+
+    if "scope" not in decoded_token:
+        return passports
+
+    token_scopes = decoded_token["scope"].split(" ")
+
+    # If token scopes does overlap with GA4GH scopes, return
+    if not all(scope in token_scopes for scope in GA4GH_SCOPES):
+        return passports
+
+    # Send a GET request to Elixir userifo endpoint, with token
+    passports = ga4gh_userdata(token, oauth2_settings.get("userinfo"))
+    if passports == NO_GA4GH_USERDATA:
+        return NO_GA4GH_USERDATA
+
+    return passports
+
+
+def ga4gh_userdata(token, elixir_oidc):
+    """Sends a request to the Elixir OIDC Broker to retrieve user info (permissions)
+
+
+    Accepts:
+        token(str): token provided by initial request
+        elixir_oidc(str): url to Elixir OIDC broker
+
+    Returns:
+        passport_info()
+
+    """
+    LOG.info("Sending a request to Elixir AAI to get userinfo associated to token")
+    headers = {"Authorization": f"Bearer {token}"}
+    passport_info = None
+    try:
+        resp = requests.get(elixir_oidc, headers=headers)
+        data = resp.json()
+        passport_info = data.get("ga4gh_passport_v1")
+    except Exception as ex:
+        return NO_GA4GH_USERDATA
+
+    return passport_info

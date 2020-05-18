@@ -1,5 +1,5 @@
 from cgbeacon2.constants import MISSING_PUBLIC_KEY
-from cgbeacon2.utils.auth import elixir_key, claims
+from cgbeacon2.utils.auth import elixir_key, claims, ga4gh_userdata
 
 
 def test_elixir_key_wrong_key():

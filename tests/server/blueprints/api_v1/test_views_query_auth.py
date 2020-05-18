@@ -10,6 +10,7 @@ from cgbeacon2.constants import (
     INVALID_TOKEN_CLAIMS,
     MISSING_TOKEN_CLAIMS,
     MISSING_PUBLIC_KEY,
+    NO_GA4GH_USERDATA,
 )
 from cgbeacon2.utils import auth
 
@@ -203,8 +204,12 @@ def test_post_request_invalid_token_signature(mock_app, pem, monkeypatch, basic_
     assert "bad_signature" in data["errorMessage"]
 
 
-def test_post_request_valid_token(mock_app, test_token, pem, monkeypatch, basic_query):
+def test_post_request_valid_token(
+    mock_app, test_token, pem, monkeypatch, basic_query, mock_oauth2
+):
     """Test receiving a POST request with valid token"""
+
+    mock_app.config["ELIXIR_OAUTH2"]["userinfo"] = mock_oauth2["userinfo"]
 
     # Monkeypatch Elixir JWT server public key
     def mock_public_server(*args, **kwargs):
@@ -220,6 +225,11 @@ def test_post_request_valid_token(mock_app, test_token, pem, monkeypatch, basic_
     response = mock_app.test_client().post(
         "/apiv1.0/query?", headers=headers, data=json.dumps(basic_query)
     )
+    data = json.loads(response.data)
 
     # it should return a valid response
-    assert response.status_code == 200
+    assert response.status_code == 403
+    assert data == NO_GA4GH_USERDATA
+
+
+# def test_unreachable_oidc
