@@ -39,13 +39,18 @@ def authlevel(request, oauth2_settings):
         oauth2_settings(dict) Elixie AAI Oauth2 settings (server, issuers, userinfo)
 
     Returns:
-        auth_level(tuple): (bool,bool,bool) == (public_access, registered_access, controlled_access)
+        auth_level(tuple): ([],bool) == (controlled_access datasets, bona_fide_status)
 
     """
     token = None
 
+    auth_level = (
+        [],
+        False,
+    )  # (controlled datasets the user has access to, bona fide status)
+
     if "Authorization" not in request.headers:
-        return (True, False, False)
+        return ([], False)
 
     try:
         scheme, token = request.headers.get("Authorization").split(" ")
@@ -77,12 +82,13 @@ def authlevel(request, oauth2_settings):
         if all_passports == NO_GA4GH_USERDATA:
             return NO_GA4GH_USERDATA
         elif all_passports is None:
-            return (True, False, False)
+            return ([], False)
 
         # collect bona fide requirements from app config file
         bona_fide_terms = oauth2_settings.get("bona_fide_requirements")
         # controlled_ds, bona_fide_ds = check_passports(g44gh_passports)
-        controlled_permissions = check_passports(all_passports, bona_fide_terms)
+        auth_level = check_passports(all_passports, bona_fide_terms)
+
         if controlled_permissions == PASSPORTS_ERROR:
             return PASSPORTS_ERROR
 
@@ -97,7 +103,7 @@ def authlevel(request, oauth2_settings):
     except Exception as ex:
         return {"errorCode": 403, "errorMessage": str(ex)}
 
-    return True, True, True  # Return only public access
+    return auth_level
 
 
 def elixir_key(server):
