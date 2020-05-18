@@ -261,5 +261,3 @@ def test_post_request_token_ok_passports(mock_app, test_token, pem, monkeypatch,
 
     # it should return a valid response
     assert response.status_code ==200
-
-    assert data == "asks"

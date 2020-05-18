@@ -16,6 +16,7 @@ from .oauth_errors import (
     EXPIRED_TOKEN_SIGNATURE,
     INVALID_TOKEN_AUTH,
     NO_GA4GH_USERDATA,
+    PASSPORTS_ERROR
 )
 from .request_errors import MISSING_TOKEN, WRONG_SCHEME
 from .response_objs import QUERY_PARAMS_API_V1

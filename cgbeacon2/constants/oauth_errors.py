@@ -20,3 +20,8 @@ NO_GA4GH_USERDATA = dict(
     errorCode=403,
     errorMessage="Could not connect retrieve userdata from GA4GH OIDC provider",
 )
+
+PASSPORTS_ERROR = dict(
+    errorCode=403,
+    errorMessage="Could not understand JWT passports returned by OIDC provider",
+)

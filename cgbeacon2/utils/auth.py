@@ -21,6 +21,7 @@ from cgbeacon2.constants import (
     EXPIRED_TOKEN_SIGNATURE,
     INVALID_TOKEN_AUTH,
     NO_GA4GH_USERDATA,
+    PASSPORTS_ERROR
 )
 
 LOG = logging.getLogger(__name__)
@@ -70,9 +71,7 @@ def authlevel(request, oauth2_settings):
             f'Identified as {decoded_token["sub"]} user by {decoded_token["iss"]}.'
         )
 
-        # Check the bona fide status against ELIXIR AAI by default or the URL from config
-        # dataset_permissions = set()
-        # bona_fide = False
+        # Check the bona fide status against ELIXIR AAI (URL provided in config file)
 
         # retrieve Elixir AAI passports associated to the user described by the auth token
         g44gh_passports = ga4gh_passports(decoded_token, token, oauth2_settings)
@@ -80,6 +79,13 @@ def authlevel(request, oauth2_settings):
             return NO_GA4GH_USERDATA
         elif g44gh_passports is None:
             return (True, False, False)
+
+        #controlled_ds, bona_fide_ds = check_passports(g44gh_passports)
+        appo = check_passports(g44gh_passports)
+        if appo == PASSPORTS_ERROR:
+            return PASSPORTS_ERROR
+
+
 
 
     except MissingClaimError as ex:
@@ -137,6 +143,7 @@ def claims(oauth2_settings):
 def check_passports(passports):
     """Check userinfo provided by GA4GH
     GA4GH passports are described in this document: https://github.com/ga4gh-duri/ga4gh-duri.github.io/blob/master/researcher_ids/ga4gh_passport_v1.md
+    # Code based on https://github.com/CSCfi/beacon-python/blob/master/beacon_api/permissions/ga4gh.py
 
     Accepts:
         passports(list)
@@ -144,9 +151,76 @@ def check_passports(passports):
     Returns:
         BOH
     """
-    for passport in passports:
-        # Decode encoded passport
-        decoded_pass = decode_passport(passport)
+    controlled_passports = []
+    bona_fide_passports = []
+
+    try:
+        for passport in passports:
+            # Decode encoded passport
+            header, payload = decode_passport(passport)
+            # get passport passport type
+            type =  payload.get('ga4gh_visa_v1', {}).get('type')
+            # has access to controlled access datasets
+            if type == 'ControlledAccessGrants':
+                controlled_passports.append((passport, header))
+            # possible bona fide passport
+            if type in ['AcceptedTermsAndPolicies', 'ResearcherStatus']:
+                bona_fide_passports.append((passport, header, payload))
+    except Exception as ex:
+        return PASSPORTS_ERROR
+
+    # validate controlled_passports passports
+    controlled_datasets = get_ga4gh_controlled(controlled_passports)
+
+
+
+def get_ga4gh_controlled(controlled_passports):
+    """Retrieve controlled datasets based on provided passports
+
+    Accepts:
+        controlled_passports(list): [ (passport(str), header),..]
+
+    Returns:
+        datasets(set): a set of controlled datasets the user has access to
+    """
+    datasets = set()
+    for controlled in controlled_passports:
+        validated_pass = validate_passport(controlled)
+        if validated_pass is None:
+            continue
+        dataset = validated_pass.get('ga4gh_visa_v1', {}).get('value').split('/')[-1]
+        datasets.add(dataset)
+
+    return datasets
+
+
+def validate_passport(passport):
+    """Validate passport claims
+
+    Accepts:
+        passport(tuple) : ( passport(str), header ) or ( passport(str), header, payload )
+
+    """
+    LOG.info('Validating passport')
+    token = passport[0]
+    header = passport[1]
+
+    # Beacon can't verify audience because it does not know where the token originated in the first place
+    claims_options = {
+        "aud": {
+            "essential": False
+        }
+    }
+    try:
+        # obtain public key for this passport
+        public_key = elixir_key(header.get('jku'))
+        # Try decoding the token using the public key
+        decoded_passport = jjwt.decode(token, public_key, claims_options=claims_options)
+        # And validating the signature
+        decoded_passport.validate()
+        return decoded_passport
+    except Exception as ex:
+        LOG.error(f"Error while decoding/validating passport:{ex}")
 
 
 def decode_passport(encoded):
@@ -159,6 +233,7 @@ def decode_passport(encoded):
         passport(str): example --> 76hqhsfyFTJsguays7.88652tgbsjdiaoHGJ5as.99kkd76hhFFRP4g, but longer!
 
     Returns:
+        header(dict), payload(dict). Token's decoded header and payload
     """
     LOG.debug('Decoding a GA4GH passport')
 

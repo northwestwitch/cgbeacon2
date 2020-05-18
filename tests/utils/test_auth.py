@@ -1,5 +1,3 @@
-import jwt
-
 from cgbeacon2.constants import MISSING_PUBLIC_KEY
 from cgbeacon2.utils.auth import elixir_key, claims, decode_passport
 
