@@ -35,12 +35,13 @@ def create_allele_query(resp_obj, req):
         data = dict(req.args)
         customer_query["datasetIds"] = req.args.getlist("datasetIds")
     else:  # POST method
-        if req.headers["Content-type"] == "application/json":
-            data = req.get_json(force=True, cache=False)
-            customer_query["datasetIds"] = data.get("datasetIds", [])
-        else:
+        if req.headers.get("Content-type") == "application/x-www-form-urlencoded":
             data = dict(req.form)
             customer_query["datasetIds"] = req.form.getlist("datasetIds")
+
+        else:  # application/json, This should be default
+            data = req.json
+            customer_query["datasetIds"] = data.get("datasetIds", [])
 
         # Remove null parameters from the query
         remove_keys = []

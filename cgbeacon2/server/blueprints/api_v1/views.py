@@ -9,7 +9,6 @@ from flask import (
     flash,
     redirect,
 )
-from flask_negotiate import produces
 from cgbeacon2.constants import CHROMOSOMES
 from cgbeacon2.models import Beacon
 from cgbeacon2.utils.auth import authlevel
@@ -27,9 +26,13 @@ api1_bp = Blueprint(
 
 
 @api1_bp.route("/apiv1.0/", methods=["GET"])
-@produces("application/json")
 def info():
-    """Returns Beacon info data as a json object"""
+    """Returns Beacon info data as a json object
+
+    Example:
+        curl -X GET 'http://localhost:5000/apiv1.0/'
+
+    """
 
     beacon_config = current_app.config.get("BEACON_OBJ")
     beacon = Beacon(beacon_config, API_VERSION, current_app.db)
@@ -43,6 +46,9 @@ def info():
 def query_form():
     """The endpoint to a super simple query form to interrogate this beacon
        Query is performed only on public access datasets contained in this beacon
+
+       query_form page is accessible from a browser at this address:
+       http://127.0.0.1:5000/apiv1.0/query_form
     """
 
     all_dsets = current_app.db["dataset"].find()
@@ -93,23 +99,23 @@ def query_form():
 
 
 @api1_bp.route("/apiv1.0/query", methods=["GET", "POST"])
-@produces("application/json")
 def query():
-    """Create a query from params provided in the request and return a response with eventual results
+    """Create a query from params provided in the request and return a response with eventual results, or errors
 
-    Example:
+    Examples:
+    ########### GET request ###########
+    curl -X GET \
+    'http://localhost:5000/apiv1.0/query?referenceName=1&referenceBases=C&start=156146085&assemblyId=GRCh37&alternateBases=A'
 
+    ########### POST request ###########
     curl -X POST \
-    localhost:5000/apiv1.0/query \
     -H 'Content-Type: application/json' \
-    -H 'Accept: application/json' \
-    -H 'Authorization: Bearer ga4gh_token' \
     -d '{"referenceName": "1",
     "start": 156146085,
     "referenceBases": "C",
     "alternateBases": "A",
     "assemblyId": "GRCh37",
-    "includeDatasetResponses": "HIT"}'
+    "includeDatasetResponses": "HIT"}' http://localhost:5000/apiv1.0/query
 
     """
 
