@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import pybedtools
 from cgbeacon2.resources import panel1_path, panel2_path
-from cgbeacon2.utils.parse import merge_intervals
+from cgbeacon2.utils.parse import merge_intervals, extract_variants
 
 
 def test_merge_intervals():
@@ -41,3 +41,10 @@ def test_merge_demo_intervals():
 
     merged_bed = merge_intervals([a, b])
     assert len(merged_bed) == len(a) + len(b) - 1  # a and b have a shared interval
+
+
+def test_extract_variants_no_vcf_file():
+    """When VCF file is not a valid file then the extract variants functions returns None"""
+
+    results = extract_variants("wrong_VCF_path")
+    assert results is None
