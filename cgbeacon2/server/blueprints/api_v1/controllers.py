@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 import logging
-from flask import request, current_app, flash
+from flask import request, current_app
 from cgbeacon2.constants import (
     NO_MANDATORY_PARAMS,
     NO_SECONDARY_PARAMS,
@@ -41,7 +41,6 @@ def create_allele_query(resp_obj, req):
 
         else:  # application/json, This should be default
             data = req.json
-            LOG.info(f"------------->DATA:{data}")
             customer_query["datasetIds"] = data.get("datasetIds", [])
 
         # Remove null parameters from the query
