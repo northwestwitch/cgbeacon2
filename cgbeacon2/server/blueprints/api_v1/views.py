@@ -123,7 +123,6 @@ def query():
     # Public access only has auth_levels = ([], False)
     auth_levels = authlevel(request, current_app.config.get("ELIXIR_OAUTH2"))
 
-    LOG.info(f"---------------->AuTHLEVEL:{auth_levels}")
     if isinstance(
         auth_levels, dict
     ):  # an error must have occurred, otherwise it's a tuple
