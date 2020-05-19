@@ -95,7 +95,23 @@ def query_form():
 @api1_bp.route("/apiv1.0/query", methods=["GET", "POST"])
 @produces("application/json")
 def query():
-    """Create a query from params provided in the request and return a response with eventual results"""
+    """Create a query from params provided in the request and return a response with eventual results
+
+    Example:
+
+    curl -X POST \
+    localhost:5000/apiv1.0/query \
+    -H 'Content-Type: application/json' \
+    -H 'Accept: application/json' \
+    -H 'Authorization: Bearer ga4gh_token' \
+    -d '{"referenceName": "1",
+    "start": 156146085,
+    "referenceBases": "C",
+    "alternateBases": "A",
+    "assemblyId": "GRCh37",
+    "includeDatasetResponses": "HIT"}'
+
+    """
 
     beacon_config = current_app.config.get("BEACON_OBJ")
     beacon_obj = Beacon(beacon_config, API_VERSION, current_app.db)
@@ -104,9 +120,12 @@ def query():
     resp_status = 200
 
     # Check request headers to define user access level
+    # Public access only has auth_levels = ([], False)
     auth_levels = authlevel(request, current_app.config.get("ELIXIR_OAUTH2"))
 
-    if isinstance(auth_levels, dict):  # an error must have occurred
+    if isinstance(
+        auth_levels, dict
+    ):  # an error must have occurred, otherwise it's a tuple
         resp = jsonify(auth_levels)
         resp.status_code = auth_levels.get("errorCode", 403)
         return resp
@@ -128,7 +147,7 @@ def query():
         response_type = resp_obj["allelRequest"].get("includeDatasetResponses", "NONE")
         query_datasets = resp_obj["allelRequest"].get("datasetIds", [])
         exists, ds_allele_responses = dispatch_query(
-            query, response_type, query_datasets
+            query, response_type, query_datasets, auth_levels
         )
 
         resp_obj["exists"] = exists

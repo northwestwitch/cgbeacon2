@@ -7,6 +7,7 @@ import pytest
 from cgbeacon2.server import create_app
 
 DATABASE_NAME = "testdb"
+GA4GH_SCOPES = ["openid", "ga4gh_passport_v1"]
 
 
 @pytest.fixture(scope="function")
@@ -40,14 +41,14 @@ def mock_app(database):
 
 
 @pytest.fixture
-def basic_query():
+def basic_query(test_snv):
     """A basic allele query"""
     params = dict(
-        assemblyId="GRCh37",
-        referenceName=1,
-        start=345790,
-        referenceBases="A",
-        alternateBases="g",
+        assemblyId=test_snv["assemblyId"],
+        referenceName=test_snv["referenceName"],
+        start=test_snv["start"],
+        referenceBases=test_snv["referenceBases"],
+        alternateBases=test_snv["alternateBases"],
     )
     return params
 
@@ -115,7 +116,7 @@ def registered_dataset():
         authlevel="registered",
         description="Registered dataset description",
         version=1.0,
-        url="external_regostered_url.url",
+        url="external_registered_url.url",
         consent_code="RUO",
     )
     return dataset
@@ -180,6 +181,7 @@ def payload():
         "exp": expiry_time,
         "aud": "audience",
         "sub": "someone@somewhere.se",
+        "scope": " ".join(GA4GH_SCOPES),
     }
     return claims
 
@@ -256,3 +258,39 @@ def no_claims_token(header, pem):
 
     token = jwt.encode(header, claims, pem)
     return token.decode("utf-8")
+
+
+@pytest.fixture
+def registered_access_passport_info(header, pem):
+    """Returns a JWT mocking a user identity with registered access permission on a dataset"""
+
+    passport = {
+        "ga4gh_visa_v1": {
+            "type": "ControlledAccessGrants",
+            "asserted": 1549640000,
+            "value": "https://scilife-beacon/datasets/registered_ds",
+        }
+    }
+    passport_info = [jwt.encode(header, passport, pem).decode("utf-8")]
+
+    return passport_info
+
+
+@pytest.fixture
+def bona_fide_passport_info(header, pem):
+    """Returns a JWT mocking a bona fide user (has access over controlled datasets)"""
+
+    passports = [
+        {
+            "ga4gh_visa_v1": {
+                "type": "AcceptedTermsAndPolicies",
+                "value": "https://doi.org/10.1038/s41431-018-0219-y",
+            }
+        },
+        {"ga4gh_visa_v1": {"type": "ResearcherStatus",}},
+    ]
+    passport_info = [
+        jwt.encode(header, passport, pem).decode("utf-8") for passport in passports
+    ]
+
+    return passport_info

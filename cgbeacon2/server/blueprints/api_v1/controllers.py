@@ -210,7 +210,7 @@ def check_allele_request(resp_obj, customer_query, mongo_query):
         mongo_query.pop("end", None)
 
 
-def dispatch_query(mongo_query, response_type, datasets=[]):
+def dispatch_query(mongo_query, response_type, datasets=[], auth_levels=([], False)):
     """Query variant collection using a query dictionary
 
     Accepts:
@@ -221,6 +221,7 @@ def dispatch_query(mongo_query, response_type, datasets=[]):
             MISS means opposite to HIT value, only datasets that don't have the queried variant
             NONE don't return datasets response.
         datasets(list): dataset ids from request "datasetIds" field
+        auth_levels(tuple): (registered access datasets(list), bona_fide_status(bool))
 
     Returns:
         results():
@@ -237,6 +238,9 @@ def dispatch_query(mongo_query, response_type, datasets=[]):
     if len(variants) == 0:
         return False, []
 
+    # Filter variants by auth level specified by user token (or lack of it)
+    variants = results_filter_by_auth(variants, auth_levels)
+
     if response_type == "NONE":
         if len(variants) > 0:
             return True, []
@@ -250,6 +254,45 @@ def dispatch_query(mongo_query, response_type, datasets=[]):
         return result
 
     return False, []
+
+
+def results_filter_by_auth(variants, auth_levels):
+    """Filter variants returned by query using auth levels (specified by token, if present, otherwise public access only datasets)
+
+    Accepts:
+        variants(list): a list of variants returned by database query
+        auth_levels(tuple): (registered access datasets(list), bona_fide_status(bool))
+
+    Return:
+        filtered_variants(list): Variants filtered using authlevel criteria
+    """
+
+    # Filter variants by auth level (specified by token, if present, otherwise public access only datasets)
+    ds_collection = current_app.db["dataset"]
+    public_ds = ds_collection.find({"authlevel": "public"})
+    pyblic_ds_ids = [ds["_id"] for ds in public_ds]
+
+    LOG.info(f"The following public dataset were found in database:{public_ds}")
+
+    registered_access_ds_ids = auth_levels[0]
+    controlled_access_ds_ids = []
+
+    if auth_levels[1] is True:  # user has access to controlled access datasets
+        controlled_access_ds = ds_collection.find({"authlevel": "controlled"})
+        controlled_access_ds_ids = [ds["_id"] for ds in controlled_access_ds]
+
+    dataset_filter = pyblic_ds_ids + registered_access_ds_ids + controlled_access_ds_ids
+
+    # Filter results
+    LOG.info(f"Filtering out results with datasets different from :{dataset_filter}")
+    filtered_variants = []
+
+    for variant in variants:
+        for key in variant.get("datasetIds", []):
+            if key in dataset_filter:
+                filtered_variants.append(variant)
+
+    return filtered_variants
 
 
 def create_ds_allele_response(response_type, req_dsets, variants):
