@@ -25,3 +25,4 @@
 - Important request/response syntax fixes
 - Included OAuth2 JWT validation layer
 - Included tests for non-valid auth JWTs
+- Stratify returned results by user auth level

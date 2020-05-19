@@ -12,6 +12,7 @@ from cgbeacon2.constants import (
     MISSING_TOKEN_CLAIMS,
     MISSING_PUBLIC_KEY,
     NO_GA4GH_USERDATA,
+    PASSPORTS_ERROR,
 )
 from cgbeacon2.utils import auth
 
@@ -232,6 +233,39 @@ def test_post_request_token_no_oidc(
     assert response.status_code == 403
     # With OIDC unreachable error
     assert data == NO_GA4GH_USERDATA
+
+
+def test_post_request_token_passports_error(
+    mock_app, test_token, pem, monkeypatch, mock_oauth2
+):
+    """Test receiving POST request with valid token but in the absence of a valid server returning valid passport JWTs"""
+
+    # Monkeypatch Elixir JWT server public key
+    def mock_public_server(*args, **kwargs):
+        return pem
+
+    def mock_ga4gh_userdata(*args, **kwargs):
+        # OIDC provider returning non-canonical response
+        return {"foo": "bar"}
+
+    # Elixir key is not collected from elixir server, but mocked
+    monkeypatch.setattr(auth, "elixir_key", mock_public_server)
+
+    # And OIDC provider is mocked
+    monkeypatch.setattr(auth, "ga4gh_userdata", mock_ga4gh_userdata)
+
+    headers = copy.deepcopy(HEADERS)
+    headers["Authorization"] = "Bearer " + test_token
+
+    mock_app.config["ELIXIR_OAUTH2"]["userinfo"] = mock_oauth2["userinfo"]
+
+    # When a POST request with a valid token is sent
+    response = mock_app.test_client().post("/apiv1.0/query?", headers=headers)
+    data = json.loads(response.data)
+
+    # it should return the specific 403 passports error
+    assert response.status_code == 403
+    assert data == PASSPORTS_ERROR
 
 
 def test_post_request_token_ok_oidc(
