@@ -342,3 +342,85 @@ def test_post_query_registered_dataset_registered_token(
     data = json.loads(response.data)
     # And the beacon response would be Found=Yes
     assert data["exists"] is True
+
+
+def test_post_query_controlled_dataset_no_token(
+    mock_app, controlled_dataset, test_snv, basic_query
+):
+    """Test the case when the variant is from a controlled dataset and the query has no token"""
+
+    # Having a database containing a dataset with registered access protection
+    database = mock_app.db
+    controlled_dataset["samples"] = ["ADM1059A1"]
+    database["dataset"].insert_one(controlled_dataset)
+
+    # And a variant from the same dataset
+    test_snv["datasetIds"] = {
+        controlled_dataset["_id"]: {"samples": controlled_dataset["samples"]}
+    }
+    database["variant"].insert_one(test_snv)
+
+    # When a POST request is sent without auth token
+    response = mock_app.test_client().post(
+        "/apiv1.0/query?", headers=HEADERS, data=json.dumps(basic_query)
+    )
+    data = json.loads(response.data)
+    # it should return a valid response
+    assert response.status_code == 200
+    # But the variant should NOT be found
+    assert data["exists"] is False
+
+
+def test_post_query_controlled_dataset_bona_fide_token(
+    mock_app,
+    controlled_dataset,
+    test_snv,
+    basic_query,
+    test_token,
+    mock_oauth2,
+    monkeypatch,
+    pem,
+    bona_fide_passport_info,
+):
+    """Test post query from a bona fide user that has access to a controlled dataset on this beacon"""
+
+    # Monkeypatch Elixir JWT server public key
+    def mock_public_server(*args, **kwargs):
+        return pem
+
+    def mock_ga4gh_userdata(*args, **kwargs):
+        return bona_fide_passport_info
+
+    # Elixir key is not collected from elixir server, but mocked
+    monkeypatch.setattr(auth, "elixir_key", mock_public_server)
+    # And OIDC provider is mocked
+    monkeypatch.setattr(auth, "ga4gh_userdata", mock_ga4gh_userdata)
+
+    # Having a database containing a dataset with controlled access protection
+    database = mock_app.db
+    controlled_dataset["samples"] = ["ADM1059A1"]
+    database["dataset"].insert_one(controlled_dataset)
+
+    # And a variant from the same dataset
+    test_snv["datasetIds"] = {
+        controlled_dataset["_id"]: {"samples": controlled_dataset["samples"]}
+    }
+    database["variant"].insert_one(test_snv)
+
+    # When a POST request with a valid token is sent
+    headers = copy.deepcopy(HEADERS)
+    headers["Authorization"] = "Bearer " + test_token
+    mock_app.config["ELIXIR_OAUTH2"]["userinfo"] = mock_oauth2["userinfo"]
+    mock_app.config["ELIXIR_OAUTH2"][
+        "bona_fide_requirements"
+    ] = "https://doi.org/10.1038/s41431-018-0219-y"
+
+    response = mock_app.test_client().post(
+        "/apiv1.0/query?", headers=headers, data=json.dumps(basic_query)
+    )
+
+    # it should return a valid response
+    assert response.status_code == 200
+    data = json.loads(response.data)
+    # And the beacon response would be Found=Yes
+    assert data["exists"] is True

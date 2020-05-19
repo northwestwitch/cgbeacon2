@@ -262,7 +262,7 @@ def no_claims_token(header, pem):
 
 @pytest.fixture
 def registered_access_passport_info(header, pem):
-    """Returns a JWK mocking a user identity with registered access permission on a dataset"""
+    """Returns a JWT mocking a user identity with registered access permission on a dataset"""
 
     passport = {
         "ga4gh_visa_v1": {
@@ -272,5 +272,25 @@ def registered_access_passport_info(header, pem):
         }
     }
     passport_info = [jwt.encode(header, passport, pem).decode("utf-8")]
+
+    return passport_info
+
+
+@pytest.fixture
+def bona_fide_passport_info(header, pem):
+    """Returns a JWT mocking a bona fide user (has access over controlled datasets)"""
+
+    passports = [
+        {
+            "ga4gh_visa_v1": {
+                "type": "AcceptedTermsAndPolicies",
+                "value": "https://doi.org/10.1038/s41431-018-0219-y",
+            }
+        },
+        {"ga4gh_visa_v1": {"type": "ResearcherStatus",}},
+    ]
+    passport_info = [
+        jwt.encode(header, passport, pem).decode("utf-8") for passport in passports
+    ]
 
     return passport_info

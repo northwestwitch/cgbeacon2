@@ -203,25 +203,22 @@ def is_bona_fide(bona_fide_passports, bona_fide_terms):
     status = False
 
     for passport in bona_fide_passports:
-        validates_status = validate_passport(passport)
+        validated_status = validate_passport(passport)
         # check if passport is validated. If it's not, skip it
         if validated_status is None:
             continue
 
         payload = passport[2]
         pass_value = payload.get("ga4gh_visa_v1", {}).get("value")
+        pass_type = payload.get("ga4gh_visa_v1", {}).get("type")
 
-        if pass_value == bona_fide_terms:
+        if pass_type in "AcceptedTermsAndPolicies" and pass_value == bona_fide_terms:
+            # User accepted bona fide terms specified by bona_fide_terms
+            etics = True
 
-            pass_type = payload.get("ga4gh_visa_v1", {}).get("type")
-
-            if pass_type in "AcceptedTermsAndPolicies":
-                # User accepted bona fide terms specified by bona_fide_terms
-                etics = True
-
-            if pass_type == "ResearcherStatus":
-                # User was recognized as a researcher -> bona fide status ok
-                status = True
+        if pass_type == "ResearcherStatus":
+            # User was recognized as a researcher -> bona fide status ok
+            status = True
 
     return etics and status  # must be both True
 
