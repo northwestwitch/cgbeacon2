@@ -41,14 +41,14 @@ def mock_app(database):
 
 
 @pytest.fixture
-def basic_query():
+def basic_query(test_snv):
     """A basic allele query"""
     params = dict(
-        assemblyId="GRCh37",
-        referenceName=1,
-        start=345790,
-        referenceBases="A",
-        alternateBases="g",
+        assemblyId=test_snv["assemblyId"],
+        referenceName=test_snv["referenceName"],
+        start=test_snv["start"],
+        referenceBases=test_snv["referenceBases"],
+        alternateBases=test_snv["alternateBases"],
     )
     return params
 
@@ -116,7 +116,7 @@ def registered_dataset():
         authlevel="registered",
         description="Registered dataset description",
         version=1.0,
-        url="external_regostered_url.url",
+        url="external_registered_url.url",
         consent_code="RUO",
     )
     return dataset

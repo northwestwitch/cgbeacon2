@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import copy
 import json
 import pytest
 from authlib.jose import jwt
@@ -20,7 +21,7 @@ HEADERS = {"Content-type": "application/json", "Accept": "application/json"}
 def test_post_request_wrong_token_no_token(mock_app):
     """test receiving a post request with Auth headers but not token"""
 
-    headers = HEADERS
+    headers = copy.deepcopy(HEADERS)
     headers["Authorization"] = ""
 
     # When a POST request Authorization="" is sent
@@ -35,7 +36,7 @@ def test_post_request_wrong_token_no_token(mock_app):
 def test_post_request_wrong_token_null_token(mock_app):
     """test receiving a post request with Auth headers and wrong scheme"""
 
-    headers = HEADERS
+    headers = copy.deepcopy(HEADERS)
     headers["Authorization"] = "Bearer "
 
     # When a POST request Authorization="" is sent
@@ -51,7 +52,7 @@ def test_post_request_wrong_token_null_token(mock_app):
 def test_post_request_wrong_token_wrong_scheme(mock_app, test_token):
     """test receiving a post request with Auth headers and wrong scheme"""
 
-    headers = HEADERS
+    headers = copy.deepcopy(HEADERS)
     headers["Authorization"] = "Basic " + test_token
 
     # When a POST request Authorization="" is sent
@@ -98,7 +99,7 @@ def test_post_request_expired_token(mock_app, expired_token, pem, monkeypatch):
     # Elixir key is not collected from elixir server, but mocked
     monkeypatch.setattr(auth, "elixir_key", mock_public_server)
 
-    headers = HEADERS
+    headers = copy.deepcopy(HEADERS)
     headers["Authorization"] = "Bearer " + expired_token
 
     # When the beacon receives a request with this token
@@ -122,7 +123,7 @@ def test_post_request_wrong_issuers_token(
     # Elixir key is not collected from elixir server, but mocked
     monkeypatch.setattr(auth, "elixir_key", mock_public_server)
 
-    headers = HEADERS
+    headers = copy.deepcopy(HEADERS)
     headers["Authorization"] = "Bearer " + wrong_issuers_token
 
     # When a POST request with a token with wrong issuers is sent
@@ -143,7 +144,7 @@ def test_post_request_missing_claims_token(mock_app, no_claims_token, pem, monke
     # Elixir key is not collected from elixir server, but mocked
     monkeypatch.setattr(auth, "elixir_key", mock_public_server)
 
-    headers = HEADERS
+    headers = copy.deepcopy(HEADERS)
     headers["Authorization"] = "Bearer " + no_claims_token
 
     # When a POST request with a token with missing claims
@@ -160,7 +161,7 @@ def test_post_request_missing_public_key(
 ):
     """test receiving a post request with a token when the public key to decode it is available"""
 
-    headers = HEADERS
+    headers = copy.deepcopy(HEADERS)
     headers["Authorization"] = "Bearer " + test_token
 
     mock_app.config["ELIXIR_OAUTH2"] = mock_oauth2
@@ -190,7 +191,7 @@ def test_post_request_invalid_token_signature(mock_app, pem, monkeypatch, basic_
     # Elixir key is not collected from elixir server, but mocked
     monkeypatch.setattr(auth, "elixir_key", mock_public_server)
 
-    headers = HEADERS
+    headers = copy.deepcopy(HEADERS)
     headers["Authorization"] = "Bearer " + wrong_token
 
     # When a POST request with the wrong token is sent
@@ -216,7 +217,7 @@ def test_post_request_token_no_oidc(
     # Elixir key is not collected from elixir server, but mocked
     monkeypatch.setattr(auth, "elixir_key", mock_public_server)
 
-    headers = HEADERS
+    headers = copy.deepcopy(HEADERS)
     headers["Authorization"] = "Bearer " + test_token
 
     mock_app.config["ELIXIR_OAUTH2"]["userinfo"] = mock_oauth2["userinfo"]
@@ -233,7 +234,9 @@ def test_post_request_token_no_oidc(
     assert data == NO_GA4GH_USERDATA
 
 
-def test_post_request_token_ok_passports(mock_app, test_token, pem, monkeypatch, basic_query, mock_oauth2):
+def test_post_request_token_ok_passports(
+    mock_app, test_token, pem, monkeypatch, basic_query, mock_oauth2
+):
     """Test receiving a POST request with valid token, valid userdata passports"""
 
     # Monkeypatch Elixir JWT server public key
@@ -248,7 +251,7 @@ def test_post_request_token_ok_passports(mock_app, test_token, pem, monkeypatch,
     # And OIDC provider is mocked
     monkeypatch.setattr(auth, "ga4gh_userdata", mock_ga4gh_userdata)
 
-    headers = HEADERS
+    headers = copy.deepcopy(HEADERS)
     headers["Authorization"] = "Bearer " + test_token
 
     mock_app.config["ELIXIR_OAUTH2"]["userinfo"] = mock_oauth2["userinfo"]
@@ -257,7 +260,33 @@ def test_post_request_token_ok_passports(mock_app, test_token, pem, monkeypatch,
     response = mock_app.test_client().post(
         "/apiv1.0/query?", headers=headers, data=json.dumps(basic_query)
     )
-    data = json.loads(response.data)
 
     # it should return a valid response
-    assert response.status_code ==200
+    assert response.status_code == 200
+
+
+def test_post_query_registered_dataset_no_token(
+    mock_app, registered_dataset, test_snv, basic_query
+):
+    """Test the case when the variant is from a registered dataset and the query has no token"""
+
+    # Having a database containing a dataset with registered access protection
+    database = mock_app.db
+    registered_dataset["samples"] = ["ADM1059A1"]
+    database["dataset"].insert_one(registered_dataset)
+
+    # And a variant from the same dataset
+    test_snv["datasetIds"] = {
+        registered_dataset["_id"]: {"samples": registered_dataset["samples"]}
+    }
+    database["variant"].insert_one(test_snv)
+
+    # When a POST request is sent without auth token
+    response = mock_app.test_client().post(
+        "/apiv1.0/query?", headers=HEADERS, data=json.dumps(basic_query)
+    )
+    data = json.loads(response.data)
+    # it should return a valid response
+    assert response.status_code == 200
+    # But the variant should NOT be found
+    assert data["exists"] is False

@@ -89,7 +89,7 @@ def authlevel(request, oauth2_settings):
         # controlled_ds, bona_fide_ds = check_passports(g44gh_passports)
         auth_level = check_passports(all_passports, bona_fide_terms)
 
-        if controlled_permissions == PASSPORTS_ERROR:
+        if auth_level == PASSPORTS_ERROR:
             return PASSPORTS_ERROR
 
     except MissingClaimError as ex:
@@ -146,7 +146,7 @@ def claims(oauth2_settings):
 
 def check_passports(passports, bona_fide_terms):
     """Check userinfo provided by GA4GH
-    GA4GH passports are described in this document: https://github.com/ga4gh-duri/ga4gh-duri.github.io/blob/master/researcher_ids/ga4gh_passport_v1.md
+    GA4GH passports are described by this document: https://github.com/ga4gh-duri/ga4gh-duri.github.io/blob/master/researcher_ids/ga4gh_passport_v1.md
     # Code based on https://github.com/CSCfi/beacon-python/blob/master/beacon_api/permissions/ga4gh.py
 
     Accepts:
@@ -184,7 +184,7 @@ def check_passports(passports, bona_fide_terms):
 
 
 def is_bona_fide(bona_fide_passports, bona_fide_terms):
-    """Retrieve bona fide datasets based on provided passports
+    """Retrieve bona fide status based on provided passports
 
     Documentation from GA4GH: https://github.com/ga4gh-duri/ga4gh-duri.github.io/blob/master/researcher_ids/ga4gh_passport_v1.md#registered-access
 
@@ -221,7 +221,7 @@ def is_bona_fide(bona_fide_passports, bona_fide_terms):
                 # User was recognized as a researcher -> bona fide status ok
                 status = True
 
-    return etics and status
+    return etics and status  # must be both True
 
 
 def get_ga4gh_controlled_datasets(controlled_passports):

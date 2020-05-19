@@ -97,11 +97,13 @@ def query_form():
 def query():
     """Create a query from params provided in the request and return a response with eventual results
 
+    Example:
+
     curl -X POST \
     localhost:5000/apiv1.0/query \
     -H 'Content-Type: application/json' \
     -H 'Accept: application/json' \
-    -H 'Authorization: Bearer ajsklSJKAJSKAJ' \
+    -H 'Authorization: Bearer ga4gh_token' \
     -d '{"referenceName": "1",
     "start": 156146085,
     "referenceBases": "C",
@@ -118,15 +120,19 @@ def query():
     resp_status = 200
 
     # Check request headers to define user access level
+    # Public access only has auth_levels = ([], False)
     auth_levels = authlevel(request, current_app.config.get("ELIXIR_OAUTH2"))
 
-    if isinstance(auth_levels, dict):  # an error must have occurred
+    if isinstance(
+        auth_levels, dict
+    ):  # an error must have occurred, otherwise it's a tuple
         resp = jsonify(auth_levels)
         resp.status_code = auth_levels.get("errorCode", 403)
         return resp
 
     # Create database query object
     query = create_allele_query(resp_obj, request)
+    LOG.info(f"------------------------->QUERY IS.{query}")
 
     if resp_obj.get("message") is not None:
         # an error must have occurred
@@ -142,7 +148,7 @@ def query():
         response_type = resp_obj["allelRequest"].get("includeDatasetResponses", "NONE")
         query_datasets = resp_obj["allelRequest"].get("datasetIds", [])
         exists, ds_allele_responses = dispatch_query(
-            query, response_type, query_datasets
+            query, response_type, query_datasets, auth_levels
         )
 
         resp_obj["exists"] = exists
