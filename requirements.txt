@@ -7,7 +7,6 @@ progress
 
 # server
 flask
-flask_negotiate
 
 # security
 authlib
