@@ -132,7 +132,6 @@ def query():
 
     # Create database query object
     query = create_allele_query(resp_obj, request)
-    LOG.info(f"------------------------->QUERY IS.{query}")
 
     if resp_obj.get("message") is not None:
         # an error must have occurred

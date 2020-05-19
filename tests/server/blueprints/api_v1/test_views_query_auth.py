@@ -234,7 +234,7 @@ def test_post_request_token_no_oidc(
     assert data == NO_GA4GH_USERDATA
 
 
-def test_post_request_token_ok_passports(
+def test_post_request_token_ok_oidc(
     mock_app, test_token, pem, monkeypatch, basic_query, mock_oauth2
 ):
     """Test receiving a POST request with valid token, valid userdata passports"""
@@ -256,7 +256,7 @@ def test_post_request_token_ok_passports(
 
     mock_app.config["ELIXIR_OAUTH2"]["userinfo"] = mock_oauth2["userinfo"]
 
-    # When a POST request with a valid token, but in absence of OIDC provider is sent
+    # When a POST request with a valid token is sent
     response = mock_app.test_client().post(
         "/apiv1.0/query?", headers=headers, data=json.dumps(basic_query)
     )
@@ -290,3 +290,55 @@ def test_post_query_registered_dataset_no_token(
     assert response.status_code == 200
     # But the variant should NOT be found
     assert data["exists"] is False
+
+
+def test_post_query_registered_dataset_registered_token(
+    mock_app,
+    registered_dataset,
+    test_snv,
+    basic_query,
+    test_token,
+    mock_oauth2,
+    monkeypatch,
+    pem,
+    registered_access_passport_info,
+):
+    """Test post query from a user that has access to a registered dataset on this beacon"""
+
+    # Monkeypatch Elixir JWT server public key
+    def mock_public_server(*args, **kwargs):
+        return pem
+
+    def mock_ga4gh_userdata(*args, **kwargs):
+        return registered_access_passport_info
+
+    # Elixir key is not collected from elixir server, but mocked
+    monkeypatch.setattr(auth, "elixir_key", mock_public_server)
+    # And OIDC provider is mocked
+    monkeypatch.setattr(auth, "ga4gh_userdata", mock_ga4gh_userdata)
+
+    # Having a database containing a dataset with registered access protection
+    database = mock_app.db
+    registered_dataset["samples"] = ["ADM1059A1"]
+    database["dataset"].insert_one(registered_dataset)
+
+    # And a variant from the same dataset
+    test_snv["datasetIds"] = {
+        registered_dataset["_id"]: {"samples": registered_dataset["samples"]}
+    }
+    database["variant"].insert_one(test_snv)
+
+    # When a POST request with a valid token is sent
+    headers = copy.deepcopy(HEADERS)
+    headers["Authorization"] = "Bearer " + test_token
+    mock_app.config["ELIXIR_OAUTH2"]["userinfo"] = mock_oauth2["userinfo"]
+
+    response = mock_app.test_client().post(
+        "/apiv1.0/query?", headers=headers, data=json.dumps(basic_query)
+    )
+
+    # it should return a valid response
+    assert response.status_code == 200
+    data = json.loads(response.data)
+    # And the beacon response would be Found=Yes
+    assert data["exists"] is True

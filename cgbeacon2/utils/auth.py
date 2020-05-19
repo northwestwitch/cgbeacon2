@@ -79,6 +79,7 @@ def authlevel(request, oauth2_settings):
 
         # retrieve Elixir AAI passports associated to the user described by the auth token
         all_passports = ga4gh_passports(decoded_token, token, oauth2_settings)
+
         if all_passports == NO_GA4GH_USERDATA:
             return NO_GA4GH_USERDATA
         elif all_passports is None:
@@ -156,7 +157,8 @@ def check_passports(passports, bona_fide_terms):
     Returns:
         controlled_datasets(set), bona_fide_datasets(set)
     """
-    controlled_passports = []
+
+    registered_passports = []
     bona_fide_passports = []
 
     try:
@@ -167,7 +169,7 @@ def check_passports(passports, bona_fide_terms):
             type = payload.get("ga4gh_visa_v1", {}).get("type")
             # has access to controlled access datasets
             if type == "ControlledAccessGrants":
-                controlled_passports.append((passport, header))
+                registered_passports.append((passport, header))
             # possible bona fide passport
             if type in ["AcceptedTermsAndPolicies", "ResearcherStatus"]:
                 bona_fide_passports.append((passport, header, payload))
@@ -175,12 +177,12 @@ def check_passports(passports, bona_fide_terms):
         return PASSPORTS_ERROR
 
     # validate controlled passports and retrieve datasets user has access to
-    controlled_datasets = get_ga4gh_controlled_datasets(controlled_passports)
+    registered_datasets = get_ga4gh_registered_datasets(registered_passports)
 
     # validate bona fide passports and retrieve datasets user has access to
     bona_fide_status = is_bona_fide(bona_fide_passports, bona_fide_terms)
 
-    return (controlled_datasets, bona_fide_datasets)
+    return (list(registered_datasets), bona_fide_status)
 
 
 def is_bona_fide(bona_fide_passports, bona_fide_terms):
@@ -224,19 +226,19 @@ def is_bona_fide(bona_fide_passports, bona_fide_terms):
     return etics and status  # must be both True
 
 
-def get_ga4gh_controlled_datasets(controlled_passports):
-    """Retrieve controlled datasets based on provided passports
+def get_ga4gh_registered_datasets(registered_passports):
+    """Retrieve registered datasets based on provided passports
 
     Accepts:
-        controlled_passports(list): [ (passport(str), header),.. ]
+        registered_passports(list): [ (passport(str), header),.. ]
 
     Returns:
         datasets(set): a set of controlled datasets the user has access to
     """
-    LOG.info("Getting passport-specific datasets with controlled access from GA4GH")
+    LOG.info("Getting passport-specific datasets with registered access from GA4GH")
     datasets = set()
-    for controlled in controlled_passports:
-        validated_pass = validate_passport(controlled)
+    for registered in registered_passports:
+        validated_pass = validate_passport(registered)
         if validated_pass is None:
             continue
         dataset = validated_pass.get("ga4gh_visa_v1", {}).get("value").split("/")[-1]
@@ -317,6 +319,7 @@ def ga4gh_passports(decoded_token, token, oauth2_settings):
 
     # Send a GET request to Elixir userifo endpoint, with token
     passports = ga4gh_userdata(token, oauth2_settings.get("userinfo"))
+
     if passports == NO_GA4GH_USERDATA:
         return NO_GA4GH_USERDATA
 

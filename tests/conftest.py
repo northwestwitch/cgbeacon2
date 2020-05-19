@@ -258,3 +258,19 @@ def no_claims_token(header, pem):
 
     token = jwt.encode(header, claims, pem)
     return token.decode("utf-8")
+
+
+@pytest.fixture
+def registered_access_passport_info(header, pem):
+    """Returns a JWK mocking a user identity with registered access permission on a dataset"""
+
+    passport = {
+        "ga4gh_visa_v1": {
+            "type": "ControlledAccessGrants",
+            "asserted": 1549640000,
+            "value": "https://scilife-beacon/datasets/registered_ds",
+        }
+    }
+    passport_info = [jwt.encode(header, passport, pem).decode("utf-8")]
+
+    return passport_info
