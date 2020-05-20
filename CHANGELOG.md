@@ -28,3 +28,4 @@
 - Stratify returned results by user auth level
 - Fixed code that handles POST request content
 - Added a function to load demo data into demo database
+- Added a short description of the Beacon command and funcionalities on the readme file

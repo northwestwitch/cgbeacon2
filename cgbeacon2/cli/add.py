@@ -30,7 +30,7 @@ def demo(ctx):
 
     # Dropping any existing database collection from demo database
     collections = current_app.db.collection_names()
-    click.echo(f"\n\nDropping the follwing collections:{ ','.join(collections) }")
+    click.echo(f"\n\nDropping the following collections:{ ','.join(collections) }")
     for collection in collections:
         current_app.db.drop_collection(collection)
 
