@@ -32,7 +32,7 @@ def demo(ctx):
     collections = current_app.db.collection_names()
     click.echo(f"\n\nDropping the follwing collections:{ ','.join(collections) }")
     for collection in collections:
-        current_app.db.collection.drop()
+        current_app.db.drop_collection(collection)
 
     # Creating public dataset
     ds_id = "test_public"
@@ -59,7 +59,6 @@ def demo(ctx):
         vcf="cgbeacon2/resources/demo/643594.clinical.SV.vcf.gz",
         sample=[sample],
     )
-
 
 @add.command()
 @click.option("-id", type=click.STRING, nargs=1, required=True, help="dataset ID")
