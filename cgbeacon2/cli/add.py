@@ -6,6 +6,7 @@ import datetime
 from flask.cli import with_appcontext, current_app
 
 from cgbeacon2.constants import CONSENT_CODES
+from cgbeacon2.resources import test_snv_vcf_path, test_sv_vcf_path, panel1_path
 from cgbeacon2.utils.add import add_dataset, add_variants
 from cgbeacon2.utils.parse import extract_variants, count_variants, merge_intervals
 from cgbeacon2.utils.update import update_dataset_samples
@@ -15,6 +16,49 @@ from cgbeacon2.utils.update import update_dataset_samples
 def add():
     """Add items to database using the CLI"""
     pass
+
+
+@add.command()
+@with_appcontext
+@click.pass_context
+def demo(ctx):
+    """Loads demo data into the database:
+    A test dataset with public access (genome assembly GRCh37)
+    Demo SNV variants filtered using a demo gene panel
+    Demo SV variants
+    """
+
+    # Dropping any existing database collection from demo database
+    collections = current_app.db.collection_names()
+    click.echo(f"\n\nDropping the follwing collections:{ ','.join(collections) }")
+    for collection in collections:
+        current_app.db.collection.drop()
+
+    # Creating public dataset
+    ds_id = "test_public"
+    ds_name = "Test public dataset"
+    authlevel = "public"
+    sample = "ADM1059A1"
+    assembly_id = "GRCh37"
+
+    # Invoke add dataset command
+    ctx.invoke(dataset, id=ds_id, name=ds_name, authlevel=authlevel)
+
+    # Invoke add variants command, to import all SNV variants from demo sample
+    ctx.invoke(
+        variants,
+        ds=ds_id,
+        vcf="cgbeacon2/resources/demo/643594.clinical.vcf.gz",
+        sample=[sample],
+    )
+
+    # Invoke add variants command, to import all SV variants from demo sample
+    ctx.invoke(
+        variants,
+        ds=ds_id,
+        vcf="cgbeacon2/resources/demo/643594.clinical.SV.vcf.gz",
+        sample=[sample],
+    )
 
 
 @add.command()
@@ -142,6 +186,7 @@ def variants(ds, vcf, sample, panel):
         panel(str): path to bed file containing genomic intervals to filter variants by
     """
     # make sure dataset id corresponds to a dataset in the database
+
     dataset = current_app.db["dataset"].find_one({"_id": ds})
     if dataset is None:
         click.echo(f"Couldn't find any dataset with id '{ds}' in the database")
