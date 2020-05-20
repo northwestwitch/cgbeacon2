@@ -6,7 +6,7 @@ import datetime
 from flask.cli import with_appcontext, current_app
 
 from cgbeacon2.constants import CONSENT_CODES
-from cgbeacon2.resources import test_snv_vcf_path, test_sv_vcf_path, panel1_path
+from cgbeacon2.resources import test_snv_vcf_path, test_sv_vcf_path
 from cgbeacon2.utils.add import add_dataset, add_variants
 from cgbeacon2.utils.parse import extract_variants, count_variants, merge_intervals
 from cgbeacon2.utils.update import update_dataset_samples
