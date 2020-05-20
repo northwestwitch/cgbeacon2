@@ -27,3 +27,4 @@
 - Included tests for non-valid auth JWTs
 - Stratify returned results by user auth level
 - Fixed code that handles POST request content
+- Added a function to load demo data into demo database
