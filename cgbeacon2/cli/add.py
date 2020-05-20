@@ -39,7 +39,6 @@ def demo(ctx):
     ds_name = "Test public dataset"
     authlevel = "public"
     sample = "ADM1059A1"
-    assembly_id = "GRCh37"
 
     # Invoke add dataset command
     ctx.invoke(dataset, id=ds_id, name=ds_name, authlevel=authlevel)
