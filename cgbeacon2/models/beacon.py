@@ -72,4 +72,23 @@ class Beacon:
     def _sample_allele_requests(self):
         """Returns a list of example allele requests"""
 
-        return []
+        examples = [
+            {
+                "alternateBases": "A",
+                "referenceBases": "C",
+                "referenceName": "1",
+                "start": 14036,
+                "assemblyId": "GRCh37",
+                "datasetIds": ["test_public"],
+                "includeDatasetResponses": "HIT",
+            },
+            {
+                "variantType": "DUP",
+                "referenceBases": "C",
+                "referenceName": "20",
+                "start": 54963148,
+                "assemblyId": "GRCh37",
+                "includeDatasetResponses": "ALL",
+            },
+        ]
+        return examples
