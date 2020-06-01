@@ -128,13 +128,14 @@ def add_variant(database, variant, dataset_id):
         dataset_id(str): current dataset in use
 
     Returns:
-        result.inserted_id or id of updated variant
+        result.inserted_id or updated variant allele_count
 
     """
     # check if variant already exists
     old_variant = database["variant"].find_one({"_id": variant._id})
-    current_samples = variant.datasetIds[dataset_id]["samples"] #{sample1: allele_count, sample2:allele_count}
-    LOG.info(f"current_samples----->{current_samples}")
+    current_samples = variant.datasetIds[dataset_id][
+        "samples"
+    ]  # {sample1: allele_count, sample2:allele_count}
     if old_variant is None:  # if it doesn't exist
         # insert variant into database
         variant.call_count = sum(current_samples.values())
@@ -142,26 +143,29 @@ def add_variant(database, variant, dataset_id):
         return result.inserted_id
 
     else:  # update pre-existing variant
-        updated_datasets = old_variant.get("datasetIds",{}) # dictionary where dataset ids are keys
+        updated_datasets = old_variant.get(
+            "datasetIds", {}
+        )  # dictionary where dataset ids are keys
         allele_count = 0
-        if dataset_id in updated_datasets: # variant was already found in this dataset
+        if dataset_id in updated_datasets:  # variant was already found in this dataset
             updated_samples = updated_datasets[dataset_id]["samples"]
-            for sample,value in current_samples.items():
+            for sample, value in current_samples.items():
                 if sample not in updated_samples:
                     updated_samples[sample] = value
                     allele_count += value
             updated_datasets[dataset_id] = updated_samples
         else:
             updated_datasets[dataset_id] = current_samples
-            allele_count=sum(current_samples.values())
+            allele_count = sum(current_samples.values())
 
-        if allele_count>0: # changes in sample, allele count dictionary must be saved
+        if allele_count > 0:  # changes in sample, allele count dictionary must be saved
             result = database["variant"].find_one_and_update(
                 {"_id": old_variant["_id"]},
-                {"$set": {
-                    "datasetIds": updated_datasets,#this is actually updated now
-                    "call_count" : old_variant["call_count"] + allele_count
+                {
+                    "$set": {
+                        "datasetIds": updated_datasets,  # this is actually updated now
+                        "call_count": old_variant["call_count"] + allele_count,
                     }
-                }
+                },
             )
             return allele_count

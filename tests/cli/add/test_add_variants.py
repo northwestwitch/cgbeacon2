@@ -137,7 +137,7 @@ def test_add_variants_snv_vcf(mock_app, public_dataset, database):
     assert isinstance(test_variant["referenceBases"], str)
     assert isinstance(test_variant["alternateBases"], str)
     assert test_variant["assemblyId"] == "GRCh37"
-    assert test_variant["datasetIds"] == {dataset["_id"]: {"samples": [sample]}}
+    assert sample in test_variant["datasetIds"][dataset["_id"]]["samples"]
 
 
 def test_add_variants_twice(mock_app, public_dataset, database):
