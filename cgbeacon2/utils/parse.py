@@ -87,10 +87,12 @@ def variant_called(vcf_samples, gt_positions, g_types):
         g_types(list): list of GTypes, one for each sample, ordered.
 
     Returns:
-        samples_with_call(list): a list of samples having the specific variant call
+        samples_with_call(dict): a dictionary of samples having the specific variant call with the allele count.
+            Example: {sample1:1, sample2:2}
     """
 
-    samples_with_call = []
+    samples_with_call = {}
+    allele_count = 0
 
     for i, g_type in enumerate(g_types):
         if i not in gt_positions:  # this sampple should not be considered, skip
@@ -99,6 +101,11 @@ def variant_called(vcf_samples, gt_positions, g_types):
         if g_type in [1, 3]:
             # gt_types is array of 0,1,2,3==HOM_REF, HET, UNKNOWN, HOM_ALT
             # Collect only samples with HET or HOM_ALT calls
-            samples_with_call.append(vcf_samples[i])
+            if g_type==1:
+                allele_count=1 #HET
+            else:
+                allele_count=2 #HOM_ALT
+
+            samples_with_call[vcf_samples[i]] = allele_count
 
     return samples_with_call
