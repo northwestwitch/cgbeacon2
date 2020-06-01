@@ -29,3 +29,6 @@
 - Fixed code that handles POST request content
 - Added a function to load demo data into demo database
 - Added a short description of the Beacon command and functionalities in the readme file
+- Return query examples in the info endpoint
+- Do not enforce check of end position in structural variants query
+- Zero-based coordinates
