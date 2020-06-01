@@ -90,7 +90,7 @@ curl -X POST \
   "includeDatasetResponses": "HIT"}' http://localhost:5000/apiv1.0/query
 ```
 
-The Beacon reply to a query like these, would be a JSON object like this, where the "exist" key will be true if the allele is found, otherwise it will be false.
+The Beacon reply to a query of this type would be a json object where the "exist" key will be true if the allele is found, otherwise it will be false.
 ```
 {"allelRequest":{"alternateBases":"A","assemblyId":"GRCh37","datasetIds":[],"includeDatasetResponses":"NONE","referenceBases":"C","referenceName":"1","start":"156146085"},"apiVersion":"1.0.0","beaconId":"SciLifeLab-beacon","datasetAlleleResponses":[],"error":null,"exists":true}
 ```
