@@ -2,7 +2,7 @@ from cgbeacon2.utils.add import add_dataset
 
 
 def test_add_dataset_twice(public_dataset, database):
-    """Test that the add_dataset function exists when the same dataset is added twice"""
+    """Test that the add_dataset function exits when the same dataset is added twice"""
 
     # WHEN a dataset is first saved to database
     result = add_dataset(database, public_dataset)
