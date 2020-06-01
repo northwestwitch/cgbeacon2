@@ -3,7 +3,7 @@
 [![Build Status](https://travis-ci.org/Clinical-Genomics/MIP.svg?branch=master)](https://travis-ci.org/Clinical-Genomics/MIP)
 [![Coverage Status](https://coveralls.io/repos/github/Clinical-Genomics/cgbeacon2/badge.svg?branch=master)](https://coveralls.io/github/Clinical-Genomics/cgbeacon2?branch=master)
 
-An updated beacon supporting GA4GH API 1.0
+An updated beacon supporting [ GA4GH API 1.0 ][ga4gh_api1]
 
 Table of Contents:
 1. [ Prerequisites ](#prerequisites)
@@ -103,3 +103,5 @@ A simple web interface to perform interactive queries can be used by typing the 
 ![Interface picture](pics/beacon2_interface.jpg)
 
 At the moment this interface is disconnected with Elixir AAI so all queries will be limited to the available public datasets in the Beacon.
+
+[ga4gh_api1]: https://github.com/ga4gh-beacon/specification/blob/develop/beacon.md
