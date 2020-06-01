@@ -3,7 +3,7 @@
 [![Build Status](https://travis-ci.org/Clinical-Genomics/MIP.svg?branch=master)](https://travis-ci.org/Clinical-Genomics/MIP)
 [![Coverage Status](https://coveralls.io/repos/github/Clinical-Genomics/cgbeacon2/badge.svg?branch=master)](https://coveralls.io/github/Clinical-Genomics/cgbeacon2?branch=master)
 
-An updated beacon supporting GA4GH API 1.0
+An updated beacon supporting [ GA4GH API 1.0 ][ga4gh_api1]
 
 Table of Contents:
 1. [ Prerequisites ](#prerequisites)
@@ -30,7 +30,7 @@ Clone this repository from github using this command:
 git clone https://github.com/Clinical-Genomics/cgbeacon2.git
 ```
 
-Change directory to the cloned folder and from there install the software using the following command:
+Change directory to the cloned folder and from there, install the software using the following command:
 ```
 pip install .
 ```
@@ -38,21 +38,21 @@ pip install .
 To customize the server configuration you'll need to edit the **config.py** file under the /instance folder. &nbsp;
 For testing purposes you can keep the default configuration values as they are, but keep in mind that you should adjust these parameters when in production.
 
-o start the server run this command:
+To start the server run this command:
 ```
 cgbeacon2 run -h custom_host -p custom_port
 ```
-Omitting custom_host and custom_port the parameters will make the server run on default host=localhost (127.0.0.1) and default port 5000.
+Omitting custom_host and custom_port parameters will make the server run on default host=localhost (127.0.0.1) and default port 5000.
 
-Please note that the code is NOT guaranteed to be bug-free and it must be adapted to be used in production.
+Please note that this code is NOT guaranteed to be bug-free and it must be adapted to be used in production.
 
 <a name="loading"></a>
 ## Loading demo data into the database
-In order to test how the software works and run test queries, a demo dataset plus variants can be loaded in the database by running the following command:
+In order to test how the software works and run test queries, a demo dataset and variants can be loaded into the database by running the following command:
 ```
 cgbeacon2 add demo
 ```
-The command will create 2 collections: "dataset" and "variant". Dataset collection will contain a public dataset named with id: "test_public". "variant" collection will be populated with several hundreds variants, both single nucleotide variants and indels and structural variants.
+This command will create 2 collections: "dataset" and "variant". Dataset collection will contain a public dataset named "test_public". "variant" collection will be populated with several hundreds variants, both single nucleotide variants, indels and structural variants.
 
 <a name="endpoints"></a>
 ## Server endpoints
@@ -83,16 +83,16 @@ Example of a POST request:
 curl -X POST \
   -H 'Content-Type: application/json' \
   -d '{"referenceName": "1",
-  "start": 156146085,
+  "start": 156146084,
   "referenceBases": "C",
   "alternateBases": "A",
   "assemblyId": "GRCh37",
   "includeDatasetResponses": "HIT"}' http://localhost:5000/apiv1.0/query
 ```
 
-The Beacon reply to a query like these, would be a JSON object like this, where the "exist" key will be True if the allele is found, otherwise false.
+The Beacon reply to a query of this type would be a json object where the "exist" key will be true if the allele is found, otherwise it will be false.
 ```
-{"allelRequest":{"alternateBases":"A","assemblyId":"GRCh37","datasetIds":[],"includeDatasetResponses":"NONE","referenceBases":"C","referenceName":"1","start":"156146085"},"apiVersion":"1.0.0","beaconId":"SciLifeLab-beacon","datasetAlleleResponses":[],"error":null,"exists":true}
+{"allelRequest":{"alternateBases":"A","assemblyId":"GRCh37","datasetIds":[],"includeDatasetResponses":"NONE","referenceBases":"C","referenceName":"1","start":"156146084"},"apiVersion":"1.0.0","beaconId":"SciLifeLab-beacon","datasetAlleleResponses":[],"error":null,"exists":true}
 ```
 
 
@@ -102,4 +102,6 @@ A simple web interface to perform interactive queries can be used by typing the 
 
 ![Interface picture](pics/beacon2_interface.jpg)
 
-Please note that for the time being this interface does not support login so all queries will be performed only on the available public datasets in the Beacon.
+At the moment this interface is disconnected with Elixir AAI so all queries will be limited to the available public datasets in the Beacon.
+
+[ga4gh_api1]: https://github.com/ga4gh-beacon/specification/blob/develop/beacon.md

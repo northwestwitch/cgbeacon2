@@ -43,7 +43,7 @@ def demo(ctx):
     # Invoke add dataset command
     ctx.invoke(dataset, id=ds_id, name=ds_name, authlevel=authlevel)
 
-    # Invoke add variants command, to import all SNV variants from demo sample
+    # Invoke add variants command to import all SNV variants from demo sample
     ctx.invoke(
         variants,
         ds=ds_id,
@@ -51,7 +51,7 @@ def demo(ctx):
         sample=[sample],
     )
 
-    # Invoke add variants command, to import all SV variants from demo sample
+    # Invoke add variants command to import all SV variants from demo sample
     ctx.invoke(
         variants,
         ds=ds_id,

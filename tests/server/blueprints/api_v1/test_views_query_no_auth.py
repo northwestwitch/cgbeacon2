@@ -31,6 +31,7 @@ def test_beacon_entrypoint(mock_app, registered_dataset):
         # including the dataset info
         assert data["datasets"][0]["id"]
         assert data["datasets"][0]["info"]["accessType"] == "REGISTERED"
+        assert len(data["sampleAlleleRequests"]) == 2 # 2 query examples provided
 
 
 ################## TESTS FOR HANDLING GET REQUESTS ################

@@ -105,13 +105,13 @@ def query():
     Examples:
     ########### GET request ###########
     curl -X GET \
-    'http://localhost:5000/apiv1.0/query?referenceName=1&referenceBases=C&start=156146085&assemblyId=GRCh37&alternateBases=A'
+    'http://localhost:5000/apiv1.0/query?referenceName=1&referenceBases=C&start=156146084&assemblyId=GRCh37&alternateBases=A'
 
     ########### POST request ###########
     curl -X POST \
     -H 'Content-Type: application/json' \
     -d '{"referenceName": "1",
-    "start": 156146085,
+    "start": 156146084,
     "referenceBases": "C",
     "alternateBases": "A",
     "assemblyId": "GRCh37",

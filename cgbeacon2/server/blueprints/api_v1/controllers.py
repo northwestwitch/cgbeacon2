@@ -5,7 +5,6 @@ from cgbeacon2.constants import (
     NO_MANDATORY_PARAMS,
     NO_SECONDARY_PARAMS,
     NO_POSITION_PARAMS,
-    NO_SV_END_PARAM,
     INVALID_COORDINATES,
     INVALID_COORD_RANGE,
     BUILD_MISMATCH,
@@ -156,17 +155,11 @@ def check_allele_request(resp_obj, customer_query, mongo_query):
 
     if customer_query.get("start"):  # query for exact position
         try:
-            if customer_query.get("end") is None:
-                if customer_query.get("variantType"):
-                    # query for SVs without specifying end position, return error
-                    # return a bad request 400 error with explanation message
-                    resp_obj["message"] = dict(
-                        error=NO_SV_END_PARAM, allelRequest=customer_query,
-                    )
-                    return
-            else:
+            if customer_query.get("end") is not None:
                 mongo_query["end"] = int(customer_query["end"])
+
             mongo_query["start"] = int(customer_query["start"])
+
         except ValueError:
             # return a bad request 400 error with explanation message
             resp_obj["message"] = dict(
