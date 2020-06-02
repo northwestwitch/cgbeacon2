@@ -65,6 +65,7 @@ def test_delete_variants(mock_app, public_dataset, database):
     sample = "ADM1059A1"
     sample2 = "ADM1059A2"
 
+    # When the load command is invoked with the right params
     result = runner.invoke(
         cli,
         [
@@ -85,7 +86,33 @@ def test_delete_variants(mock_app, public_dataset, database):
     initial_vars = sum(1 for i in database["variant"].find())
     assert initial_vars > 0
 
-    # Then when using the cli command to remove onw of the samples
+    # There should be variants called for both samples in database
+    condition = {"$exists": True}
+    test_variant = database["variant"].find_one(
+        {
+            "$and": [
+                {
+                    ".".join(
+                        ["datasetIds", dataset["_id"], "samples", sample]
+                    ): condition
+                },
+                {
+                    ".".join(
+                        ["datasetIds", dataset["_id"], "samples", sample2]
+                    ): condition
+                },
+            ]
+        }
+    )
+    assert test_variant is not None
+    samples = test_variant["datasetIds"][dataset["_id"]]["samples"]
+    # Whose allele count contribute to the general variant call count
+    cumulative_allele_count = (
+        samples[sample]["allele_count"] + samples[sample2]["allele_count"]
+    )
+    assert test_variant["call_count"] == cumulative_allele_count
+
+    # When one of the samples is removed using the command line
     result = runner.invoke(
         cli,
         ["delete", "variants", "-ds", public_dataset["_id"], "-sample", sample],
@@ -96,6 +123,10 @@ def test_delete_variants(mock_app, public_dataset, database):
     remaining_vars = sum(1 for i in database["variant"].find())
     assert remaining_vars > 0
     assert remaining_vars < initial_vars
+
+    # And the allele count of the test variant above should decrease
+    updated_variant = database["variant"].find_one({"_id": test_variant["_id"]})
+    assert updated_variant["call_count"] < test_variant["call_count"]
 
     # And the sample should disappear from the list of dataset samples
     dataset_obj = database["dataset"].find_one({"_id": dataset["_id"]})

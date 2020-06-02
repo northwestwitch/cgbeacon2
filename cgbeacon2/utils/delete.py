@@ -38,9 +38,14 @@ def delete_variants(database, ds_id, samples):
     """
     n_updated = 0
     n_removed = 0
+    query = {"$or": []}
 
     sample_list = list(samples)
-    query = {".".join(["datasetIds", ds_id, "samples"]): {"$in": sample_list}}
+    for sample in sample_list:
+        nested_doc_id = ".".join(["datasetIds", ds_id, "samples", sample])
+        query["$or"].append({nested_doc_id: {"$exists": True}})
+
+    LOG.info(f"HERE----------->{query}")
     results = database["variant"].find(query)
     for res in results:
         updated, removed = delete_variant(database, ds_id, res, sample_list)
@@ -58,7 +63,7 @@ def delete_variant(database, dataset_id, variant, samples):
     Accepts:
         database(pymongo.database.Database)
         dataset_id(str): dataset id
-        variant_typet(dict): one variant
+        variant(dict): one variant
         samples(list) : list of samples to remove this variant for
 
     Returns:
@@ -68,18 +73,24 @@ def delete_variant(database, dataset_id, variant, samples):
     updated = False
     removed = False
 
-    dataset_samples = variant["datasetIds"][dataset_id].get("samples", [])
+    # {sample1:allele_count, sample2:allele_count, ..}
+    dataset_samples = variant["datasetIds"][dataset_id].get("samples", {})
+
+    remove_allele_count = 0
     for sample in samples:  # loop over the samples to remove
-        dataset_samples.remove(sample)
+        if sample in dataset_samples:
+            remove_allele_count += dataset_samples[sample]["allele_count"]
+            dataset_samples.pop(sample)
 
     # If there are still samples in database with this variant
     # Keep variant and update the list of samples
-    if len(dataset_samples) > 0:
+    if dataset_samples != {}:
         results = database["variant"].find_one_and_update(
             {"_id": variant["_id"]},
             {
                 "$set": {
-                    ".".join(["datasetIds", dataset_id, "samples"]): dataset_samples
+                    ".".join(["datasetIds", dataset_id, "samples"]): dataset_samples,
+                    "call_count": variant["call_count"] - remove_allele_count,
                 }
             },
         )

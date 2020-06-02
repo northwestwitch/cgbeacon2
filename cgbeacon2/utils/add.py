@@ -138,7 +138,7 @@ def add_variant(database, variant, dataset_id):
     ]  # {sample1: allele_count, sample2:allele_count}
     if old_variant is None:  # if it doesn't exist
         # insert variant into database
-        variant.call_count = sum(current_samples.values())
+        variant.call_count = cumulative_allele_count(current_samples)
         result = database["variant"].insert_one(variant.__dict__)
         return result.inserted_id
 
@@ -152,11 +152,11 @@ def add_variant(database, variant, dataset_id):
             for sample, value in current_samples.items():
                 if sample not in updated_samples:
                     updated_samples[sample] = value
-                    allele_count += value
+                    allele_count += value["allele_count"]
             updated_datasets[dataset_id] = updated_samples
         else:
             updated_datasets[dataset_id] = current_samples
-            allele_count = sum(current_samples.values())
+            allele_count = cumulative_allele_count(current_samples)
 
         if allele_count > 0:  # changes in sample, allele count dictionary must be saved
             result = database["variant"].find_one_and_update(
@@ -169,3 +169,20 @@ def add_variant(database, variant, dataset_id):
                 },
             )
             return allele_count
+
+
+def cumulative_allele_count(samples_obj):
+    """Return cumulative allele count for each sample in a dictionary
+
+    Accepts:
+        samples_obj(dict) example: {sample1 : {call_count:1}, sample2:{call_count:2} }
+
+    Returns:
+        call_count(int) example: 3
+    """
+    allele_count = 0
+
+    for sampleid, value in samples_obj.items():
+        allele_count += value["allele_count"]
+
+    return allele_count

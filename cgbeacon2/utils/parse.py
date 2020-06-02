@@ -101,11 +101,11 @@ def variant_called(vcf_samples, gt_positions, g_types):
         if g_type in [1, 3]:
             # gt_types is array of 0,1,2,3==HOM_REF, HET, UNKNOWN, HOM_ALT
             # Collect only samples with HET or HOM_ALT calls
-            if g_type==1:
-                allele_count=1 #HET
+            if g_type == 1:
+                allele_count = 1  # HET
             else:
-                allele_count=2 #HOM_ALT
+                allele_count = 2  # HOM_ALT
 
-            samples_with_call[vcf_samples[i]] = allele_count
+            samples_with_call[vcf_samples[i]] = {"allele_count": allele_count}
 
     return samples_with_call
