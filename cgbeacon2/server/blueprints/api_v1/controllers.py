@@ -218,7 +218,7 @@ def dispatch_query(mongo_query, response_type, datasets=[], auth_levels=([], Fal
         auth_levels(tuple): (registered access datasets(list), bona_fide_status(bool))
 
     Returns:
-        results():
+        tuple(bool, list): (allele_exists(bool), datasetAlleleResponses(list))
 
     """
     variant_collection = current_app.db["variant"]
@@ -226,8 +226,12 @@ def dispatch_query(mongo_query, response_type, datasets=[], auth_levels=([], Fal
     LOG.info(f"Perform database query -----------> {mongo_query}.")
     LOG.info(f"Response level (datasetAlleleResponses) -----> {response_type}.")
 
-    # End users are only interested in knowing which datasets have one or more specific vars, return only datasets
-    variants = list(variant_collection.find(mongo_query, {"_id": 0, "datasetIds": 1}))
+    # End users are only interested in knowing which datasets have one or more specific vars, return only datasets and callCount
+    variants = list(
+        variant_collection.find(
+            mongo_query, {"_id": 0, "datasetIds": 1, "call_count": 1}
+        )
+    )
 
     if len(variants) == 0:
         return False, []
@@ -295,7 +299,7 @@ def create_ds_allele_response(response_type, req_dsets, variants):
     Accepts:
         response_type(str): ALL, HIT or MISS
         req_dsets(set): datasets requested, could be empty
-        variants(list): a list of query results (only dataset info)
+        variants(list): a list of query results
 
     Returns:
         ds_responses(list): list of cgbeacon2.model.DatasetAlleleResponse

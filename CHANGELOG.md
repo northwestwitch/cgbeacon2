@@ -32,3 +32,4 @@
 - Return query examples in the info endpoint
 - Do not enforce check of end position in structural variants query
 - Zero-based coordinates
+- Save variant allele count and return it in datasetAlleleResponses result objects

@@ -31,7 +31,7 @@ def test_beacon_entrypoint(mock_app, registered_dataset):
         # including the dataset info
         assert data["datasets"][0]["id"]
         assert data["datasets"][0]["info"]["accessType"] == "REGISTERED"
-        assert len(data["sampleAlleleRequests"]) == 2 # 2 query examples provided
+        assert len(data["sampleAlleleRequests"]) == 2  # 2 query examples provided
 
 
 ################## TESTS FOR HANDLING GET REQUESTS ################
@@ -77,8 +77,18 @@ def test_get_request_exact_position_snv_return_ALL(
     assert data["beaconId"]
     assert data["apiVersion"] == "1.0.0"
 
-    # And both types of responses should be returned (exists=True and exists=False)
+    # Response should provide dataset-level detailed info
     assert len(data["datasetAlleleResponses"]) == 2
+    for ds_level_result in data["datasetAlleleResponses"]:
+        # Response could be positive or negative
+        assert ds_level_result["exists"] in [True, False]
+
+        # And should include allele count
+        assert ds_level_result["callCount"] is not None
+
+        # Allele count should be a positive number when there is positive match
+        if ds_level_result["exists"] is True:
+            assert ds_level_result["callCount"] > 0
 
 
 def test_get_request_exact_position_snv_return_HIT(
