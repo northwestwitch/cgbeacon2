@@ -68,7 +68,7 @@ def test_snv():
         "referenceBases": "TA",
         "alternateBases": "T",
         "assemblyId": "GRCh37",
-        "datasetIds": {"public_ds": {"samples": ["ADM1059A1"]}},
+        "datasetIds": {"public_ds": {"samples": {"ADM1059A1": {"allele_count": 2}}}},
         "call_count": 2,
     }
     return variant
@@ -86,7 +86,7 @@ def test_sv():
         "alternateBases": "GT",
         "variantType": "DEL",
         "assemblyId": "GRCh37",
-        "datasetIds": {"public_ds": {"samples": ["ADM1059A1"]}},
+        "datasetIds": {"public_ds": {"samples": {"ADM1059A1": {"allele_count": 1}}}},
         "call_count": 1,
     }
     return variant
