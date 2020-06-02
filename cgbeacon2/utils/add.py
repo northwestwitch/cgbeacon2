@@ -155,7 +155,7 @@ def add_variant(database, variant, dataset_id):
                     allele_count += value["allele_count"]
             updated_datasets[dataset_id] = updated_samples
         else:
-            updated_datasets[dataset_id] = current_samples
+            updated_datasets[dataset_id] = {"samples" : current_samples}
             allele_count = cumulative_allele_count(current_samples)
 
         if allele_count > 0:  # changes in sample, allele count dictionary must be saved

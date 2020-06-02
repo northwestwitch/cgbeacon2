@@ -86,7 +86,7 @@ def test_get_request_exact_position_snv_return_ALL(
         # And should include allele count
         assert ds_level_result["callCount"] is not None
 
-        # Alele count should be a positive number when there is positive match
+        # Allele count should be a positive number when there is positive match
         if ds_level_result["exists"] is True:
             assert ds_level_result["callCount"] > 0
 

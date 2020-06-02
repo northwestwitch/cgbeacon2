@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from copy import deepcopy
 import pytest
 from cgbeacon2.resources import (
     test_snv_vcf_path,
@@ -203,7 +204,7 @@ def test_add_variants_twice(mock_app, public_dataset, database):
 
 
 def test_add_other_sample_variants(mock_app, public_dataset, database):
-    """Test adding variants for another sample, same VCF file"""
+    """Test adding variants for another sample, same dataset, same VCF file"""
 
     runner = mock_app.test_cli_runner()
 
@@ -265,6 +266,52 @@ def test_add_other_sample_variants(mock_app, public_dataset, database):
     assert sample in dataset_obj["samples"]
     assert sample2 in dataset_obj["samples"]
     assert "updated" in dataset_obj
+
+
+def test_add_same_variant_different_datasets(mock_app, database, public_dataset, registered_dataset):
+    """Test adding the same variant for 2 samples from 2 distinct datasets"""
+
+    runner = mock_app.test_cli_runner()
+
+    # Having a database containing 2 datasets
+    datasets = [public_dataset, registered_dataset]
+    for ds in datasets:
+        database["dataset"].insert_one(ds)
+
+    # and samples belonging to each dataset
+    samples = ["ADM1059A1", "ADM1059A2"]
+
+    # When variants are loaded for each sample
+    for count, sample, in enumerate(samples):
+        runner.invoke(
+            cli,
+            [
+                "add",
+                "variants",
+                "-ds",
+                datasets[count]["_id"],
+                "-vcf",
+                test_snv_vcf_path,
+                "-sample",
+                sample,
+                "-panel",
+                panel1_path,
+            ],
+        )
+
+    # Then there should exist variants with hits for both samples (both datasets)
+    hit_dset1 = {".".join(["datasetIds",public_dataset["_id"]]) : {"$exists": True}}
+    hit_dset2 = {".".join(["datasetIds",registered_dataset["_id"]]) : {"$exists": True}}
+    test_variant = database["variant"].find_one({"$and": [hit_dset1, hit_dset2]})
+
+    assert test_variant is not None
+
+    # Variant should countain callCount for each sample
+    callCount1 = test_variant["datasetIds"][public_dataset["_id"]]["samples"][samples[0]]["allele_count"]
+    callCount2 = test_variant["datasetIds"][registered_dataset["_id"]]["samples"][samples[1]]["allele_count"]
+
+    # And a cumulative call count as well
+    assert test_variant["call_count"] == callCount1 + callCount2
 
 
 def test_add_sv_variants(mock_app, public_dataset, database):
