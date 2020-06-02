@@ -69,6 +69,7 @@ def test_snv():
         "alternateBases": "T",
         "assemblyId": "GRCh37",
         "datasetIds": {"public_ds": {"samples": ["ADM1059A1"]}},
+        "call_count": 2,
     }
     return variant
 
@@ -86,6 +87,7 @@ def test_sv():
         "variantType": "DEL",
         "assemblyId": "GRCh37",
         "datasetIds": {"public_ds": {"samples": ["ADM1059A1"]}},
+        "call_count": 1,
     }
     return variant
 

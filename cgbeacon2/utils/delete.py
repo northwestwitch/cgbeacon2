@@ -45,7 +45,6 @@ def delete_variants(database, ds_id, samples):
         nested_doc_id = ".".join(["datasetIds", ds_id, "samples", sample])
         query["$or"].append({nested_doc_id: {"$exists": True}})
 
-    LOG.info(f"HERE----------->{query}")
     results = database["variant"].find(query)
     for res in results:
         updated, removed = delete_variant(database, ds_id, res, sample_list)
@@ -73,7 +72,7 @@ def delete_variant(database, dataset_id, variant, samples):
     updated = False
     removed = False
 
-    # {sample1:allele_count, sample2:allele_count, ..}
+    # {sample1:{allele_count:2}, sample2:{allele_count:1}, ..}
     dataset_samples = variant["datasetIds"][dataset_id].get("samples", {})
 
     remove_allele_count = 0
