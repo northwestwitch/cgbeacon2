@@ -90,6 +90,13 @@ def test_get_request_exact_position_snv_return_ALL(
         if ds_level_result["exists"] is True:
             assert ds_level_result["callCount"] > 0
 
+        # Variant count should also be a positive number if there is positive match
+        if ds_level_result["exists"] is True:
+            assert ds_level_result["variantCount"] > 0
+
+        # Dataset info should be available and containing the expected info
+        assert ds_level_result["info"] == {"accessType": "PUBLIC"}
+
 
 def test_get_request_exact_position_snv_return_HIT(
     mock_app, test_snv, public_dataset, public_dataset_no_variants

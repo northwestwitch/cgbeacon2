@@ -308,7 +308,7 @@ def create_ds_allele_response(response_type, req_dsets, variants):
     exists = False
 
     all_dsets = current_app.db["dataset"].find()
-    all_dsets = [ds["_id"] for ds in all_dsets]
+    all_dsets = {ds["_id"]: ds for ds in all_dsets}
 
     if len(req_dsets) == 0:  # if query didn't specify any dataset
         # Use all datasets present in this beacon
@@ -319,7 +319,8 @@ def create_ds_allele_response(response_type, req_dsets, variants):
         if not ds in all_dsets:
             LOG.info(f"Provided dataset {ds} could not be found in database")
             continue
-        ds_response = DatasetAlleleResponse(ds, variants).__dict__
+
+        ds_response = DatasetAlleleResponse(all_dsets[ds], variants).__dict__
 
         # collect responses according to the type of response requested
         if (
