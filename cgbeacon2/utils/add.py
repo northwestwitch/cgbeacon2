@@ -103,6 +103,9 @@ def add_variants(database, vcf_obj, samples, assembly, dataset_id, nr_variants):
             if vcf_variant.var_type == "sv":
                 parsed_variant["variant_type"] = vcf_variant.INFO["SVTYPE"]
 
+            else:
+                parsed_variant["variant_type"] = vcf_variant.var_type.upper()
+
             dataset_dict = {dataset_id: {"samples": sample_calls}}
             # Create standard variant object with specific _id
             variant = Variant(parsed_variant, dataset_dict, assembly)
