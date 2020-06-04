@@ -23,7 +23,7 @@ def update_dataset(database, dataset_id, samples, add):
     n_variants = update_dataset_variant_count(database, dataset_id)
 
     # Update number of allele calls for this dataset
-    n_alleles = update_dataset_allele_count(database, dataset_obj)
+    n_alleles = update_dataset_allele_count(database, dataset_id, list(updated_samples))
 
     result = database["dataset"].find_one_and_update(
         {"_id": dataset_id},
@@ -82,12 +82,13 @@ def update_dataset_variant_count(database, dataset_id):
     return n_variants
 
 
-def update_dataset_allele_count(database, dataset_obj):
+def update_dataset_allele_count(database, dataset_id, samples):
     """Count how many allele calls are present for a dataset and update dataset object with this number
 
     Accepts:
         database(pymongo.database.Database)
-        dataset_obj(dict): a dataset object
+        dataset_id(str): id of dataset to be updated
+        samples(list): list of dataset samples
 
     Returns:
         updated_dataset(obj): the updated dataset
@@ -106,22 +107,22 @@ def update_dataset_allele_count(database, dataset_obj):
 
     # Else count calls for each sample of this dataset in variant collection and sum them up
     else:
-        allele_count = _samples_calls(variant_collection, dataset_obj)
+        allele_count = _samples_calls(variant_collection, dataset_id, samples)
 
     return allele_count
 
 
-def _samples_calls(variant_collection, dataset_obj):
+def _samples_calls(variant_collection, dataset_id, samples):
     """Count all allele calls for a dataset in variants collection
 
     Accepts:
         variant_collection(pymongo.database.Database.Collection)
-        dataset_obj(dict): a dataset object
+        dataset_id(str): id of dataset to be updated
+        samples(list): list of dataset samples
     Returns:
-
+        allele_count(int)
     """
     allele_count = 0
-    samples = dataset_obj.get("samples", [])
 
     for sample in samples:
         pipe = [
@@ -129,11 +130,12 @@ def _samples_calls(variant_collection, dataset_obj):
                 "$group": {
                     "_id": None,
                     "alleles": {
-                        "$sum": f"$datasetIds.test_public.samples.{sample}.allele_count"
+                        "$sum": f"$datasetIds.{dataset_id}.samples.{sample}.allele_count"
                     },
                 }
             }
         ]
+        LOG.error(f"PIPE IS {pipe}")
         aggregate_res = variant_collection.aggregate(pipeline=pipe)
         for res in aggregate_res:
             allele_count += res.get("alleles")

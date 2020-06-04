@@ -203,7 +203,6 @@ def variants(ds, vcf, sample, panel):
     )
 
     if vcf_obj is None:
-        click.echo(f"Coundn't extract variants from provided VCF file")
         raise click.Abort()
 
     nr_variants = count_variants(vcf_obj)

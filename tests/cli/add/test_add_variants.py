@@ -315,8 +315,6 @@ def test_add_same_variant_different_datasets(
     hit_dset2 = {".".join(["datasetIds", registered_dataset["_id"]]): {"$exists": True}}
     test_variant = database["variant"].find_one({"$and": [hit_dset1, hit_dset2]})
 
-    assert test_variant is not None
-
     # Variant should countain callCount for each sample
     callCount1 = test_variant["datasetIds"][public_dataset["_id"]]["samples"][
         samples[0]
@@ -327,6 +325,13 @@ def test_add_same_variant_different_datasets(
 
     # And a cumulative call count as well
     assert test_variant["call_count"] == callCount1 + callCount2
+
+    # Both dataset objects should be updated with the right number of samples, variants and calls:
+    for ds in datasets:
+        updated_dataset = database["dataset"].find_one({"_id": ds["_id"]})
+        assert len(updated_dataset["samples"]) == 1
+        assert updated_dataset["variant_count"] > 0
+        assert updated_dataset["allele_count"] > 0
 
 
 def test_add_sv_variants(mock_app, public_dataset, database):
