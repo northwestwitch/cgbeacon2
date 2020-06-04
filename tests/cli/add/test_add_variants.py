@@ -274,7 +274,7 @@ def test_add_other_sample_variants(mock_app, public_dataset, database):
     assert sample2 in updated_dataset["samples"]
     assert updated_dataset["variant_count"] > dataset_obj["variant_count"]
     assert updated_dataset["allele_count"] > dataset_obj["allele_count"]
-    assert "updated" in dataset_obj
+    assert "updated" in updated_dataset
 
 
 def test_add_same_variant_different_datasets(
