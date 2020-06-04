@@ -135,7 +135,6 @@ def _samples_calls(variant_collection, dataset_id, samples):
                 }
             }
         ]
-        LOG.error(f"PIPE IS {pipe}")
         aggregate_res = variant_collection.aggregate(pipeline=pipe)
         for res in aggregate_res:
             allele_count += res.get("alleles")
