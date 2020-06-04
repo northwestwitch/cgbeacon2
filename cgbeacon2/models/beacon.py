@@ -41,6 +41,8 @@ class Beacon:
             if ds.get("samples") is not None:
                 # return number of samples for each dataset, not sample names
                 ds["sampleCount"] = len(ds.get("samples"))
+                # return number of variants present for this dataset
+
             ds.pop("samples", None)
             ds["info"] = {"accessType": ds["authlevel"].upper()}
             ds.pop("authlevel")
