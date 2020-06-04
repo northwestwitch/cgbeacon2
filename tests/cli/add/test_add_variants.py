@@ -236,6 +236,12 @@ def test_add_other_sample_variants(mock_app, public_dataset, database):
     # Then a number of variants should have been saved to database
     saved_vars = sum(1 for i in database["variant"].find())
 
+    # And dataset should be updated with sampleCount, variantCount, and callCount
+    dataset_obj = database["dataset"].find_one()
+    assert len(dataset_obj["samples"]) == 1
+    assert dataset_obj["variant_count"] == saved_vars
+    assert dataset_obj["allele_count"] > 0
+
     # WHEN the variants for the other sample are added
     result = runner.invoke(
         cli,
@@ -261,10 +267,13 @@ def test_add_other_sample_variants(mock_app, public_dataset, database):
         {".".join(["datasetIds", dataset["_id"]]): [sample, sample2]}
     )
 
-    # And the samples saved for the dataset should be 2
-    dataset_obj = database["dataset"].find_one({"_id": dataset["_id"]})
-    assert sample in dataset_obj["samples"]
-    assert sample2 in dataset_obj["samples"]
+    # variantCount, sampleCount and callCount should be increased
+    updated_dataset = database["dataset"].find_one()
+    assert len(updated_dataset["samples"]) == 2
+    assert sample in updated_dataset["samples"]
+    assert sample2 in updated_dataset["samples"]
+    assert updated_dataset["variant_count"] > dataset_obj["variant_count"]
+    assert updated_dataset["allele_count"] > dataset_obj["allele_count"]
     assert "updated" in dataset_obj
 
 
