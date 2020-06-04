@@ -104,9 +104,9 @@ def update_dataset_allele_count(database, dataset_obj):
         for res in aggregate_res:
             allele_count += res.get("alleles")
 
-        # Else count calls for each sample of this dataset in variant collection and sum them up
-        else:
-            allele_count = _samples_calls(variant_collection, dataset_obj)
+    # Else count calls for each sample of this dataset in variant collection and sum them up
+    else:
+        allele_count = _samples_calls(variant_collection, dataset_obj)
 
     return allele_count
 

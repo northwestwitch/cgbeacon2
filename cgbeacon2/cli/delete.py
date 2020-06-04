@@ -4,7 +4,7 @@ import click
 from flask.cli import with_appcontext, current_app
 
 from cgbeacon2.utils.delete import delete_dataset, delete_variants
-from cgbeacon2.utils.update import update_dataset_samples
+from cgbeacon2.utils.update import update_dataset
 
 
 @click.group()
@@ -75,14 +75,8 @@ def variants(ds, sample):
     click.echo(f"Number of variants updated:{updated}, removed:{removed}")
 
     if updated + removed > 0:
+
         # remove sample(s) from dataset
-        result = update_dataset_samples(
+        result = update_dataset(
             database=current_app.db, dataset_id=ds, samples=list(sample), add=False
         )
-
-        if result is not None:
-            click.echo(
-                f"Samples {sample} were successfully removed from dataset list of samples"
-            )
-        else:
-            click.echo("List of dataset samples was left unchanged")
