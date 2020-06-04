@@ -37,7 +37,15 @@ def extract_variants(vcf_file, samples=None, filter=None):
             temp_intersections_file.close()
 
         else:
-            vcf_obj = VCF(vcf_file, samples=list(samples))
+            try:
+                vcf_obj = VCF(vcf_file, samples=list(samples))
+            except Exception as ex:
+                vcf_obj = VCF(vcf_file)
+                LOG.error(
+                    f"Invalid VCF or samples. Valid samples are:{vcf_obj.samples}"
+                )
+                return
+
     except Exception as err:
         LOG.error(f"Error while creating VCF iterator from variant file:{err}")
         return

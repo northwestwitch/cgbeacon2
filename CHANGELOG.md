@@ -35,3 +35,4 @@
 - Save variant allele count and return it in datasetAlleleResponses result objects
 - Return variantCount in datasetAlleleResponses
 - Return dataset access level info in datasetAlleleResponses
+- Return datasets callCount and variantCount in info endpoint response

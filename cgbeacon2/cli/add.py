@@ -9,7 +9,7 @@ from cgbeacon2.constants import CONSENT_CODES
 from cgbeacon2.resources import test_snv_vcf_path, test_sv_vcf_path
 from cgbeacon2.utils.add import add_dataset, add_variants
 from cgbeacon2.utils.parse import extract_variants, count_variants, merge_intervals
-from cgbeacon2.utils.update import update_dataset_samples
+from cgbeacon2.utils.update import update_dataset
 
 
 @click.group()
@@ -58,6 +58,7 @@ def demo(ctx):
         vcf="cgbeacon2/resources/demo/643594.clinical.SV.vcf.gz",
         sample=[sample],
     )
+
 
 @add.command()
 @click.option("-id", type=click.STRING, nargs=1, required=True, help="dataset ID")
@@ -202,7 +203,6 @@ def variants(ds, vcf, sample, panel):
     )
 
     if vcf_obj is None:
-        click.echo(f"Coundn't extract variants from provided VCF file")
         raise click.Abort()
 
     nr_variants = count_variants(vcf_obj)
@@ -226,14 +226,7 @@ def variants(ds, vcf, sample, panel):
     click.echo(f"{added} variants loaded into the database")
 
     if added > 0:
-        # update list of samples in beacon for this dataset
-        result = update_dataset_samples(
+        # Update dataset object accordingly
+        update_dataset(
             database=current_app.db, dataset_id=ds, samples=custom_samples, add=True
         )
-
-        if result is not None:
-            click.echo(
-                f"Samples {custom_samples} were successfully added to dataset list of samples"
-            )
-        else:
-            click.echo("List of dataset samples was left unchanged")

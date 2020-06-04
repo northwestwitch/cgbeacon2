@@ -41,7 +41,15 @@ class Beacon:
             if ds.get("samples") is not None:
                 # return number of samples for each dataset, not sample names
                 ds["sampleCount"] = len(ds.get("samples"))
+                # return number of variants present for this dataset
+                ds["variantCount"] = ds.get("variant_count")
+                # return number of alleles present for this dataset
+                ds["callCount"] = ds.get("allele_count")
+
             ds.pop("samples", None)
+            ds.pop("variant_count", None)
+            ds.pop("allele_count", None)
+
             ds["info"] = {"accessType": ds["authlevel"].upper()}
             ds.pop("authlevel")
             ds["id"] = ds["_id"]
