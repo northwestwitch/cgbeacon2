@@ -1,4 +1,4 @@
-## [x.x.x] -
+## [1] - 2020.06.05
 
 ### Added
 - Info endpoint (/) for API v1
