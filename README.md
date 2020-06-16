@@ -83,7 +83,7 @@ Example of a POST request:
 curl -X POST \
   -H 'Content-Type: application/json' \
   -d '{"referenceName": "1",
-  "start": 156146084,
+  "start": 156146085,
   "referenceBases": "C",
   "alternateBases": "A",
   "assemblyId": "GRCh37",
@@ -92,7 +92,7 @@ curl -X POST \
 
 The Beacon reply to a query of this type would be a json object where the "exist" key will be true if the allele is found, otherwise it will be false.
 ```
-{"allelRequest":{"alternateBases":"A","assemblyId":"GRCh37","datasetIds":[],"includeDatasetResponses":"NONE","referenceBases":"C","referenceName":"1","start":"156146084"},"apiVersion":"1.0.0","beaconId":"SciLifeLab-beacon","datasetAlleleResponses":[],"error":null,"exists":true}
+{"allelRequest":{"alternateBases":"A","assemblyId":"GRCh37","datasetIds":[],"includeDatasetResponses":"NONE","referenceBases":"C","referenceName":"1","start":"156146085"},"apiVersion":"1.0.0","beaconId":"SciLifeLab-beacon","datasetAlleleResponses":[],"error":null,"exists":true}
 ```
 
 

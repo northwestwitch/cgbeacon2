@@ -1,3 +1,13 @@
+## [] -
+
+### Fixed
+- Revert to previous code, since cyvcf2 returns 0-based coordinates
+- Updated README
+- Added missing `requests` lib in requirements file
+
+
+
+
 ## [1] - 2020.06.05
 
 ### Added

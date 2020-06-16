@@ -94,8 +94,8 @@ def add_variants(database, vcf_obj, samples, assembly, dataset_id, nr_variants):
 
             parsed_variant = dict(
                 chromosome=vcf_variant.CHROM,
-                start=vcf_variant.start - 1,
-                end=vcf_variant.end - 1,
+                start=vcf_variant.start,  # 0-based coordinate
+                end=vcf_variant.end,  # 0-based coordinate
                 reference_bases=vcf_variant.REF,
                 alternate_bases=vcf_variant.ALT,
             )
