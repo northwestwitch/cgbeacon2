@@ -4,8 +4,7 @@
 - Revert to previous code, since cyvcf2 returns 0-based coordinates
 - Updated README
 - Added missing `requests` lib in requirements file
-
-
+- Remove redundant text from cli docstrings
 
 
 ## [1] - 2020.06.05
