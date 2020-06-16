@@ -1,3 +1,14 @@
+## [] -
+
+### Fixed
+- Revert to previous code, since cyvcf2 returns 0-based coordinates
+- Updated README
+- Added missing `requests` lib in requests
+- Freezes pysam in requirements file
+- Sets pytest lib to be >4.6 because of lack of backward compatibility of new version of pytest-cov
+- Remove redundant text from cli docstrings
+
+
 ## [1] - 2020.06.05
 
 ### Added

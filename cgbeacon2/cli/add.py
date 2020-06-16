@@ -67,8 +67,7 @@ def demo(ctx):
     "-build",
     type=click.Choice(["GRCh37", "GRCh38"]),
     nargs=1,
-    required=True,
-    help="Genome assembly",
+    help="Genome assembly (default:GRCh37)",
     default="GRCh37",
 )
 @click.option(
@@ -94,19 +93,7 @@ def demo(ctx):
 @click.option("--update", is_flag=True)
 @with_appcontext
 def dataset(id, name, build, authlevel, desc, version, url, cc, update):
-    """Creates a dataset object in the database or updates a pre-existing one
-
-    Accepts:
-        id(str): dataset unique ID (mandatory)
-        name(str): dataset name (mandatory)
-        build(str): assembly identifier, GRCh37, GRCh38 (mandatory)
-        authlevel(str): authorization level to query this dataset: 'public', 'registered' or 'controlled'
-        desc(str): description
-        version(str): version
-        url(): URL to an external system providing more dataset information (RFC 3986 format).
-        cc(str): https://journals.plos.org/plosgenetics/article?id=10.1371/journal.pgen.1005772
-        update(bool): Update a dataset already present in the database with the same id
-    """
+    """Creates a dataset object in the database or updates a pre-existing one"""
 
     dataset_obj = {"_id": id, "name": name, "assembly_id": build}
 
@@ -176,14 +163,7 @@ def dataset(id, name, build, authlevel, desc, version, url, cc, update):
 )
 @with_appcontext
 def variants(ds, vcf, sample, panel):
-    """Add variants from a VCF file to a dataset
-
-    Accepts:
-        ds(str): id of a dataset already existing in the database
-        vcf(str): path to a VCF file
-        sample(str) sample name as it's written in the VCF file, option repeated for each sample
-        panel(str): path to bed file containing genomic intervals to filter variants by
-    """
+    """Add variants from a VCF file to a dataset"""
     # make sure dataset id corresponds to a dataset in the database
 
     dataset = current_app.db["dataset"].find_one({"_id": ds})
