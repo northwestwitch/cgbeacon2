@@ -32,7 +32,7 @@ git clone https://github.com/Clinical-Genomics/cgbeacon2.git
 
 Change directory to the cloned folder and from there, install the software using the following command:
 ```
-pip install .
+pip install -e .
 ```
 
 To customize the server configuration you'll need to edit the **config.py** file under the /instance folder. &nbsp;
