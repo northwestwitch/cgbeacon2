@@ -17,11 +17,7 @@ def delete():
 @with_appcontext
 @click.option("-id", type=click.STRING, nargs=1, required=True, help="dataset ID")
 def dataset(id):
-    """Delete a dataset using its _id key
-
-    Accepts:
-        id(str): dataset _id field
-    """
+    """Delete a dataset using its _id key"""
 
     click.echo(f"deleting dataset with id '{id}' from database")
 
@@ -46,12 +42,7 @@ def dataset(id):
     help="one or more samples to remove variants for",
 )
 def variants(ds, sample):
-    """Remove variants for one or more samples of a dataset
-
-    Accepts:
-        ds(str): id of a dataset already existing in the database
-        sample(str) sample name as it's written in the VCF file, option repeated for each sample
-    """
+    """Remove variants for one or more samples of a dataset"""
 
     click.confirm(
         f"Deleting variants for sample {sample}, dataset '{ds}'. Do you want to continue?",
