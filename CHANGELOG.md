@@ -3,7 +3,7 @@
 ### Fixed
 - Revert to previous code, since cyvcf2 returns 0-based coordinates
 - Updated README
-- Added missing `requests` lib in requirements file
+- Added missing `requests` lib and freezes pysam in requirements file 
 - Remove redundant text from cli docstrings
 
 
