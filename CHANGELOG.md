@@ -1,4 +1,4 @@
-## [] -
+## [1.1] - 2020.06.17
 
 ### Fixed
 - Revert to previous code, since cyvcf2 returns 0-based coordinates
