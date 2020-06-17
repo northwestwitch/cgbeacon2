@@ -4,7 +4,7 @@ import click
 from flask.cli import with_appcontext, current_app
 
 from cgbeacon2.utils.delete import delete_dataset, delete_variants
-from cgbeacon2.utils.update import update_dataset
+from cgbeacon2.utils.update import update_dataset, update_event
 
 
 @click.group()
@@ -28,6 +28,8 @@ def dataset(id):
     elif deleted == 0:
         click.echo(f"Coundn't find a dataset with id '{id}' in database.")
     elif deleted == 1:
+        # register the event in the event collection
+        update_event(current_app.db, id, "dataset", False)
         click.echo("Dataset was successfully deleted")
 
 

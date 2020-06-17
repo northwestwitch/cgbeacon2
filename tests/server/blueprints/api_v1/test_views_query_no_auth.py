@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 import json
 
+from cgbeacon2.cli.commands import cli
+
 HEADERS = {"Content-type": "application/json", "Accept": "application/json"}
 
 
@@ -12,9 +14,25 @@ ALT_ARG = "alternateBases=T"
 def test_beacon_entrypoint(mock_app, registered_dataset):
     """Test the endpoint that returns the beacon info, when there is one dataset in database"""
 
+    runner = mock_app.test_cli_runner()
+
     # Having a database containing a public dataset
     database = mock_app.db
-    database["dataset"].insert_one(registered_dataset)
+
+    runner.invoke(
+        cli,
+        [
+            "add",
+            "dataset",
+            "-id",
+            registered_dataset["_id"],
+            "-name",
+            registered_dataset["name"],
+            "-authlevel",
+            registered_dataset["authlevel"],
+        ],
+    )
+    assert database["dataset"].find_one()
 
     with mock_app.test_client() as client:
 
@@ -24,7 +42,15 @@ def test_beacon_entrypoint(mock_app, registered_dataset):
 
         # The returned data should contain all the expected fields
         data = json.loads(response.data)
-        fields = ["id", "name", "apiVersion", "organisation", "datasets"]
+        fields = [
+            "id",
+            "name",
+            "apiVersion",
+            "organisation",
+            "datasets",
+            "createDateTime",
+            "updateDateTime",
+        ]
         for field in fields:
             assert data[field] is not None
 

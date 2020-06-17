@@ -7,7 +7,12 @@
 - Freezes pysam in requirements file
 - Sets pytest requirement to >4.6 because of lack of backward compatibility of new version of pytest-cov
 - Remove redundant text from cli docstrings
+- Modified colors of 2 big checkboxes in the query form html page
+
+### Added
 - Check that all requested samples are in VCF samples before uploading any variant
+- Registering events whenever datasets and/or variants are added or removed
+- Beacon info endpoint now returns beacon createDateTime and updateDateTime
 
 
 ## [1] - 2020.06.05

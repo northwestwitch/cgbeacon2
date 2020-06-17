@@ -127,7 +127,7 @@ def test_add_variants_snv_vcf_panel(mock_app, public_dataset, database):
     assert result.exit_code == 0
     assert f"variants loaded into the database" in result.output
 
-    # and variants parsed correctly have been saved to database
+    # Variants parsed correctly should have been saved to database
     test_variant = database["variant"].find_one()
     assert isinstance(test_variant["referenceName"], str)
     assert isinstance(test_variant["start"], int)
@@ -136,6 +136,10 @@ def test_add_variants_snv_vcf_panel(mock_app, public_dataset, database):
     assert isinstance(test_variant["alternateBases"], str)
     assert test_variant["assemblyId"] == "GRCh37"
     assert sample in test_variant["datasetIds"][dataset["_id"]]["samples"]
+
+    # And 2 events should have been saved: one for the added dataset and one for the added variants
+    saved_events = sum(1 for i in database["event"].find())
+    assert saved_events == 2
 
 
 def test_add_variants_snv_vcf_panel(mock_app, public_dataset, database):

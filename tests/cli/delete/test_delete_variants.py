@@ -131,3 +131,9 @@ def test_delete_variants(mock_app, public_dataset, database):
     # And the sample should disappear from the list of dataset samples
     dataset_obj = database["dataset"].find_one({"_id": dataset["_id"]})
     assert sample not in dataset_obj["samples"]
+
+    # A total number of 2 events should have been also saved to database:
+    # 1 for adding the variants to the beacon
+    # 1 for removing the variants of first sample
+    saved_events = sum(1 for i in database["event"].find())
+    assert saved_events == 2
