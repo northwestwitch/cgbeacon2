@@ -8,6 +8,7 @@
 - Sets pytest requirement to >4.6 because of lack of backward compatibility of new version of pytest-cov
 - Remove redundant text from cli docstrings
 - Check that all requested samples are in VCF samples before uploading any variant
+- Registering events whenever datasets and/or variants are added or removed
 
 
 ## [1] - 2020.06.05
