@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import pymongo
 from cgbeacon2 import __version__
 
 
@@ -8,7 +9,8 @@ class Beacon:
     def __init__(self, conf_obj, api_version="1.0.0", database=None):
         self.alternativeUrl = conf_obj.get("alternative_url")
         self.apiVersion = f"v{api_version}"
-        self.createDateTime = conf_obj.get("created")
+        self.createDateTime = self._date_event(database, True)
+        self.updateDateTime = self._date_event(database, False)
         self.description = conf_obj.get("description")
         self.id = conf_obj.get("id")
         self.name = conf_obj.get("name")
@@ -19,9 +21,28 @@ class Beacon:
         self.datasets = self._datasets(database)
         self.datasets_by_auth_level = self._datasets_by_access_level(database)
 
+    def _date_event(self, database, order_asc):
+        """Return the date of the first event event created for this beacon
+
+        Accepts:
+            database(pymongo.database.Database)
+            order_asc(bool): if True get first event else get last event
+
+        Returns
+            event.created(datetime.datetime): date of creation of the event
+        """
+        if database:
+            if order_asc is True:
+                order = pymongo.ASCENDING
+            else:
+                order = pymongo.DESCENDING
+
+            events = database["event"].find().sort([("created", order)]).limit(1)
+            if events:
+                return events[0].get("created")
+
     def introduce(self):
         """Returns a the description of this beacon, with the fields required by the / endpoint"""
-
         beacon_obj = self.__dict__
         beacon_obj.pop("datasets_by_auth_level")
         return beacon_obj
