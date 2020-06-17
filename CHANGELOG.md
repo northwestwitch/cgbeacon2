@@ -5,8 +5,9 @@
 - Updated README
 - Added missing `requests` lib in requests
 - Freezes pysam in requirements file
-- Sets pytest lib to be >4.6 because of lack of backward compatibility of new version of pytest-cov
+- Sets pytest requirement to >4.6 because of lack of backward compatibility of new version of pytest-cov
 - Remove redundant text from cli docstrings
+- Check that all requested samples are in VCF samples before uploading any variant
 
 
 ## [1] - 2020.06.05

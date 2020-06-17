@@ -67,7 +67,6 @@ def test_add_variants_empty_vcf(mock_app, public_dataset, database):
     assert f"Provided VCF file doesn't contain any variant" in result.output
 
 
-@pytest.mark.skip(reason="This test doesn't seem to work for Travis CI")
 def test_add_variants_wrong_samples(mock_app, public_dataset, database):
     """Test the cli command to add variants providing samples that are not in the VCF file"""
 
@@ -94,11 +93,53 @@ def test_add_variants_wrong_samples(mock_app, public_dataset, database):
     # Then the command should return error
     assert result.exit_code == 1
     # And a specific error message
-    assert f"Coundn't extract variants from provided VCF file" in result.output
+    assert f"One or more provided sample was not found in the VCF file" in result.output
 
 
-def test_add_variants_snv_vcf(mock_app, public_dataset, database):
-    """Test the cli command to add SNV variants from VCF file"""
+def test_add_variants_snv_vcf_panel(mock_app, public_dataset, database):
+    """Test the cli command to add SNV variants from a VCF file"""
+
+    runner = mock_app.test_cli_runner()
+
+    # Having a database containing a dataset
+    dataset = public_dataset
+    database["dataset"].insert_one(dataset)
+
+    sample = "ADM1059A1"
+
+    # When invoking the add variants from a VCF file
+    # filtering using one gene panel
+    result = runner.invoke(
+        cli,
+        [
+            "add",
+            "variants",
+            "-ds",
+            dataset["_id"],
+            "-vcf",
+            test_snv_vcf_path,
+            "-sample",
+            sample,
+        ],
+    )
+
+    # Then the command should NOT return error
+    assert result.exit_code == 0
+    assert f"variants loaded into the database" in result.output
+
+    # and variants parsed correctly have been saved to database
+    test_variant = database["variant"].find_one()
+    assert isinstance(test_variant["referenceName"], str)
+    assert isinstance(test_variant["start"], int)
+    assert isinstance(test_variant["end"], int)
+    assert isinstance(test_variant["referenceBases"], str)
+    assert isinstance(test_variant["alternateBases"], str)
+    assert test_variant["assemblyId"] == "GRCh37"
+    assert sample in test_variant["datasetIds"][dataset["_id"]]["samples"]
+
+
+def test_add_variants_snv_vcf_panel(mock_app, public_dataset, database):
+    """Test the cli command to add SNV variants from a panel-filtered VCF file"""
 
     runner = mock_app.test_cli_runner()
 
@@ -129,16 +170,6 @@ def test_add_variants_snv_vcf(mock_app, public_dataset, database):
     # Then the command should NOT return error
     assert result.exit_code == 0
     assert f"variants loaded into the database" in result.output
-
-    # and variants parsed correctly have been saved to database
-    test_variant = database["variant"].find_one()
-    assert isinstance(test_variant["referenceName"], str)
-    assert isinstance(test_variant["start"], int)
-    assert isinstance(test_variant["end"], int)
-    assert isinstance(test_variant["referenceBases"], str)
-    assert isinstance(test_variant["alternateBases"], str)
-    assert test_variant["assemblyId"] == "GRCh37"
-    assert sample in test_variant["datasetIds"][dataset["_id"]]["samples"]
 
 
 def test_add_variants_twice(mock_app, public_dataset, database):

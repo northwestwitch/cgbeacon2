@@ -8,49 +8,77 @@ from tempfile import NamedTemporaryFile
 LOG = logging.getLogger(__name__)
 
 
+def get_vcf_samples(vcf_file):
+    """Returns a list of samples contained in the VCF
+
+    Accepts:
+        vcf_file(str): path to VCF file
+
+    Returns:
+        vcf_samples(list)
+    """
+    vcf_samples = []
+    try:
+        vcf_obj = VCF(vcf_file)
+        vcf_samples = vcf_obj.samples
+
+    except Exception as err:
+        LOG.error(f"Error while creating VCF iterator from variant file:{err}")
+
+    return vcf_samples
+
+
 def extract_variants(vcf_file, samples=None, filter=None):
     """Parse a VCF file and return its variants as cyvcf2.VCF objects
 
     Accepts:
         vcf_file(str): path to VCF file
-        samples(tuple): samples to extract variants for
+        samples(set): samples to extract variants for
         filter(BcfTool object)
     """
+    vcf_obj = None
     try:
         if filter is not None:
-            # Genes or chromosomal intervals filter file(s) are provided
-            vcf_bed = BedTool(vcf_file)
-            LOG.info(
-                "Extracting %s intervals from the %s total entries of the VCF file.",
-                filter.count(),
-                vcf_bed.count(),
-            )
-            intersections = vcf_bed.intersect(filter, header=True)
-            intersected_vars = intersections.count()
-            LOG.info("Number of variants found in the intervals:%s", intersected_vars)
-
+            # filter VCF using one or more panels
+            intersections = _compute_intersections(vcf_file, filter)
             temp_intersections_file = NamedTemporaryFile("w+t", dir=os.getcwd())
             intersections.saveas(temp_intersections_file.name)
-            vcf_obj = VCF(temp_intersections_file.name)
+
+            vcf_obj = VCF(temp_intersections_file.name, samples=list(samples))
 
             # remove temporary file:
             temp_intersections_file.close()
-
         else:
-            try:
-                vcf_obj = VCF(vcf_file, samples=list(samples))
-            except Exception as ex:
-                vcf_obj = VCF(vcf_file)
-                LOG.error(
-                    f"Invalid VCF or samples. Valid samples are:{vcf_obj.samples}"
-                )
-                return
+            vcf_obj = VCF(vcf_file, samples=list(samples))
 
     except Exception as err:
         LOG.error(f"Error while creating VCF iterator from variant file:{err}")
-        return
 
     return vcf_obj
+
+
+def _compute_intersections(vcf_file, filter):
+    """Create a temporary file with the gene panel intervals
+
+    Accepts:
+        vcf_file(str): path to the VCF file
+        filter(BcfTool object)
+
+    Returns:
+        intersections()
+    """
+
+    vcf_bed = BedTool(vcf_file)
+    LOG.info(
+        "Extracting %s intervals from the %s total entries of the VCF file.",
+        filter.count(),
+        vcf_bed.count(),
+    )
+    intersections = vcf_bed.intersect(filter, header=True)
+    intersected_vars = intersections.count()
+    LOG.info("Number of variants found in the intervals:%s", intersected_vars)
+
+    return intersections
 
 
 def count_variants(vcf_obj):
