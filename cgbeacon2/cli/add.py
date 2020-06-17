@@ -8,7 +8,12 @@ from flask.cli import with_appcontext, current_app
 from cgbeacon2.constants import CONSENT_CODES
 from cgbeacon2.resources import test_snv_vcf_path, test_sv_vcf_path
 from cgbeacon2.utils.add import add_dataset, add_variants
-from cgbeacon2.utils.parse import extract_variants, count_variants, merge_intervals
+from cgbeacon2.utils.parse import (
+    extract_variants,
+    count_variants,
+    merge_intervals,
+    get_vcf_samples,
+)
 from cgbeacon2.utils.update import update_dataset
 
 
@@ -171,13 +176,22 @@ def variants(ds, vcf, sample, panel):
         click.echo(f"Couldn't find any dataset with id '{ds}' in the database")
         raise click.Abort()
 
+    # Check if required sample(s) are contained in the VCF
+    vcf_samples = get_vcf_samples(vcf)
+
+    if not all(samplen in vcf_samples for samplen in sample):
+        click.echo(
+            f"One or more provided sample was not found in the VCF file. Valida samples are: { ','.join(vcf_samples)}"
+        )
+        raise click.Abort()
+    custom_samples = set(sample)  # set of samples provided by users
+
     if len(panel) > 0:
         # create BedTool panel with genomic intervals to filter VCF with
         filter_intervals = merge_intervals(list(panel))
     else:
         filter_intervals = None
 
-    custom_samples = set(sample)  # set of samples provided by users
     vcf_obj = extract_variants(
         vcf_file=vcf, samples=custom_samples, filter=filter_intervals
     )
