@@ -14,7 +14,7 @@ from cgbeacon2.utils.parse import (
     merge_intervals,
     get_vcf_samples,
 )
-from cgbeacon2.utils.update import update_dataset
+from cgbeacon2.utils.update import update_dataset, update_event
 
 
 @click.group()
@@ -145,6 +145,8 @@ def dataset(id, name, build, authlevel, desc, version, url, cc, update):
         click.echo(
             f"Dataset collection was successfully updated with dataset '{inserted_id}'"
         )
+        # register the event in the event collection
+        update_event(current_app.db, id, "dataset", True)
     else:
         click.echo(f"An error occurred while updating dataset collection")
 

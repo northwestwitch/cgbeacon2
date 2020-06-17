@@ -5,6 +5,31 @@ import logging
 LOG = logging.getLogger(__name__)
 
 
+def update_event(database, dataset_id, updated_collection, add):
+    """Register an event corresponding to a change in the database
+
+    Accepts:
+        database(pymongo.database.Database)
+        dataset_id(str): id of dataset that was updated
+        updated_collection(str): 'variant', or 'dataset'
+        add(bool): whether the variants or the dataset were added or removed
+    """
+    action = "add"
+    if add is False:
+        action = "remove"
+
+    event_obj = dict(
+        dataset=dataset_id,
+        updated_collection=updated_collection,
+        created=datetime.datetime.now(),
+        add=action,
+    )
+    # save action
+    event_id = database["event"].insert_one(event_obj).inserted_id
+
+    return event_id
+
+
 def update_dataset(database, dataset_id, samples, add):
     """Update dataset object in dataset collection after adding or removing variants
 
@@ -36,6 +61,10 @@ def update_dataset(database, dataset_id, samples, add):
             }
         },
     )
+
+    # register an event for this update
+    update_event(database, dataset_id, "variant", add)
+
     return result
 
 
