@@ -97,10 +97,10 @@ def test_add_dataset_complete(public_dataset, mock_app, database):
     # Then the command should be successful
     assert result.exit_code == 0
 
-    # And the new dataset should have been inserted
+    # The new dataset should have been inserted
     new_dataset = database["dataset"].find_one()
 
-    # And it should have the provided key/values
+    # It should have the provided key/values
     assert new_dataset["_id"] == dataset["_id"]
     assert new_dataset["name"] == dataset["name"]
     assert new_dataset["assembly_id"] == dataset["assembly_id"]
@@ -110,6 +110,10 @@ def test_add_dataset_complete(public_dataset, mock_app, database):
     assert new_dataset["external_url"] == dataset["url"]
     assert new_dataset["consent_code"] == dataset["consent_code"]
     assert new_dataset["created"]
+
+    # And a new avent should have been created in the event collection
+    event_obj = database["event"].find_one()
+    assert event_obj
 
 
 def test_add_dataset_wrong_consent(public_dataset, mock_app, database):

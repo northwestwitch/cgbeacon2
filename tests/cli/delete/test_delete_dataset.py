@@ -56,3 +56,7 @@ def test_delete_existing_dataset(public_dataset, mock_app, database):
     # And the dataset should be removed from the database
     new_dataset = database["dataset"].find_one()
     assert new_dataset is None
+
+    # And 2 events should have been saved: one for the added dataset and one for the deleted dataset
+    saved_events = sum(1 for i in database["event"].find())
+    assert saved_events == 2
