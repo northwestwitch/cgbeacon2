@@ -38,8 +38,8 @@ class Beacon:
                 order = pymongo.DESCENDING
 
             events = database["event"].find().sort([("created", order)]).limit(1)
-            if events:
-                return events[0].get("created")
+            for event in events:
+                return event.get("created")
 
     def introduce(self):
         """Returns a the description of this beacon, with the fields required by the / endpoint"""
