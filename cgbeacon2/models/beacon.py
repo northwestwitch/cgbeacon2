@@ -47,10 +47,6 @@ class Beacon:
         beacon_obj.pop("datasets_by_auth_level")
         return beacon_obj
 
-    def _created(self):
-        """Returns the date when the beacon was created"""
-        pass
-
     def _datasets(self, database):
         """Retrieve all datasets associated to this Beacon
 

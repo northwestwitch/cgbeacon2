@@ -12,7 +12,7 @@
 ### Added
 - Check that all requested samples are in VCF samples before uploading any variant
 - Registering events whenever datasets and/or variants are added or removed
-- beacon info endpoint now returns beacon createDateTime and updateDateTime
+- Beacon info endpoint now returns beacon createDateTime and updateDateTime
 
 
 ## [1] - 2020.06.05
