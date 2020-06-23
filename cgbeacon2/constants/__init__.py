@@ -5,7 +5,6 @@ from .query_errors import (
     NO_SECONDARY_PARAMS,
     NO_POSITION_PARAMS,
     INVALID_COORDINATES,
-    INVALID_COORD_RANGE,
     BUILD_MISMATCH,
 )
 from .oauth_errors import (

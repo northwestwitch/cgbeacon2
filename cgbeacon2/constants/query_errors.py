@@ -19,11 +19,6 @@ INVALID_COORDINATES = dict(
     errorMessage="invalid coordinates. Variant start and stop positions must be numbers",
 )
 
-INVALID_COORD_RANGE = dict(
-    errorCode=400,
-    errorMessage="invalid coordinate range: startMin <= startMax <= endMin <= endMax",
-)
-
 BUILD_MISMATCH = dict(
     errorCode=400,
     errorMessage="Requested genome assembly is in conflict with the assembly of one or more requested datasets",
