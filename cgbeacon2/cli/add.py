@@ -64,6 +64,11 @@ def demo(ctx):
         sample=[sample],
     )
 
+    # Invoke add variants command to import also BND variants from separate VCF file
+    ctx.invoke(
+        variants, ds=ds_id, vcf="cgbeacon2/resources/demo/BND.SV.vcf", sample=[sample],
+    )
+
 
 @add.command()
 @click.option("-id", type=click.STRING, nargs=1, required=True, help="dataset ID")
