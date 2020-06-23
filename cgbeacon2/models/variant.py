@@ -9,6 +9,8 @@ class Variant:
         self.referenceName = parsed_variant[
             "chromosome"
         ]  # Accepting values 1-22, X, Y, MT
+        if parsed_variant.get("mate_name"):
+            self.mateName = parsed_variant["mate_name"]
         self.start = parsed_variant[
             "start"
         ]  # int, Precise start coordinate position, allele locus (0-based, inclusive)
