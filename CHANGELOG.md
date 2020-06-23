@@ -1,5 +1,17 @@
+## [] -
+
 ### Fixed
-- Added an init file inside the demo resouces folder
+- Added an init file inside the demo resources folder
+- Accept variants annotated with build GRCh37 and GRCh38 (`chrN`) instead of just `N` (as in hg19)
+
+### Changed
+- Renamed SNV and SV demo VCF files
+- Range queries allowing for start position < end position when variantType=BND
+
+### Added
+- Demo VCF file containing BND SV variants
+- Save BND variants to database (introduced additional mateName key/values)
+- Query BND variants using mateName
 
 
 ## [1.1] - 2020.06.17
