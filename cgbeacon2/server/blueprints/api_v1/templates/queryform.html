@@ -71,7 +71,7 @@
           <div id="svsDiv" class="col-md-3" {% if form == {} or form.variantType == "" %} style="display:none" {%endif%}>
             <label for="variantType">Variant type</label>
             <select class="form-control" name="variantType">
-              {% for sv in ["", "INS", "DEL", "DUP", "INV"] %}
+              {% for sv in ["", "INS", "DEL", "DUP", "INV", "BND"] %}
                 <option>{{sv}}</option>
               {% endfor %}
             </select>
