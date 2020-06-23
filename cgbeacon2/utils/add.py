@@ -4,7 +4,7 @@ from progress.bar import Bar
 
 from cgbeacon2.constants import CHROMOSOMES
 from cgbeacon2.models.variant import Variant
-from cgbeacon2.utils.parse import variant_called
+from cgbeacon2.utils.parse import variant_called, bnd_mate_name
 
 LOG = logging.getLogger(__name__)
 
@@ -78,7 +78,8 @@ def add_variants(database, vcf_obj, samples, assembly, dataset_id, nr_variants):
     inserted_vars = 0
     with Bar("Processing", max=nr_variants) as bar:
         for vcf_variant in vcf_obj:
-            if vcf_variant.CHROM not in CHROMOSOMES:
+            chrom = vcf_variant.CHROM.replace("chr", "")
+            if chrom not in CHROMOSOMES:
                 LOG.warning(
                     f"chromosome '{vcf_variant.CHROM}' not included in canonical chromosome list, skipping it."
                 )
@@ -93,7 +94,7 @@ def add_variants(database, vcf_obj, samples, assembly, dataset_id, nr_variants):
                 continue  # variant was not called in samples of interest
 
             parsed_variant = dict(
-                chromosome=vcf_variant.CHROM,
+                chromosome=chrom,
                 start=vcf_variant.start,  # 0-based coordinate
                 end=vcf_variant.end,  # 0-based coordinate
                 reference_bases=vcf_variant.REF,
@@ -101,7 +102,10 @@ def add_variants(database, vcf_obj, samples, assembly, dataset_id, nr_variants):
             )
 
             if vcf_variant.var_type == "sv":
-                parsed_variant["variant_type"] = vcf_variant.INFO["SVTYPE"]
+                sv_type = vcf_variant.INFO["SVTYPE"]
+                parsed_variant["variant_type"] = sv_type
+                if sv_type == "BND":
+                    parsed_variant["mate_name"] = bnd_mate_name(vcf_variant.ALT, chrom)
 
             else:
                 parsed_variant["variant_type"] = vcf_variant.var_type.upper()

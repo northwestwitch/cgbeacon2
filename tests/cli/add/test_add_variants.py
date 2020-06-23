@@ -399,7 +399,7 @@ def test_add_sv_variants(mock_app, public_dataset, database):
     saved_vars = list(database["variant"].find())
     assert len(saved_vars) > 0
 
-    valid_types = ["INS", "DUP", "DEL", "INV"]
+    valid_types = ["INS", "DUP", "DEL", "INV", "BND"]
     # AND all of them should have a valid SV variant type
     for var in saved_vars:
         assert var["variantType"] in valid_types

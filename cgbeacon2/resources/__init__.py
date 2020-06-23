@@ -1,9 +1,9 @@
 import pkg_resources
 
 ###### Files ######
-test_snv_vcf = "resources/demo/643594.clinical.vcf.gz"
-test_sv_vcf = "resources/demo/643594.clinical.SV.vcf.gz"
-empty_vcf = "resources/demo/empty.clinical.SV.vcf.gz"
+test_snv_vcf = "resources/demo/test_trio.vcf.gz"
+test_sv_vcf = "resources/demo/test_trio.SV.vcf.gz"
+empty_vcf = "resources/demo/empty.SV.vcf.gz"
 panel1 = "resources/demo/panel1.bed"
 panel2 = "resources/demo/panel2.bed"
 
