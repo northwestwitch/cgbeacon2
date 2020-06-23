@@ -4,7 +4,7 @@ from progress.bar import Bar
 
 from cgbeacon2.constants import CHROMOSOMES
 from cgbeacon2.models.variant import Variant
-from cgbeacon2.utils.parse import variant_called, bnd_mate_name
+from cgbeacon2.utils.parse import variant_called, bnd_mate_name, sv_end
 
 LOG = logging.getLogger(__name__)
 
@@ -104,8 +104,20 @@ def add_variants(database, vcf_obj, samples, assembly, dataset_id, nr_variants):
             if vcf_variant.var_type == "sv":
                 sv_type = vcf_variant.INFO["SVTYPE"]
                 parsed_variant["variant_type"] = sv_type
+
+                alt = vcf_variant.ALT[0]
+
+                # Check if a better variant end can be extracted from INFO field
+                end = sv_end(
+                    pos=vcf_variant.POS,
+                    alt=alt,
+                    svend=vcf_variant.INFO.get("END"),
+                    svlen=vcf_variant.INFO.get("SVLEN"),
+                )
+                parsed_variant["end"] = end
+
                 if sv_type == "BND":
-                    parsed_variant["mate_name"] = bnd_mate_name(vcf_variant.ALT, chrom)
+                    parsed_variant["mate_name"] = bnd_mate_name(alt, chrom)
 
             else:
                 parsed_variant["variant_type"] = vcf_variant.var_type.upper()

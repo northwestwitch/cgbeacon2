@@ -440,7 +440,9 @@ def test_add_BND_SV_variants(mock_app, public_dataset, database):
         # ALL of them should have a valid SV variant type
         assert var["variantType"] == "BND"
         # AND a mateName (end chromosome)
-        assert var["mateName"] is not None
+        assert (
+            var["mateName"] != var["referenceName"]
+        )  # just for the variants in the demo file
 
 
 def test_add_snv_sv_variants(mock_app, public_dataset, database):
