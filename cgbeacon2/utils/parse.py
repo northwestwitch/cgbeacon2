@@ -2,8 +2,12 @@
 import logging
 from cyvcf2 import VCF
 import os
+import re
 from pybedtools.bedtool import BedTool
 from tempfile import NamedTemporaryFile
+
+BND_ALT_PATTERN = re.compile(r".*[\],\[](.*?):(.*?)[\],\[]")
+CHR_PATTERN = re.compile(r"(chr)?(.*)", re.IGNORECASE)
 
 LOG = logging.getLogger(__name__)
 
@@ -26,6 +30,57 @@ def get_vcf_samples(vcf_file):
         LOG.error(f"Error while creating VCF iterator from variant file:{err}")
 
     return vcf_samples
+
+
+def bnd_mate_name(alt, chrom):
+    """Returns chromosome and mate for a BND variant
+
+    Accepts:
+        alt(str): vcf_variant.ALT[0]
+        chrom(st): cf_variant.CHROM
+
+    Returns:
+        end_chr(str): a chromosome (1-22, X, Y, MT)
+    """
+    end_chrom = chrom
+    if ":" not in alt:
+        return end_chrom
+
+    match = BND_ALT_PATTERN.match(alt)
+
+    # BND will often be translocations between different chromosomes
+    if match:
+        other_chrom = match.group(1)
+        match = CHR_PATTERN.match(other_chrom)
+        end_chrom = match.group(2)
+    return end_chrom
+
+
+def sv_end(pos, alt, svend=None, svlen=None):
+    """Return the end coordinate for a structural variant
+
+    Accepts:
+        pos(int): variant start, 1-based
+        alt(str)
+        svend(int)
+        svlen(int)
+
+    Returns:
+        end(int)
+
+    """
+    end = svend
+
+    if ":" in alt:
+        match = BND_ALT_PATTERN.match(alt)
+        if match:
+            end = int(match.group(2))
+
+    if svend == pos:
+        if svlen:
+            end = pos + svlen
+
+    return end - 1  # coordinate should be zero-based
 
 
 def extract_variants(vcf_file, samples=None, filter=None):

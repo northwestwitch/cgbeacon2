@@ -5,7 +5,6 @@ from cgbeacon2.constants import (
     NO_SECONDARY_PARAMS,
     NO_POSITION_PARAMS,
     INVALID_COORDINATES,
-    INVALID_COORD_RANGE,
     BUILD_MISMATCH,
 )
 
@@ -95,13 +94,11 @@ def test_query_get_request_non_numerical_sv_coordinates(mock_app):
 
 def test_query_get_request_missing_positions_params(mock_app):
     """Test the query endpoint by sending a request missing coordinate params:
-        Either stat or startMin + startMax + endMin + endMax
+        Either start or any range coordinate
 
     """
     # When a request missing start position and all the 4 range position coordinates (startMin, startMax, endMin, endMax)
-    query_string = "&".join(
-        [BASE_ARGS, "alternateBases=T&startMin=2&startMax=6&endMin=4"]
-    )
+    query_string = "&".join([BASE_ARGS, "alternateBases=T"])
     response = mock_app.test_client().get(
         "".join(["/apiv1.0/", query_string]), headers=HEADERS
     )
@@ -109,22 +106,6 @@ def test_query_get_request_missing_positions_params(mock_app):
     # Then it should return error
     assert response.status_code == 400
     assert data["message"]["error"] == NO_POSITION_PARAMS
-
-
-def test_query_get_request_non_increasing_sv_coordinates(mock_app):
-    """Test the query endpoint by sending a request with non-ordered range coordinates"""
-
-    range_coords = "&variantType=DUP&startMin=2&startMax=4&endMin=7&endMax=5"
-    query_string = "&".join([BASE_ARGS, range_coords])
-
-    # When a request for range coordinates doesn't contain ordered coordinates
-    response = mock_app.test_client().get(
-        "".join(["/apiv1.0/", query_string]), headers=HEADERS
-    )
-    data = json.loads(response.data)
-    # Then it should return error
-    assert response.status_code == 400
-    assert data["message"]["error"] == INVALID_COORD_RANGE
 
 
 def test_query_get_request_non_numerical_range_coordinates(mock_app):
@@ -140,4 +121,4 @@ def test_query_get_request_non_numerical_range_coordinates(mock_app):
     data = json.loads(response.data)
     # Then it should return error
     assert response.status_code == 400
-    assert data["message"]["error"] == INVALID_COORD_RANGE
+    assert data["message"]["error"] == INVALID_COORDINATES

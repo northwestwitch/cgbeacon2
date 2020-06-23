@@ -2,6 +2,7 @@
 import json
 
 from cgbeacon2.cli.commands import cli
+from cgbeacon2.resources import test_bnd_vcf_path
 
 HEADERS = {"Content-type": "application/json", "Accept": "application/json"}
 
@@ -11,12 +12,77 @@ COORDS_ARGS = "start=235826381&end=235826383"
 ALT_ARG = "alternateBases=T"
 
 
+def test_post_range_coords_BND_SV_found(
+    mock_app, public_dataset, database, test_bnd_sv
+):
+    """Test a POST request to search for an existing BND structural variant
+
+    curl -X POST \
+    localhost:5000/apiv1.0/query \
+    -H 'Content-Type: application/json' \
+    -H 'Accept: application/json' \
+    -d '{"referenceName": "17",
+    "mateName": "2",
+    "variantType" : "BND",
+    "startMin": 198000,
+    "startMax": 200000,
+    "referenceBases": "A",
+    "assemblyId": "GRCh37",
+    "includeDatasetResponses": "HIT"}'
+
+    """
+
+    # GIVEN a database containing a public dataset
+    database["dataset"].insert_one(public_dataset)
+
+    sample = "ADM1059A1"
+
+    # AND a number of BND variants
+    runner = mock_app.test_cli_runner()
+    result = runner.invoke(
+        cli,
+        [
+            "add",
+            "variants",
+            "-ds",
+            public_dataset["_id"],
+            "-vcf",
+            test_bnd_vcf_path,
+            "-sample",
+            sample,
+        ],
+    )
+
+    data = json.dumps(
+        {
+            "referenceName": test_bnd_sv["referenceName"],
+            "referenceBases": test_bnd_sv["referenceBases"],
+            "mateName": test_bnd_sv["mateName"],
+            "variantType": test_bnd_sv["variantType"],  # BND
+            "assemblyId": test_bnd_sv["assemblyId"],
+            "startMin": test_bnd_sv["start"] - 1000,
+            "startMax": test_bnd_sv["start"] + 1000,
+            "includeDatasetResponses": "ALL",
+        }
+    )
+
+    # When calling the endpoing with the POST method
+    response = mock_app.test_client().post("/apiv1.0/query", data=data, headers=HEADERS)
+
+    # Should not return error
+    assert response.status_code == 200
+    resp_data = json.loads(response.data)
+
+    # And the variant should be found
+    assert resp_data["datasetAlleleResponses"][0]["exists"] == True
+
+
 def test_beacon_entrypoint(mock_app, registered_dataset):
     """Test the endpoint that returns the beacon info, when there is one dataset in database"""
 
     runner = mock_app.test_cli_runner()
 
-    # Having a database containing a public dataset
+    # Having a database containing a registered_dataset dataset
     database = mock_app.db
 
     runner.invoke(

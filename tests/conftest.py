@@ -93,6 +93,25 @@ def test_sv():
 
 
 @pytest.fixture
+def test_bnd_sv():
+    """A dictionary representing a BND sv variant as it is saved in database"""
+    variant = {
+        "_id": "c0e355e7899e9fd765797c9f72d0cf7f",
+        "referenceName": "17",
+        "mateName": "2",
+        "start": 198981,
+        "end": 321680,
+        "referenceBases": "A",
+        "alternateBases": "A]2:321681]",
+        "variantType": "BND",
+        "assemblyId": "GRCh37",
+        "datasetIds": {"test_public": {"samples": {"ADM1059A1": {"allele_count": 1}}}},
+        "call_count": 1,
+    }
+    return variant
+
+
+@pytest.fixture
 def public_dataset():
     """A test public dataset dictionary"""
     dataset = dict(

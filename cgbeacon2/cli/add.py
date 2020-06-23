@@ -52,7 +52,7 @@ def demo(ctx):
     ctx.invoke(
         variants,
         ds=ds_id,
-        vcf="cgbeacon2/resources/demo/643594.clinical.vcf.gz",
+        vcf="cgbeacon2/resources/demo/test_trio.vcf.gz",
         sample=[sample],
     )
 
@@ -60,8 +60,13 @@ def demo(ctx):
     ctx.invoke(
         variants,
         ds=ds_id,
-        vcf="cgbeacon2/resources/demo/643594.clinical.SV.vcf.gz",
+        vcf="cgbeacon2/resources/demo/test_trio.SV.vcf.gz",
         sample=[sample],
+    )
+
+    # Invoke add variants command to import also BND variants from separate VCF file
+    ctx.invoke(
+        variants, ds=ds_id, vcf="cgbeacon2/resources/demo/BND.SV.vcf", sample=[sample],
     )
 
 

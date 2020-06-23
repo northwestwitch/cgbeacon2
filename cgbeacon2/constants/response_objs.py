@@ -1,6 +1,7 @@
 ####### QUERY PARAMS #######
 QUERY_PARAMS_API_V1 = [
     "referenceName",
+    "mateName",
     "referenceBases",
     "assemblyId",
     "start",

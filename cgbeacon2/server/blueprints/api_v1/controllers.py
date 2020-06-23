@@ -6,7 +6,6 @@ from cgbeacon2.constants import (
     NO_SECONDARY_PARAMS,
     NO_POSITION_PARAMS,
     INVALID_COORDINATES,
-    INVALID_COORD_RANGE,
     BUILD_MISMATCH,
     QUERY_PARAMS_API_V1,
 )
@@ -144,7 +143,7 @@ def check_allele_request(resp_obj, customer_query, mongo_query):
     # Check that genomic coordinates are provided (even rough)
     if (
         customer_query.get("start") is None
-        and all([coord in customer_query.keys() for coord in RANGE_COORDINATES])
+        and any([coord in customer_query.keys() for coord in RANGE_COORDINATES])
         is False
     ):
         # return a bad request 400 error with explanation message
@@ -166,25 +165,33 @@ def check_allele_request(resp_obj, customer_query, mongo_query):
                 error=INVALID_COORDINATES, allelRequest=customer_query,
             )
 
-    elif all(
+    # Range query
+    elif any(
         [coord in customer_query.keys() for coord in RANGE_COORDINATES]
     ):  # range query
-        # check that startMin <= startMax <= endMin <= endMax
+        # In general startMin <= startMax <= endMin <= endMax, but allow fuzzy ends query
+
+        fuzzy_start_query = {}
+        fuzzy_end_query = {}
         try:
-            unsorted_coords = [
-                int(customer_query[coord]) for coord in RANGE_COORDINATES
-            ]
+            if "startMin" in customer_query:
+                fuzzy_start_query["$gte"] = int(customer_query["startMin"])
+            if "startMax" in customer_query:
+                fuzzy_start_query["$lte"] = int(customer_query["startMax"])
+            if "endMin" in customer_query:
+                fuzzy_end_query["$gte"] = int(customer_query["endMin"])
+            if "endMax" in customer_query:
+                fuzzy_end_query["$lte"] = int(customer_query["endMax"])
         except ValueError:
-            unsorted_coords = [1, 0]
-        if unsorted_coords != sorted(unsorted_coords):  # coordinates are not valid
             # return a bad request 400 error with explanation message
             resp_obj["message"] = dict(
-                error=INVALID_COORD_RANGE, allelRequest=customer_query,
+                error=INVALID_COORDINATES, allelRequest=customer_query,
             )
-            return
 
-        mongo_query["start"] = {"$gte": unsorted_coords[0], "$lte": unsorted_coords[1]}
-        mongo_query["end"] = {"$gte": unsorted_coords[2], "$lte": unsorted_coords[3]}
+        if fuzzy_start_query:
+            mongo_query["start"] = fuzzy_start_query
+        if fuzzy_end_query:
+            mongo_query["end"] = fuzzy_end_query
 
     if mongo_query.get("_id") is None:
         # perform normal query

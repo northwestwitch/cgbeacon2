@@ -5,6 +5,7 @@ from cgbeacon2.resources import (
     test_snv_vcf_path,
     test_sv_vcf_path,
     test_empty_vcf_path,
+    test_bnd_vcf_path,
     panel1_path,
     panel2_path,
 )
@@ -380,7 +381,7 @@ def test_add_sv_variants(mock_app, public_dataset, database):
 
     sample = "ADM1059A1"
 
-    # When invoking the add variants from a VCF file for the first time
+    # When invoking the add variants from a SV VCF file
     result = runner.invoke(
         cli,
         [
@@ -403,6 +404,45 @@ def test_add_sv_variants(mock_app, public_dataset, database):
     # AND all of them should have a valid SV variant type
     for var in saved_vars:
         assert var["variantType"] in valid_types
+
+
+def test_add_BND_SV_variants(mock_app, public_dataset, database):
+    """Test that BND structural variants are correcly parsed and saved to database"""
+
+    runner = mock_app.test_cli_runner()
+
+    # GIVEN a database containing a dataset
+    dataset = public_dataset
+    database["dataset"].insert_one(dataset)
+
+    sample = "ADM1059A1"
+
+    # When invoking the add variants from a SV VCF file containing BNDs
+    result = runner.invoke(
+        cli,
+        [
+            "add",
+            "variants",
+            "-ds",
+            dataset["_id"],
+            "-vcf",
+            test_bnd_vcf_path,
+            "-sample",
+            sample,
+        ],
+    )
+
+    # Then a number of variants should have been saved to database
+    saved_vars = list(database["variant"].find())
+    assert len(saved_vars) > 0
+
+    for var in saved_vars:
+        # ALL of them should have a valid SV variant type
+        assert var["variantType"] == "BND"
+        # AND a mateName (end chromosome)
+        assert (
+            var["mateName"] != var["referenceName"]
+        )  # just for the variants in the demo file
 
 
 def test_add_snv_sv_variants(mock_app, public_dataset, database):
