@@ -1,3 +1,7 @@
+### Fixed
+- Added an init file inside the demo resouces folder
+
+
 ## [1.1] - 2020.06.17
 
 ### Fixed
