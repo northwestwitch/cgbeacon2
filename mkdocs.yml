@@ -5,6 +5,6 @@ nav:
     - Installation: install.md
     - Loading datasets and variants: loading.md
     - Removing datasets and variants: removing.md
-    - Query the beacon: queries.md
+    - Queries: queries.md
 
 theme: readthedocs
