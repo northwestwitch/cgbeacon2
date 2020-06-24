@@ -8,7 +8,7 @@ The default procedure to add variants to the beacon is always the following:
 - Create a dataset to link your variants to.
 - Load variants from a VCF file for one or more samples, specifying which dataset these variants belong to.
 
-### How to add:
+## How to add:
 1. [ Demo data ](#demodata)
 1. [ A new dataset (custom data)](#dataset)
 1. [ Variants (custom data)](#variants)

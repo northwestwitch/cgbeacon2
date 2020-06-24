@@ -3,7 +3,8 @@ site_name: cgbeacon2 docs
 nav:
     - Home: index.md
     - Installation: install.md
-    - Loading data: loading.md
+    - Loading datasets and variants: loading.md
+    - Removing datasets and variants: removing.md
     - Query the beacon: queries.md
 
 theme: readthedocs
