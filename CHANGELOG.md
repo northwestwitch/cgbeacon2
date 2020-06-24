@@ -13,6 +13,7 @@
 - Demo VCF file containing BND SV variants
 - Save BND variants to database (introduced additional mateName key/values)
 - Query BND variants using mateName
+- Documentation using `MkDocs`.
 
 
 ## [1.1] - 2020.06.17

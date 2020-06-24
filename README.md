@@ -5,6 +5,8 @@
 
 An updated beacon supporting [ GA4GH API 1.0 ][ga4gh_api1]
 
+This README only gives a brief overview of the tool, for a more complete reference, please check out our docs: www.clinicalgenomics.se/cgbeacon2
+
 Table of Contents:
 1. [ Prerequisites ](#prerequisites)
 2. [ Installation ](#installation)
@@ -58,7 +60,7 @@ This command will create 2 collections: "dataset" and "variant". Dataset collect
 ## Server endpoints
 
 <a name="info"></a>
-- **/add**.
+- **/**.
 General info regarding this Beacon, including a description of its datasets, API version, sample count etc, can be obtained by sending a GET request using the following shell command:
 ```
 curl -X GET 'http://localhost:5000/apiv1.0/'
@@ -66,7 +68,7 @@ curl -X GET 'http://localhost:5000/apiv1.0/'
 
 Demo beacon will reply to this request with a JSON object like this:
 ```
-{"alternativeUrl":null,"apiVersion":"v1.0.0","createDateTime":null,"datasets":[{"assembly_id":"GRCh37","created":"Wed, 20 May 2020 15:03:20 GMT","id":"test_public","info":{"accessType":"PUBLIC"},"name":"Test public dataset","sampleCount":1,"updated":"Wed, 20 May 2020 15:03:21 GMT","version":1.0}],"description":"Beacon description","id":"SciLifeLab-beacon","name":"SciLifeLab Stockholm Beacon","organisation":{"address":"","contactUrl":"","description":"A science lab","id":"scilifelab","info":[],"logoUrl":"","name":"Clinical Genomics, SciLifeLab","welcomeUrl":""},"sampleAlleleRequests":[],"version":"v0.1","welcomeUrl":null}
+{"alternativeUrl":null,"apiVersion":"v1.0.0","createDateTime":"Tue, 23 Jun 2020 14:33:52 GMT","datasets":[{"assembly_id":"GRCh37","callCount":483,"created":"Tue, 23 Jun 2020 14:33:52 GMT","id":"test_public","info":{"accessType":"PUBLIC"},"name":"Test public dataset","sampleCount":1,"updated":"Tue, 23 Jun 2020 14:33:53 GMT","variantCount":408,"version":1.0}],"description":"Beacon description","id":"SciLifeLab-beacon","name":"SciLifeLab Stockholm Beacon","organisation":{"address":"","contactUrl":"","description":"A science lab","id":"scilifelab","info":[],"logoUrl":"","name":"Clinical Genomics, SciLifeLab","welcomeUrl":""},"sampleAlleleRequests":[{"alternateBases":"A","assemblyId":"GRCh37","datasetIds":["test_public"],"includeDatasetResponses":"HIT","referenceBases":"C","referenceName":"1","start":156146085},{"assemblyId":"GRCh37","includeDatasetResponses":"ALL","referenceBases":"C","referenceName":"20","start":54963148,"variantType":"DUP"}],"updateDateTime":"Tue, 23 Jun 2020 14:33:53 GMT","version":"v1.1","welcomeUrl":null}
 ```
 
 <a name="query"></a>
@@ -100,7 +102,7 @@ The Beacon reply to a query of this type would be a json object where the "exist
 ## Web interface
 A simple web interface to perform interactive queries can be used by typing the following address in any browser window: `http://127.0.0.1:5000/apiv1.0/query_form`
 
-![Interface picture](pics/beacon2_interface.jpg)
+![Interface picture](docs/pics/beacon2_interface.jpg)
 
 At the moment this interface is disconnected with Elixir AAI so all queries will be limited to the available public datasets in the Beacon.
 
