@@ -5,6 +5,8 @@
 
 An updated beacon supporting [ GA4GH API 1.0 ][ga4gh_api1]
 
+This README only gives a brief overview of the tool, for a more complete reference, please check out our docs: www.clinicalgenomics.se/cgbeacon2
+
 Table of Contents:
 1. [ Prerequisites ](#prerequisites)
 2. [ Installation ](#installation)
