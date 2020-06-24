@@ -1,4 +1,6 @@
 
+## Beacon setup
+
 1. [ Prerequisites ](#prerequisites)
 1. [ Installation ](#installation)
 1. [ Server settings ](#settings)
