@@ -1,0 +1,9 @@
+site_name: cgbeacon2 docs
+
+nav:
+    - Home: index.md
+    - Installation: install.md
+    - Loading data: loading.md
+    - Query the beacon: queries.md
+
+theme: readthedocs
