@@ -7,6 +7,7 @@ from flask.cli import FlaskGroup
 from cgbeacon2.server import create_app
 from .add import add
 from .delete import delete
+from .update import update
 
 
 @click.version_option(__version__)
@@ -24,3 +25,4 @@ def cli(**_):
 
 cli.add_command(add)
 cli.add_command(delete)
+cli.add_command(update)
