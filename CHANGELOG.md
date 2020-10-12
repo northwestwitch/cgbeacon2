@@ -14,6 +14,7 @@
 - Save BND variants to database (introduced additional mateName key/values)
 - Query BND variants using mateName
 - Documentation using `MkDocs`.
+- Populate database with genes downloaded from Ensembl Biomart
 
 
 ## [1.1] - 2020.06.17

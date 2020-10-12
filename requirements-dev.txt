@@ -3,6 +3,7 @@ coveralls
 mongomock
 pytest>4.6
 pytest-cov
+responses
 
 # documentation
 mkdocs
