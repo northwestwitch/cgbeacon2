@@ -29,8 +29,7 @@ def genes(build):
     client = EnsemblBiomartClient(build)
     gene_lines = client.query_service()
     # If gene query was not successful, exit command
-    if isinstance(gene_lines, types.GeneratorType) is False:
-        click.echo(f"An error occurred while retrieving genes from Ensembl:{gene_lines}")
+    if gene_lines is None:
         return
 
     n_inserted = update_genes(gene_lines, build)

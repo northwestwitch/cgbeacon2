@@ -20,6 +20,7 @@ def update_genes(gene_lines, build="GRCh37"):
     delete_genes(gene_collection, build)
     gene_objects = []
     for line in gene_lines:
+        LOG.error(line)
         hgnc_id = None
         hgnc_symbol = None
         parsed_line = line.rstrip().split("\t")
@@ -30,7 +31,8 @@ def update_genes(gene_lines, build="GRCh37"):
         # No HGNC ID, do not insert gene into database
         if parsed_line[1] == "":
             continue
-
+        if "HGNC:" in parsed_line[1]:
+            parsed_line[1] = parsed_line[1].split(":")[1]
         hgnc_id = int(parsed_line[1])
         if parsed_line[2] != "":
             hgnc_symbol = parsed_line[2]
