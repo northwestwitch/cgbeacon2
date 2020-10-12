@@ -24,7 +24,7 @@ def update():
 def genes(build):
     """Update genes and gene coordinates in database"""
 
-    click.echo(f"Collecting gene names from EBI, genome build -> {build}")
+    click.echo(f"Collecting gene names from Ensembl, genome build -> {build}")
     client = EnsemblBiomartClient(build)
     gene_lines = client.query_service()
     # If gene query was not successful, exit command
