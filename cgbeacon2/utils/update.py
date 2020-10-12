@@ -20,7 +20,6 @@ def update_genes(gene_lines, build="GRCh37"):
     delete_genes(gene_collection, build)
     gene_objects = []
     for line in gene_lines:
-        LOG.error(line)
         hgnc_id = None
         hgnc_symbol = None
         parsed_line = line.rstrip().split("\t")

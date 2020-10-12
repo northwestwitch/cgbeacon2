@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 import click
-import types
 from flask.cli import with_appcontext
 from cgbeacon2.utils.ensembl_biomart import EnsemblBiomartClient
 from cgbeacon2.utils.update import update_genes
