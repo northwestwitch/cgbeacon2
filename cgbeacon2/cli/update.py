@@ -3,12 +3,13 @@
 import click
 from flask.cli import with_appcontext
 from cgbeacon2.utils.ensembl_biomart import EnsemblBiomartClient
-from cgbeacon2.utils.request_resources import ebi_genenames
+
 
 @click.group()
 def update():
     """Update items in the database using the cli"""
     pass
+
 
 @update.command()
 @with_appcontext
@@ -22,8 +23,6 @@ def update():
 def genes(build):
     """Update genes and gene coordinates in database"""
 
-    click.echo("Collecting gene names from EBI..")
-    #client = EnsemblBiomartClient(build)
-
-    hgnc_lines = ebi_genenames()
-    click.echo(hgnc_lines)
+    click.echo(f"Collecting gene names from EBI, genome build ->{build}")
+    client = EnsemblBiomartClient(build)
+    gene_lines = client.query_service()

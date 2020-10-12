@@ -1,5 +1,6 @@
-"""Code for talking to ensembl rest API"""
+"""Code for downloading all genes with coordinates from Ensembl Biomart"""
 import logging
+import requests
 
 BIOMART_37 = "http://grch37.ensembl.org/biomart/martservice?query="
 BIOMART_38 = "http://ensembl.org/biomart/martservice?query="
@@ -19,30 +20,22 @@ LOG = logging.getLogger(__name__)
 class EnsemblBiomartClient:
     """Class to handle requests to the ensembl biomart api"""
 
-    def __init__(self, build="37"):
+    def __init__(self, build="GRCh37"):
         """Initialise a ensembl biomart client"""
         self.server = BIOMART_37
-        if build == "38":
+        if build == "GRCh38":
             self.server = BIOMART_38
         self.filters = {"chromosome_name": CHROMOSOMES}
         self.attributes = [
+            "ensembl_gene_id",
+            "hgnc_id",
+            "hgnc_symbol",
             "chromosome_name",
             "start_position",
             "end_position",
-            "ensembl_gene_id",
-            "hgnc_symbol",
-            "hgnc_id",
         ]
         self.xml = self._create_biomart_xml()
         self.header = True
-        self.attribute_to_header = {
-            "chromosome_name": "Chromosome/scaffold name",
-            "ensembl_gene_id": "Gene stable ID",
-            "start_position": "Gene start (bp)",
-            "end_position": "Gene end (bp)",
-            "hgnc_symbol": "HGNC symbol",
-            "hgnc_id": "HGNC ID",
-        }
 
     def _create_biomart_xml(self):
         """Convert biomart query params into biomart xml query
@@ -103,3 +96,21 @@ class EnsemblBiomartClient:
         for attr in self.attributes:
             formatted_lines.append('<Attribute name = "{}" />'.format(attr))
         return formatted_lines
+
+    def query_service(self):
+        """Query the Ensembl biomart service and yield the resulting lines
+        Accepts:
+            xml(str): an xml formatted query, as described here:
+                https://grch37.ensembl.org/info/data/biomart/biomart_perl_api.html
+
+        Yields:
+            biomartline
+        """
+        url = "".join([self.server, self.xml])
+        try:
+            with requests.get(url, stream=True) as r:
+                for line in r.iter_lines():
+                    yield line.decode("utf-8")
+        except Exception as ex:
+            LOG.info("Error downloading data from biomart: {}".format(ex))
+            raise ex
