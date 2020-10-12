@@ -4,6 +4,24 @@ import logging
 LOG = logging.getLogger(__name__)
 
 
+def delete_genes(collection, build="GRCh37"):
+    """Delete all genes from gene database collection
+
+    Accepts:
+        build(str): GRCh37 or GRCh38
+
+    Returns:
+        result.deleted(int): number of deleted documents
+    """
+    query = {"build": build}
+    try:
+        result = collection.delete_many(query)
+    except Exception as err:
+        LOG.error(err)
+        return
+    return result.deleted_count
+
+
 def delete_dataset(database, id):
     """Delete a dataset from dataset collection
 

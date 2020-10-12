@@ -1,8 +1,54 @@
 # -*- coding: utf-8 -*-
+from flask.cli import current_app
 import datetime
 import logging
+from .delete import delete_genes
 
 LOG = logging.getLogger(__name__)
+
+
+def update_genes(gene_lines, build="GRCh37"):
+    """Update database genes using Ensembl Biomart service
+
+    Accepts:
+        gene_lines(types.GeneratorType)
+
+    Returns:
+        inserted_ids(int): number of genes inserted
+    """
+    gene_collection = current_app.db["gene"]
+    delete_genes(gene_collection, build)
+    gene_objects = []
+    for line in gene_lines:
+        hgnc_id = None
+        hgnc_symbol = None
+        parsed_line = line.rstrip().split("\t")
+
+        if len(parsed_line) != 6:
+            continue  # it's probably the last line (success message)
+
+        # No HGNC ID, do not insert gene into database
+        if parsed_line[1] == "":
+            continue
+
+        hgnc_id = int(parsed_line[1])
+        if parsed_line[2] != "":
+            hgnc_symbol = parsed_line[2]
+
+        gene_obj = dict(
+            ensembl_id=parsed_line[0],
+            hgnc_id=hgnc_id,
+            symbol=hgnc_symbol,
+            build=build,
+            chromosome=parsed_line[3],
+            start=int(parsed_line[4]),
+            end=int(parsed_line[5]),
+        )
+        # gene_collection.insert_one(gene_obj)
+        gene_objects.append(gene_obj)
+
+    result = gene_collection.insert_many(gene_objects)
+    return result.inserted_ids
 
 
 def update_event(database, dataset_id, updated_collection, add):
@@ -158,9 +204,7 @@ def _samples_calls(variant_collection, dataset_id, samples):
             {
                 "$group": {
                     "_id": None,
-                    "alleles": {
-                        "$sum": f"$datasetIds.{dataset_id}.samples.{sample}.allele_count"
-                    },
+                    "alleles": {"$sum": f"$datasetIds.{dataset_id}.samples.{sample}.allele_count"},
                 }
             }
         ]

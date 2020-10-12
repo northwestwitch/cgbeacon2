@@ -113,4 +113,4 @@ class EnsemblBiomartClient:
                     yield line.decode("utf-8")
         except Exception as ex:
             LOG.info("Error downloading data from biomart: {}".format(ex))
-            raise ex
+            return ex
