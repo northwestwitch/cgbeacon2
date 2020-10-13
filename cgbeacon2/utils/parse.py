@@ -83,13 +83,14 @@ def sv_end(pos, alt, svend=None, svlen=None):
     return end - 1  # coordinate should be zero-based
 
 
-def genes_to_bedtool(gene_collection, hgnc_ids=None, ensembl_ids=None):
+def genes_to_bedtool(gene_collection, hgnc_ids=None, ensembl_ids=None, build="GRCh37"):
     """Create a Bedtool object with gene coordinates from a list of genes contained in the database
 
     Accepts:
         hgnc_ids(list): a list of hgnc genes ids
         ensembl_ids(list): a list of ensembl gene ids
         gene_collection(pymongo.collection.Collection)
+        build(str): genome build, GRCh37 or GRCh38
 
     Returns:
         bt(pybedtools.bedtool.BedTool): a BedTool object containing gene intervals
@@ -97,7 +98,7 @@ def genes_to_bedtool(gene_collection, hgnc_ids=None, ensembl_ids=None):
     if not (hgnc_ids or ensembl_ids):
         return None  # No gene was specified to filter VCF file with
 
-    query = {}
+    query = {"build": build}
     if hgnc_ids:
         query["hgnc_id"] = {"$in": hgnc_ids}
     elif ensembl_ids:  # either HGNC or ENSEMBL IDs, not both in the query dictionary

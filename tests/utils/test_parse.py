@@ -20,7 +20,7 @@ def test_genes_to_bedtool_no_genes(database):
     # THEN the function should return no Bedtool Object (None)
     assert bt is None
 
-def test_genes_to_bedtool_hgnc_ids(database, gene_objects_build37):
+def test_genes_to_bedtool_hgnc_ids(database, gene_objects_build37, build="GRCh37"):
     """Test function that created Bedtool filter file from a list of genes, providing hgnc ids"""
     # Given a populated gene collection
     database["gene"].insert_many(gene_objects_build37)
