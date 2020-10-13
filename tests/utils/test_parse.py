@@ -6,10 +6,47 @@ from cgbeacon2.utils.parse import (
     extract_variants,
     bnd_mate_name,
     sv_end,
+    genes_to_bedtool
 )
 
 ALT = "G]17:198982]"
 
+def test_genes_to_bedtool_no_genes(database):
+    """Test function that created Bedtool filter file from a list of genes, without providing any gene ID"""
+    # GIVEN two empty list of gene hgnc IDs and ensembl ids
+    hgnc_ids = []
+    ensembl_ids = []
+    bt = genes_to_bedtool(database["gene"], hgnc_ids, ensembl_ids)
+    # THEN the function should return no Bedtool Object (None)
+    assert bt is None
+
+def test_genes_to_bedtool_hgnc_ids(database, gene_objects_build37):
+    """Test function that created Bedtool filter file from a list of genes, providing hgnc ids"""
+    # Given a populated gene collection
+    database["gene"].insert_many(gene_objects_build37)
+    # When hgnc ids are provided to the genes_to_bedtool function
+    hgnc_ids = []
+    for gene in gene_objects_build37:
+        hgnc_ids.append(gene["hgnc_id"])
+    bt = genes_to_bedtool(database["gene"], hgnc_ids=hgnc_ids)
+    # THEN the function should return a BedTool file
+    assert isinstance(bt, pybedtools.bedtool.BedTool)
+    # With 3 gene intervals
+    assert len(bt) == 3
+
+def test_genes_to_bedtool_ensembl_ids(database, gene_objects_build37):
+    """Test function that created Bedtool filter file from a list of genes, providing ensembl ids"""
+    # Given a populated gene collection
+    database["gene"].insert_many(gene_objects_build37)
+    # When hgnc ids are provided to the genes_to_bedtool function
+    ensembl_ids = []
+    for gene in gene_objects_build37:
+        ensembl_ids.append(gene["ensembl_id"])
+    bt = genes_to_bedtool(database["gene"], ensembl_ids=ensembl_ids)
+    # THEN the function should return a BedTool file
+    assert isinstance(bt, pybedtools.bedtool.BedTool)
+    # With 3 gene intervals
+    assert len(bt) == 3
 
 def test_bnd_mate_name():
     """Test the function that extract mate name from a variant ALT field"""

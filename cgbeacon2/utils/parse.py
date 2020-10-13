@@ -83,6 +83,38 @@ def sv_end(pos, alt, svend=None, svlen=None):
     return end - 1  # coordinate should be zero-based
 
 
+def genes_to_bedtool(gene_collection, hgnc_ids=None, ensembl_ids=None):
+    """Create a Bedtool object with gene coordinates from a list of genes contained in the database
+
+    Accepts:
+        hgnc_ids(list): a list of hgnc genes ids
+        ensembl_ids(list): a list of ensembl gene ids
+        gene_collection(pymongo.collection.Collection)
+
+    Returns:
+        bt(pybedtools.bedtool.BedTool): a BedTool object containing gene intervals
+    """
+    if not (hgnc_ids or ensembl_ids):
+        return None  # No gene was specified to filter VCF file with
+
+    query = {}
+    if hgnc_ids:
+        query["hgnc_id"] = {"$in": hgnc_ids}
+    elif ensembl_ids:  # either HGNC or ENSEMBL IDs, not both in the query dictionary
+        query["ensembl_id"] = {"$in": ensembl_ids}
+    # Query database for genes coordinates
+    results = gene_collection.find(query)
+    # Create a string containing gene intervals to initialize a Bedtool object with
+    bedtool_string = ""
+    for gene in results:
+        bedtool_string += (
+            "\t".join([gene["chromosome"], str(gene["start"]), str(gene["end"])]) + "\n"
+        )
+
+    bt = BedTool(bedtool_string, from_string=True)
+    return bt
+
+
 def extract_variants(vcf_file, samples=None, filter=None):
     """Parse a VCF file and return its variants as cyvcf2.VCF objects
 
