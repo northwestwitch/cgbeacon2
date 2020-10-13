@@ -175,6 +175,42 @@ def public_dataset_no_variants():
     return dataset
 
 
+@pytest.fixture
+def gene_objects_build37():
+    """A list containing 3 test genes as they are saved in gene collection"""
+    gene1 = {
+        "_id": "5f84572c3804912d9618d867",
+        "ensembl_id": "ENSG00000171314",
+        "hgnc_id": 8888,
+        "symbol": "PGAM1",
+        "build": "GRCh37",
+        "chromosome": "10",
+        "start": 99185917,
+        "end": 99193198,
+    }
+    gene2 = {
+        "_id": "5f84572c3804912d9618dd25",
+        "ensembl_id": "ENSG00000121236",
+        "hgnc_id": 16277,
+        "symbol": "TRIM6",
+        "build": "GRCh37",
+        "chromosome": "11",
+        "start": 5617339,
+        "end": 5634188,
+    }
+    gene3 = {
+        "_id": "5f84572c3804912d96191f9b",
+        "ensembl_id": "ENSG00000016391",
+        "hgnc_id": 24288,
+        "symbol": "CHDH",
+        "build": "GRCh37",
+        "chromosome": "3",
+        "start": 53846362,
+        "end": 53880417,
+    }
+    return [gene1, gene2, gene3]
+
+
 ########### Security-related fixtures ###########
 # https://github.com/mpdavis/python-jose/blob/master/tests/test_jwt.py
 
@@ -308,10 +344,12 @@ def bona_fide_passport_info(header, pem):
                 "value": "https://doi.org/10.1038/s41431-018-0219-y",
             }
         },
-        {"ga4gh_visa_v1": {"type": "ResearcherStatus",}},
+        {
+            "ga4gh_visa_v1": {
+                "type": "ResearcherStatus",
+            }
+        },
     ]
-    passport_info = [
-        jwt.encode(header, passport, pem).decode("utf-8") for passport in passports
-    ]
+    passport_info = [jwt.encode(header, passport, pem).decode("utf-8") for passport in passports]
 
     return passport_info
