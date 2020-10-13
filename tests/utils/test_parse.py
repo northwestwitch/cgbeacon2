@@ -29,7 +29,7 @@ def test_genes_to_bedtool_hgnc_ids(database, gene_objects_build37, build="GRCh37
     for gene in gene_objects_build37:
         hgnc_ids.append(gene["hgnc_id"])
     bt = genes_to_bedtool(database["gene"], hgnc_ids=hgnc_ids)
-    # THEN the function should return a BedTool file
+    # THEN the function should return a BedTool object
     assert isinstance(bt, pybedtools.bedtool.BedTool)
     # With 3 gene intervals
     assert len(bt) == 3
@@ -43,7 +43,7 @@ def test_genes_to_bedtool_ensembl_ids(database, gene_objects_build37):
     for gene in gene_objects_build37:
         ensembl_ids.append(gene["ensembl_id"])
     bt = genes_to_bedtool(database["gene"], ensembl_ids=ensembl_ids)
-    # THEN the function should return a BedTool file
+    # THEN the function should return a BedTool object
     assert isinstance(bt, pybedtools.bedtool.BedTool)
     # With 3 gene intervals
     assert len(bt) == 3
