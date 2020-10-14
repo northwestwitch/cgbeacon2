@@ -9,9 +9,11 @@ from flask import (
     flash,
     redirect,
 )
+from flask_negotiate import consumes
 from cgbeacon2.constants import CHROMOSOMES
 from cgbeacon2.models import Beacon
 from cgbeacon2.utils.auth import authlevel
+from cgbeacon2.utils.parse import validate_add_request
 from .controllers import create_allele_query, dispatch_query
 
 API_VERSION = "1.0.0"
@@ -45,10 +47,10 @@ def info():
 @api1_bp.route("/apiv1.0/query_form", methods=["GET", "POST"])
 def query_form():
     """The endpoint to a super simple query form to interrogate this beacon
-       Query is performed only on public access datasets contained in this beacon
+    Query is performed only on public access datasets contained in this beacon
 
-       query_form page is accessible from a browser at this address:
-       http://127.0.0.1:5000/apiv1.0/query_form
+    query_form page is accessible from a browser at this address:
+    http://127.0.0.1:5000/apiv1.0/query_form
     """
 
     all_dsets = current_app.db["dataset"].find()
@@ -64,13 +66,9 @@ def query_form():
 
         else:  # query database
             # query database (it should return a datasetAlleleResponses object)
-            response_type = resp_obj["allelRequest"].get(
-                "includeDatasetResponses", "NONE"
-            )
+            response_type = resp_obj["allelRequest"].get("includeDatasetResponses", "NONE")
             query_datasets = resp_obj["allelRequest"].get("datasetIds", [])
-            exists, ds_allele_responses = dispatch_query(
-                query, response_type, query_datasets
-            )
+            exists, ds_allele_responses = dispatch_query(query, response_type, query_datasets)
             resp_obj["exists"] = exists
             resp_obj["error"] = None
             resp_obj["datasetAlleleResponses"] = ds_allele_responses
@@ -96,6 +94,15 @@ def query_form():
         dsets=all_dsets,
         form=dict(request.form),
     )
+
+
+@consumes("application/json")
+@api1_bp.route("/apiv1.0/", methods=["POST"])
+def add():
+    """Endpoint accepting json data from POST requests. Save variants from a VCF file according to params specified in the request."""
+    # validate request content:
+    validate_request = validate_add_request(request)
+    return str(validate_request)
 
 
 @api1_bp.route("/apiv1.0/query", methods=["GET", "POST"])
@@ -129,9 +136,7 @@ def query():
     # Public access only has auth_levels = ([], False)
     auth_levels = authlevel(request, current_app.config.get("ELIXIR_OAUTH2"))
 
-    if isinstance(
-        auth_levels, dict
-    ):  # an error must have occurred, otherwise it's a tuple
+    if isinstance(auth_levels, dict):  # an error must have occurred, otherwise it's a tuple
         resp = jsonify(auth_levels)
         resp.status_code = auth_levels.get("errorCode", 403)
         return resp

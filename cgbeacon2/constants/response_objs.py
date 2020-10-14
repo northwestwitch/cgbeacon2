@@ -14,3 +14,5 @@ QUERY_PARAMS_API_V1 = [
     "variantType",
     "includeDatasetResponses",
 ]
+
+VARIANT_ADD_PARAMS = dict(dataset=str, build=[])  # id of dataset the samples belong to

@@ -1,15 +1,31 @@
 # -*- coding: utf-8 -*-
+import json
 import logging
 from cyvcf2 import VCF
 import os
 import re
 from pybedtools.bedtool import BedTool
 from tempfile import NamedTemporaryFile
+from cgbeacon2.resources import variants_add_schema_path
 
 BND_ALT_PATTERN = re.compile(r".*[\],\[](.*?):(.*?)[\],\[]")
 CHR_PATTERN = re.compile(r"(chr)?(.*)", re.IGNORECASE)
 
 LOG = logging.getLogger(__name__)
+
+
+def validate_add_request(req):
+    """Validated the parameters in the request sent to add new variants into the database
+
+    Accepts:
+        req(flask.request): POST request received by server
+
+    Returns:
+        validate_request: True if validated, a dictionary with specific error message is not Validated
+    """
+    # get API definitions
+    schema_data = json.loads(variants_add_schema_path).decode("utf-8")
+    return schema_data
 
 
 def get_vcf_samples(vcf_file):

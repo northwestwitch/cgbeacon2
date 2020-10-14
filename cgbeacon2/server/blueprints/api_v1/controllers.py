@@ -82,7 +82,9 @@ def check_allele_request(resp_obj, customer_query, mongo_query):
     if customer_query.get("variantType") is None and all(
         [
             customer_query.get("referenceName"),
-            customer_query.get("start",),
+            customer_query.get(
+                "start",
+            ),
             customer_query.get("end"),
             customer_query.get("referenceBases"),
             customer_query.get("alternateBases"),
@@ -107,7 +109,8 @@ def check_allele_request(resp_obj, customer_query, mongo_query):
     ]:
         # return a bad request 400 error with explanation message
         resp_obj["message"] = dict(
-            error=NO_MANDATORY_PARAMS, allelRequest=customer_query,
+            error=NO_MANDATORY_PARAMS,
+            allelRequest=customer_query,
         )
         return
 
@@ -116,14 +119,13 @@ def check_allele_request(resp_obj, customer_query, mongo_query):
         dset_builds = current_app.db["dataset"].find(
             {"_id": {"$in": customer_query["datasetIds"]}}, {"assembly_id": 1, "_id": 0}
         )
-        dset_builds = [
-            dset["assembly_id"] for dset in dset_builds if dset["assembly_id"]
-        ]
+        dset_builds = [dset["assembly_id"] for dset in dset_builds if dset["assembly_id"]]
         for dset in dset_builds:
             if dset != customer_query["assemblyId"]:
                 # return a bad request 400 error with explanation message
                 resp_obj["message"] = dict(
-                    error=BUILD_MISMATCH, allelRequest=customer_query,
+                    error=BUILD_MISMATCH,
+                    allelRequest=customer_query,
                 )
                 return
 
@@ -137,18 +139,19 @@ def check_allele_request(resp_obj, customer_query, mongo_query):
     ):
         # return a bad request 400 error with explanation message
         resp_obj["message"] = dict(
-            error=NO_SECONDARY_PARAMS, allelRequest=customer_query,
+            error=NO_SECONDARY_PARAMS,
+            allelRequest=customer_query,
         )
         return
     # Check that genomic coordinates are provided (even rough)
     if (
         customer_query.get("start") is None
-        and any([coord in customer_query.keys() for coord in RANGE_COORDINATES])
-        is False
+        and any([coord in customer_query.keys() for coord in RANGE_COORDINATES]) is False
     ):
         # return a bad request 400 error with explanation message
         resp_obj["message"] = dict(
-            error=NO_POSITION_PARAMS, allelRequest=customer_query,
+            error=NO_POSITION_PARAMS,
+            allelRequest=customer_query,
         )
         return
 
@@ -162,13 +165,12 @@ def check_allele_request(resp_obj, customer_query, mongo_query):
         except ValueError:
             # return a bad request 400 error with explanation message
             resp_obj["message"] = dict(
-                error=INVALID_COORDINATES, allelRequest=customer_query,
+                error=INVALID_COORDINATES,
+                allelRequest=customer_query,
             )
 
     # Range query
-    elif any(
-        [coord in customer_query.keys() for coord in RANGE_COORDINATES]
-    ):  # range query
+    elif any([coord in customer_query.keys() for coord in RANGE_COORDINATES]):  # range query
         # In general startMin <= startMax <= endMin <= endMax, but allow fuzzy ends query
 
         fuzzy_start_query = {}
@@ -185,7 +187,8 @@ def check_allele_request(resp_obj, customer_query, mongo_query):
         except ValueError:
             # return a bad request 400 error with explanation message
             resp_obj["message"] = dict(
-                error=INVALID_COORDINATES, allelRequest=customer_query,
+                error=INVALID_COORDINATES,
+                allelRequest=customer_query,
             )
 
         if fuzzy_start_query:
@@ -235,9 +238,7 @@ def dispatch_query(mongo_query, response_type, datasets=[], auth_levels=([], Fal
 
     # End users are only interested in knowing which datasets have one or more specific vars, return only datasets and callCount
     variants = list(
-        variant_collection.find(
-            mongo_query, {"_id": 0, "datasetIds": 1, "call_count": 1}
-        )
+        variant_collection.find(mongo_query, {"_id": 0, "datasetIds": 1, "call_count": 1})
     )
 
     if len(variants) == 0:
