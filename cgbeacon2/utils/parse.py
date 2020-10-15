@@ -28,7 +28,7 @@ def validate_add_request(req):
     # Check id params provided in request are valid
     schema = None
     with open(variants_add_schema_path) as jsonfile:
-        schema = json.load(jsonfile)
+        schema = json.load(jsonfile.decode("utf-8"))
         try:
             validate(req.json, schema)
         except ValidationError as ve:
