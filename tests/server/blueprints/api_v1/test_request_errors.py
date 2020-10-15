@@ -18,27 +18,45 @@ def test_add_no_dataset(mock_app):
     """Test receiving a variant add request missing one of the required params"""
     data = dict(vcf_path="path/to/vcf", assemblyId="GRCh37")
     # When a POST add request is missing dataset id param:
-    response = mock_app.test_client().post("/apiv1.0/add?", data=data)
+    response = mock_app.test_client().post("/apiv1.0/add?", json=data, headers=HEADERS)
     # Then it should return error 422 (Unprocessable Entity)
     assert response.status_code == 422
+    resp_data = json.loads(response.data)
+    assert resp_data["message"] == "'dataset_id' is a required property"
 
 
 def test_add_no_vcf_path(mock_app):
     """Test receiving a variant add request missing one of the required params"""
     data = dict(dataset_id="test_id", assemblyId="GRCh37")
     # When a POST add request is missing dataset path to vcf file
-    response = mock_app.test_client().post("/apiv1.0/add?", data=data)
+    response = mock_app.test_client().post("/apiv1.0/add?", json=data, headers=HEADERS)
     # Then it should return error 422 (Unprocessable Entity)
     assert response.status_code == 422
+    resp_data = json.loads(response.data)
+    assert resp_data["message"] == "'vcf_path' is a required property"
 
 
 def test_add_wrong_assembly(mock_app):
-    """Test receiving a variant add request missing one of the required params"""
+    """Test receiving a variant add request with non-valid genome assembly"""
     data = dict(dataset_id="test_id", vcf_path="path/to/vcf", assemblyId="FOO")
     # When a POST add request is sent with a non valid assembly id
-    response = mock_app.test_client().post("/apiv1.0/add?", data=data)
+    response = mock_app.test_client().post("/apiv1.0/add?", json=data, headers=HEADERS)
     # Then it should return error 422 (Unprocessable Entity)
     assert response.status_code == 422
+    resp_data = json.loads(response.data)
+    assert resp_data["message"] == "'FOO' is not one of ['GRCh37', 'GRCh38']"
+
+
+def test_add_wrong_dataset(mock_app):
+    """Test receiving a variant add request with non-valid dataset id"""
+    data = dict(dataset_id="FOO", vcf_path="path/to/vcf", assemblyId="GRCh37")
+    # When a POST add request is sent with a non valid assembly id
+    response = mock_app.test_client().post("/apiv1.0/add?", json=data, headers=HEADERS)
+    # Then it shouldn't return error
+    assert response.status_code == 200
+    # But a message that dataset could not be found
+    data = json.loads(response.data)
+    assert data["message"] == "Provided dataset 'FOO' was not found on the server"
 
 
 def test_post_empty_query(mock_app):

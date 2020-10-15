@@ -5,7 +5,7 @@ from cyvcf2 import VCF
 import os
 import re
 from pybedtools.bedtool import BedTool
-from jsonschema import validate, Draft3Validator
+from jsonschema import validate, ValidationError
 from tempfile import NamedTemporaryFile
 from cgbeacon2.resources import variants_add_schema_path
 
@@ -29,12 +29,10 @@ def validate_add_request(req):
     schema = None
     with open(variants_add_schema_path) as jsonfile:
         schema = json.load(jsonfile)
-    v = Draft3Validator(schema)
-    errors = []
-    for error in sorted(v.iter_errors(req.json), key=str):
-        errors.append(f"{error.schema.get('description')}:{error.message}")
-    if errors:
-        return {"message": errors}
+        try:
+            validate(req.json, schema)
+        except ValidationError as ve:
+            return {"message": ve.message}
     return True
 
 

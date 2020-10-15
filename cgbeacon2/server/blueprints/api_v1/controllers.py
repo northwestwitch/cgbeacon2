@@ -16,6 +16,23 @@ RANGE_COORDINATES = ("startMin", "startMax", "endMin", "endMax")
 LOG = logging.getLogger(__name__)
 
 
+def add_variants(req):
+    """Add variants from a VCF file according to parameters specified in request data.
+
+    Accepts:
+        req(flask.request): request received by server
+
+    Returns:
+        response_dict(dict): A dictionary containing info about actions performed
+    """
+    message = {}
+    dataset_id = req.json.get("dataset_id")
+    dataset = current_app.db["dataset"].find_one({"_id": dataset_id})
+    if dataset is None:
+        message = {"message": f"Provided dataset '{dataset_id}' was not found on the server"}
+        return message
+
+
 def create_allele_query(resp_obj, req):
     """Populates a dictionary with the parameters provided in the request<<
 
