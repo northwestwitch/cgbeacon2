@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 import logging
-from flask import request, current_app
+from flask import request, current_app, jsonify
 from cgbeacon2.constants import (
     NO_MANDATORY_PARAMS,
     NO_SECONDARY_PARAMS,
@@ -10,10 +10,101 @@ from cgbeacon2.constants import (
     QUERY_PARAMS_API_V1,
 )
 from cgbeacon2.models import DatasetAlleleResponse
+from cgbeacon2.utils.add import add_variants as variants_loader
+from cgbeacon2.utils.parse import (
+    get_vcf_samples,
+    genes_to_bedtool,
+    extract_variants,
+    count_variants,
+)
 from cgbeacon2.utils.md5 import md5_key
 
 RANGE_COORDINATES = ("startMin", "startMax", "endMin", "endMax")
 LOG = logging.getLogger(__name__)
+
+
+def add_variants(req):
+    """Add variants from a VCF file according to parameters specified in request data.
+
+    Accepts:
+        req(flask.request): request received by server
+
+    Returns:
+        resp(json object): A json response from the server, containing a message and a status_code
+    """
+    resp = None
+    message = None
+    req_data = req.json
+    assembly = req_data.get("assemblyId")
+    dataset_id = req_data.get("dataset_id")
+    # Check if provided dataset exists on the server
+    db = current_app.db
+    dataset = db["dataset"].find_one({"_id": dataset_id, "assembly_id": assembly})
+    if dataset is None:
+        message = {"message": f"Provided dataset '{dataset_id}' was not found on the server"}
+        resp = jsonify(message)
+        resp.status_code = 422
+        return resp
+    # Check if provided file can be parsed
+    vcf_samples = get_vcf_samples(req_data.get("vcf_path"))
+    if vcf_samples == []:
+        message = {"message": f"Error extracting info from VCF file, please check path to VCF"}
+        resp = jsonify(message)
+        resp.status_code = 422
+        return resp
+    # Chech that eventual samples provided by user are present in the VCF file
+    samples = req_data.get("samples")
+    if samples and all(samplen in vcf_samples for samplen in samples) is False:
+        message = {
+            "message": f"One or more provided samples were not found in VCF. VCF samples:{vcf_samples}"
+        }
+        resp = jsonify(message)
+        resp.status_code = 422
+        return resp
+    filter_intervals = None
+    if req_data.get("genes"):
+        hgnc_ids = None
+        ensembl_ids = None
+        if req_data["genes"].get("id_type") not in ["HGNC", "Ensembl"]:
+            message = {
+                "message": "Please provide id_type (HGNC or Ensembl) for the given list of genes"
+            }
+            resp = jsonify(message)
+            resp.status_code = 422
+            return resp
+        if req_data["genes"]["id_type"] == "HGNC":
+            hgnc_ids = req_data["genes"]["ids"]
+        else:
+            ensembl_ids = req_data["genes"]["ids"]
+        # retrieve gene intervals in BedTool format
+        filter_intervals = genes_to_bedtool(db["gene"], hgnc_ids, ensembl_ids, assembly)
+        if (
+            filter_intervals is None
+        ):  # No valid genes genes for filtering the VCF, do not insert any variant
+            message = {"message": f"Could not create a gene filter using the provided gene list"}
+            resp = jsonify(message)
+            resp.status_code = 200
+            return resp
+
+    vcf_obj = extract_variants(
+        vcf_file=req_data.get("vcf_path"), samples=samples, filter=filter_intervals
+    )
+    nr_variants = count_variants(vcf_obj)
+    vcf_obj = extract_variants(
+        vcf_file=req_data.get("vcf_path"), samples=samples, filter=filter_intervals
+    )
+    added = variants_loader(
+        database=db,
+        vcf_obj=vcf_obj,
+        samples=set(samples),
+        assembly=assembly,
+        dataset_id=dataset_id,
+        nr_variants=nr_variants,
+    )
+    message = {"message": f"Number of inserted variants for samples:{samples}:{added}"}
+    resp = jsonify(message)
+    resp.status_code = 200
+    return resp
 
 
 def create_allele_query(resp_obj, req):
@@ -82,7 +173,9 @@ def check_allele_request(resp_obj, customer_query, mongo_query):
     if customer_query.get("variantType") is None and all(
         [
             customer_query.get("referenceName"),
-            customer_query.get("start",),
+            customer_query.get(
+                "start",
+            ),
             customer_query.get("end"),
             customer_query.get("referenceBases"),
             customer_query.get("alternateBases"),
@@ -107,7 +200,8 @@ def check_allele_request(resp_obj, customer_query, mongo_query):
     ]:
         # return a bad request 400 error with explanation message
         resp_obj["message"] = dict(
-            error=NO_MANDATORY_PARAMS, allelRequest=customer_query,
+            error=NO_MANDATORY_PARAMS,
+            allelRequest=customer_query,
         )
         return
 
@@ -116,14 +210,13 @@ def check_allele_request(resp_obj, customer_query, mongo_query):
         dset_builds = current_app.db["dataset"].find(
             {"_id": {"$in": customer_query["datasetIds"]}}, {"assembly_id": 1, "_id": 0}
         )
-        dset_builds = [
-            dset["assembly_id"] for dset in dset_builds if dset["assembly_id"]
-        ]
+        dset_builds = [dset["assembly_id"] for dset in dset_builds if dset["assembly_id"]]
         for dset in dset_builds:
             if dset != customer_query["assemblyId"]:
                 # return a bad request 400 error with explanation message
                 resp_obj["message"] = dict(
-                    error=BUILD_MISMATCH, allelRequest=customer_query,
+                    error=BUILD_MISMATCH,
+                    allelRequest=customer_query,
                 )
                 return
 
@@ -137,18 +230,19 @@ def check_allele_request(resp_obj, customer_query, mongo_query):
     ):
         # return a bad request 400 error with explanation message
         resp_obj["message"] = dict(
-            error=NO_SECONDARY_PARAMS, allelRequest=customer_query,
+            error=NO_SECONDARY_PARAMS,
+            allelRequest=customer_query,
         )
         return
     # Check that genomic coordinates are provided (even rough)
     if (
         customer_query.get("start") is None
-        and any([coord in customer_query.keys() for coord in RANGE_COORDINATES])
-        is False
+        and any([coord in customer_query.keys() for coord in RANGE_COORDINATES]) is False
     ):
         # return a bad request 400 error with explanation message
         resp_obj["message"] = dict(
-            error=NO_POSITION_PARAMS, allelRequest=customer_query,
+            error=NO_POSITION_PARAMS,
+            allelRequest=customer_query,
         )
         return
 
@@ -162,13 +256,12 @@ def check_allele_request(resp_obj, customer_query, mongo_query):
         except ValueError:
             # return a bad request 400 error with explanation message
             resp_obj["message"] = dict(
-                error=INVALID_COORDINATES, allelRequest=customer_query,
+                error=INVALID_COORDINATES,
+                allelRequest=customer_query,
             )
 
     # Range query
-    elif any(
-        [coord in customer_query.keys() for coord in RANGE_COORDINATES]
-    ):  # range query
+    elif any([coord in customer_query.keys() for coord in RANGE_COORDINATES]):  # range query
         # In general startMin <= startMax <= endMin <= endMax, but allow fuzzy ends query
 
         fuzzy_start_query = {}
@@ -185,7 +278,8 @@ def check_allele_request(resp_obj, customer_query, mongo_query):
         except ValueError:
             # return a bad request 400 error with explanation message
             resp_obj["message"] = dict(
-                error=INVALID_COORDINATES, allelRequest=customer_query,
+                error=INVALID_COORDINATES,
+                allelRequest=customer_query,
             )
 
         if fuzzy_start_query:
@@ -235,9 +329,7 @@ def dispatch_query(mongo_query, response_type, datasets=[], auth_levels=([], Fal
 
     # End users are only interested in knowing which datasets have one or more specific vars, return only datasets and callCount
     variants = list(
-        variant_collection.find(
-            mongo_query, {"_id": 0, "datasetIds": 1, "call_count": 1}
-        )
+        variant_collection.find(mongo_query, {"_id": 0, "datasetIds": 1, "call_count": 1})
     )
 
     if len(variants) == 0:

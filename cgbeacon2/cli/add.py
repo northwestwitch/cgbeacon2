@@ -66,7 +66,10 @@ def demo(ctx):
 
     # Invoke add variants command to import also BND variants from separate VCF file
     ctx.invoke(
-        variants, ds=ds_id, vcf="cgbeacon2/resources/demo/BND.SV.vcf", sample=[sample],
+        variants,
+        ds=ds_id,
+        vcf="cgbeacon2/resources/demo/BND.SV.vcf",
+        sample=[sample],
     )
 
 
@@ -86,9 +89,7 @@ def demo(ctx):
     help="the access level of this dataset",
     required=True,
 )
-@click.option(
-    "-desc", type=click.STRING, nargs=1, required=False, help="dataset description"
-)
+@click.option("-desc", type=click.STRING, nargs=1, required=False, help="dataset description")
 @click.option(
     "-version",
     type=click.FLOAT,
@@ -97,9 +98,7 @@ def demo(ctx):
     help="dataset version, i.e. 1.0",
 )
 @click.option("-url", type=click.STRING, nargs=1, required=False, help="external url")
-@click.option(
-    "-cc", type=click.STRING, nargs=1, required=False, help="consent code key. i.e. HMB"
-)
+@click.option("-cc", type=click.STRING, nargs=1, required=False, help="consent code key. i.e. HMB")
 @click.option("--update", is_flag=True)
 @with_appcontext
 def dataset(id, name, build, authlevel, desc, version, url, cc, update):
@@ -134,22 +133,16 @@ def dataset(id, name, build, authlevel, desc, version, url, cc, update):
             )
             count = 1
             for code, item in CONSENT_CODES.items():
-                click.echo(
-                    f'{count})\t{item["abbr"]}\t{item["name"]}\t{item["description"]}'
-                )
+                click.echo(f'{count})\t{item["abbr"]}\t{item["name"]}\t{item["description"]}')
                 count += 1
             raise click.Abort()
 
         dataset_obj["consent_code"] = cc
 
-    inserted_id = add_dataset(
-        database=current_app.db, dataset_dict=dataset_obj, update=update
-    )
+    inserted_id = add_dataset(database=current_app.db, dataset_dict=dataset_obj, update=update)
 
     if inserted_id:
-        click.echo(
-            f"Dataset collection was successfully updated with dataset '{inserted_id}'"
-        )
+        click.echo(f"Dataset collection was successfully updated with dataset '{inserted_id}'")
         # register the event in the event collection
         update_event(current_app.db, id, "dataset", True)
     else:
@@ -193,15 +186,12 @@ def variants(ds, vcf, sample, panel):
         raise click.Abort()
     custom_samples = set(sample)  # set of samples provided by users
 
+    filter_intervals = None
     if len(panel) > 0:
         # create BedTool panel with genomic intervals to filter VCF with
         filter_intervals = merge_intervals(list(panel))
-    else:
-        filter_intervals = None
 
-    vcf_obj = extract_variants(
-        vcf_file=vcf, samples=custom_samples, filter=filter_intervals
-    )
+    vcf_obj = extract_variants(vcf_file=vcf, samples=custom_samples, filter=filter_intervals)
 
     if vcf_obj is None:
         raise click.Abort()
@@ -211,11 +201,9 @@ def variants(ds, vcf, sample, panel):
         click.echo(f"Provided VCF file doesn't contain any variant")
         raise click.Abort()
 
-    vcf_obj = extract_variants(
-        vcf_file=vcf, samples=custom_samples, filter=filter_intervals
-    )
+    vcf_obj = extract_variants(vcf_file=vcf, samples=custom_samples, filter=filter_intervals)
 
-    # Parse VCF variants
+    # ADD variants
     added = add_variants(
         database=current_app.db,
         vcf_obj=vcf_obj,
@@ -228,6 +216,4 @@ def variants(ds, vcf, sample, panel):
 
     if added > 0:
         # Update dataset object accordingly
-        update_dataset(
-            database=current_app.db, dataset_id=ds, samples=custom_samples, add=True
-        )
+        update_dataset(database=current_app.db, dataset_id=ds, samples=custom_samples, add=True)

@@ -1,15 +1,39 @@
 # -*- coding: utf-8 -*-
+import json
 import logging
 from cyvcf2 import VCF
 import os
 import re
 from pybedtools.bedtool import BedTool
+from jsonschema import validate, ValidationError
 from tempfile import NamedTemporaryFile
+from cgbeacon2.resources import variants_add_schema_path
+
 
 BND_ALT_PATTERN = re.compile(r".*[\],\[](.*?):(.*?)[\],\[]")
 CHR_PATTERN = re.compile(r"(chr)?(.*)", re.IGNORECASE)
 
 LOG = logging.getLogger(__name__)
+
+
+def validate_add_request(req):
+    """Validated the parameters in the request sent to add new variants into the database
+
+    Accepts:
+        req(flask.request): POST request received by server
+
+    Returns:
+        validate_request: True if validated, a dictionary with specific error message if not validated
+    """
+    # Check if params provided in request are valid using a json schema
+    schema = None
+    with open(variants_add_schema_path) as jsonfile:
+        schema = json.load(jsonfile)
+        try:
+            validate(req.json, schema)
+        except ValidationError as ve:
+            return {"message": ve.message}
+    return True
 
 
 def get_vcf_samples(vcf_file):
@@ -111,7 +135,8 @@ def genes_to_bedtool(gene_collection, hgnc_ids=None, ensembl_ids=None, build="GR
         bedtool_string += (
             "\t".join([gene["chromosome"], str(gene["start"]), str(gene["end"])]) + "\n"
         )
-
+    if bedtool_string == "":
+        return None
     bt = BedTool(bedtool_string, from_string=True)
     return bt
 

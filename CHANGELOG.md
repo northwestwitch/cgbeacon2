@@ -16,6 +16,7 @@
 - Documentation using `MkDocs`.
 - Populate database with genes downloaded from Ensembl Biomart
 - Function to create a VCF Bedtool filter from a list of genes HGNC ids or Ensembl ids
+- API endpoint to add variants using a POST request
 
 
 ## [1.1] - 2020.06.17
