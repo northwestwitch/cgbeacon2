@@ -12,7 +12,7 @@ COORDS_ARGS = "start=235826381&end=235826383"
 ALT_ARG = "alternateBases=T"
 
 
-def test_add_variants_api(mock_app, public_dataset, database):
+def test_add_variants_api_hgnc_genes(mock_app, public_dataset, database):
     """Test receiving a variants add API with valid parameters"""
 
     # GIVEN a database containing a public dataset
@@ -31,13 +31,47 @@ def test_add_variants_api(mock_app, public_dataset, database):
     # And a test gene:
     database["gene"].insert_one(test_gene)
 
-    # WHEN the add endpoint receives a POST request with valid data
+    # WHEN the add endpoint receives a POST request with valid data, including a list of HGNC genes
     data = {
         "dataset_id": public_dataset["_id"],
         "vcf_path": test_snv_vcf_path,
         "assemblyId": "GRCh37",
         "samples": ["ADM1059A1"],
         "genes": {"ids": [17284], "id_type": "HGNC"},
+    }
+    response = mock_app.test_client().post("/apiv1.0/add?", json=data, headers=HEADERS)
+    # Then it should return a success response
+    assert response.status_code == 200
+    resp_data = json.loads(response.data)
+    assert "inserted variants for samples" in resp_data["message"]
+
+
+def test_add_variants_api_ensembl_genes(mock_app, public_dataset, database):
+    """Test receiving a variants add API with valid parameters"""
+
+    # GIVEN a database containing a public dataset
+    database["dataset"].insert_one(public_dataset)
+
+    test_gene = {
+        "_id": "5f8815f638049161e6ee429c",
+        "ensembl_id": "ENSG00000128513",
+        "hgnc_id": 17284,
+        "symbol": "POT1",
+        "build": "GRCh37",
+        "chromosome": "7",
+        "start": 124462440,
+        "end": 124570037,
+    }
+    # And a test gene:
+    database["gene"].insert_one(test_gene)
+
+    # WHEN the add endpoint receives a POST request with valid data, including a list of Ensembl genes
+    data = {
+        "dataset_id": public_dataset["_id"],
+        "vcf_path": test_snv_vcf_path,
+        "assemblyId": "GRCh37",
+        "samples": ["ADM1059A1"],
+        "genes": {"ids": ["ENSG00000128513"], "id_type": "Ensembl"},
     }
     response = mock_app.test_client().post("/apiv1.0/add?", json=data, headers=HEADERS)
     # Then it should return a success response
