@@ -23,9 +23,9 @@ def validate_add_request(req):
         req(flask.request): POST request received by server
 
     Returns:
-        validate_request: True if validated, a dictionary with specific error message is not Validated
+        validate_request: True if validated, a dictionary with specific error message if not validated
     """
-    # Check id params provided in request are valid
+    # Check if params provided in request are valid using a json schema
     schema = None
     with open(variants_add_schema_path) as jsonfile:
         schema = json.load(jsonfile)

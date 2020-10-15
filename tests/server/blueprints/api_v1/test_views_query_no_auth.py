@@ -31,6 +31,7 @@ def test_add_variants_api_empty_gene_collection(mock_app, public_dataset, databa
     # Then it should return a success response
     assert response.status_code == 200
     resp_data = json.loads(response.data)
+    # With message explaining that gene list could no be used and no variant was saved
     assert "Could not create a gene filter using the provided gene list" in resp_data["message"]
 
 
@@ -65,6 +66,7 @@ def test_add_variants_api_hgnc_genes(mock_app, public_dataset, database):
     # Then it should return a success response
     assert response.status_code == 200
     resp_data = json.loads(response.data)
+    # With number of inserted variants
     assert "inserted variants for samples" in resp_data["message"]
 
 
@@ -99,6 +101,7 @@ def test_add_variants_api_ensembl_genes(mock_app, public_dataset, database):
     # Then it should return a success response
     assert response.status_code == 200
     resp_data = json.loads(response.data)
+    # With number of inserted variants
     assert "inserted variants for samples" in resp_data["message"]
 
 

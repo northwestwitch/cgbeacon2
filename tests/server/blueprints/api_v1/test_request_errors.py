@@ -71,7 +71,7 @@ def test_add_invalid_vcf_path(mock_app, public_dataset, database):
     response = mock_app.test_client().post("/apiv1.0/add?", json=data, headers=HEADERS)
     # Then it should return error
     assert response.status_code == 422
-    # WIth message that VCF path is not valid
+    # With message that VCF path is not valid
     data = json.loads(response.data)
     assert data["message"] == "Error extracting info from VCF file, please check path to VCF"
 
@@ -92,7 +92,7 @@ def test_add_invalid_samples(mock_app, public_dataset, database):
     response = mock_app.test_client().post("/apiv1.0/add?", json=data, headers=HEADERS)
     # Then it should return error
     assert response.status_code == 422
-    # Wuth message that VCF files doesn't contain those samples
+    # With message that VCF files doesn't contain those samples
     data = json.loads(response.data)
     assert "One or more provided samples were not found in VCF" in data["message"]
 
@@ -114,7 +114,7 @@ def test_add_invalid_gene_list(mock_app, public_dataset, database):
     response = mock_app.test_client().post("/apiv1.0/add?", json=data, headers=HEADERS)
     # Then it should return error
     assert response.status_code == 422
-    # Wuth message that missing info should be provided
+    # With message that missing info should be provided
     data = json.loads(response.data)
     assert "Please provide id_type (HGNC or Ensembl) for the given list of genes" in data["message"]
 

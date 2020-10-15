@@ -30,7 +30,7 @@ def add_variants(req):
         req(flask.request): request received by server
 
     Returns:
-        response_dict(dict): A dictionary containing info about actions performed
+        resp(json object): A json response from the server, containing a message and a status_code
     """
     resp = None
     message = None
