@@ -78,15 +78,13 @@ def add_variants(req):
             ensembl_ids = req_data["genes"]["ids"]
         # retrieve gene intervals in BedTool format
         filter_intervals = genes_to_bedtool(db["gene"], hgnc_ids, ensembl_ids, assembly)
-
-    # No valid intervals for the provided genes were found in the VCF, do not save any variant
-    if filter_intervals and len(filter_intervals) == 0:
-        message = {
-            "message": f"Could not extract any valid gene interval using the provided gene list"
-        }
-        resp = jsonify(message)
-        resp.status_code = 200
-        return resp
+        if (
+            filter_intervals is None
+        ):  # No valid genes genes for filtering the VCF, do not insert any variant
+            message = {"message": f"Could not create a gene filter using the provided gene list"}
+            resp = jsonify(message)
+            resp.status_code = 200
+            return resp
 
     vcf_obj = extract_variants(
         vcf_file=req_data.get("vcf_path"), samples=samples, filter=filter_intervals

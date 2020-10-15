@@ -135,7 +135,8 @@ def genes_to_bedtool(gene_collection, hgnc_ids=None, ensembl_ids=None, build="GR
         bedtool_string += (
             "\t".join([gene["chromosome"], str(gene["start"]), str(gene["end"])]) + "\n"
         )
-
+    if bedtool_string == "":
+        return None
     bt = BedTool(bedtool_string, from_string=True)
     return bt
 

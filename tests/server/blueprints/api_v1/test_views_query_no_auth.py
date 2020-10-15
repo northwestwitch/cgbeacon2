@@ -12,6 +12,28 @@ COORDS_ARGS = "start=235826381&end=235826383"
 ALT_ARG = "alternateBases=T"
 
 
+def test_add_variants_api_empty_gene_collection(mock_app, public_dataset, database):
+    """Test the add variants API providing a gene list when genes are not found in database"""
+
+    # GIVEN a database containing a public dataset and no genes
+    database["dataset"].insert_one(public_dataset)
+    assert database["gene"].find_one() is None
+
+    # WHEN the add endpoint receives a POST request with valid data, including a list of HGNC genes
+    data = {
+        "dataset_id": public_dataset["_id"],
+        "vcf_path": test_snv_vcf_path,
+        "assemblyId": "GRCh37",
+        "samples": ["ADM1059A1"],
+        "genes": {"ids": [17284], "id_type": "HGNC"},
+    }
+    response = mock_app.test_client().post("/apiv1.0/add?", json=data, headers=HEADERS)
+    # Then it should return a success response
+    assert response.status_code == 200
+    resp_data = json.loads(response.data)
+    assert "Could not create a gene filter using the provided gene list" in resp_data["message"]
+
+
 def test_add_variants_api_hgnc_genes(mock_app, public_dataset, database):
     """Test receiving a variants add API with valid parameters"""
 
