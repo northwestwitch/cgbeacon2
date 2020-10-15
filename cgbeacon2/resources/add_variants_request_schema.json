@@ -8,21 +8,21 @@
         "vcf_path": {"description": "Path to a VCF file", "type": "string"},
         "assemblyId": {
             "description": "Genome build used in variant calling",
-            "enum": ["GRCh37", "GRCh38"],
+            "enum": ["GRCh37", "GRCh38"]
         },
         "samples": {
             "description": "List of samples to filter VCF variants with",
             "type": "array",
-            "items": {"type": "string"},
+            "items": {"type": "string"}
         },
         "genes": {
             "description": "List of gene ids (HGNC or Ensembl) to filter VCF variants with",
             "type": "object",
             "properties": {
                 "ids": {"type": "array", "items": {}},
-                "id_type": {"enum": ["HGNC", "Ensembl"]},
-            },
-        },
+                "id_type": {"enum": ["HGNC", "Ensembl"]}
+            }
+        }
     },
-    "required": ["dataset_id", "vcf_path", "assemblyId"],
+    "required": ["dataset_id", "vcf_path", "assemblyId"]
 }
