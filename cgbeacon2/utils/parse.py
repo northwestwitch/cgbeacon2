@@ -5,8 +5,10 @@ from cyvcf2 import VCF
 import os
 import re
 from pybedtools.bedtool import BedTool
+from jsonschema import validate, Draft3Validator
 from tempfile import NamedTemporaryFile
 from cgbeacon2.resources import variants_add_schema_path
+
 
 BND_ALT_PATTERN = re.compile(r".*[\],\[](.*?):(.*?)[\],\[]")
 CHR_PATTERN = re.compile(r"(chr)?(.*)", re.IGNORECASE)
@@ -23,9 +25,17 @@ def validate_add_request(req):
     Returns:
         validate_request: True if validated, a dictionary with specific error message is not Validated
     """
-    # get API definitions
-    schema_data = json.loads(variants_add_schema_path).decode("utf-8")
-    return schema_data
+    # Check id params provided in request are valid
+    schema = None
+    with open(variants_add_schema_path) as jsonfile:
+        schema = json.load(jsonfile)
+    v = Draft3Validator(schema)
+    errors = []
+    for error in sorted(v.iter_errors(req.json), key=str):
+        errors.append(f"{error.schema.get('description')}:{error.message}")
+    if errors:
+        return {"message": errors}
+    return True
 
 
 def get_vcf_samples(vcf_file):

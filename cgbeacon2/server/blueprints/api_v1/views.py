@@ -97,12 +97,28 @@ def query_form():
 
 
 @consumes("application/json")
-@api1_bp.route("/apiv1.0/", methods=["POST"])
+@api1_bp.route("/apiv1.0/add", methods=["POST"])
 def add():
-    """Endpoint accepting json data from POST requests. Save variants from a VCF file according to params specified in the request."""
+    """Endpoint accepting json data from POST requests. Save variants from a VCF file according to params specified in the request.
+    ########### POST request ###########
+    curl -X POST \
+    -H 'Content-Type: application/json' \
+    -d '{"dataset_id": "FOO",
+    "vcf_path": "BAR",
+    "assemblyId": "JJSJ"}' http://localhost:5000/apiv1.0/add
+    """
     # validate request content:
+    resp = None
     validate_request = validate_add_request(request)
-    return str(validate_request)
+    if isinstance(validate_request, dict):
+        resp = jsonify(validate_request)
+        resp.status_code = 422
+        return resp
+    # Validation of request is OK, load aventual variants to db
+
+    resp = jsonify({"message": "success"})
+    resp.status_code = 200
+    return resp
 
 
 @api1_bp.route("/apiv1.0/query", methods=["GET", "POST"])

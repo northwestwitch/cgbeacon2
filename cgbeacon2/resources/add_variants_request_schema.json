@@ -12,7 +12,7 @@
       "description": "Path to a VCF file",
       "type": "string"
     },
-    "genome_build": {
+    "assemblyId": {
       "description": "Genome build used in variant calling",
       "enum": [
         "GRCh37",
@@ -23,7 +23,7 @@
       "description": "List of samples to filter VCF variants",
       "type": "array",
       "items": {
-        "type": "string",
+        "type": "string"
       }
     },
     "genes": {
@@ -33,7 +33,7 @@
         "ids": {
           "type": "array",
           "items": {
-            "type": "string",
+            "type": "string"
           }},
           "id_type" : {
             "enum": [
@@ -44,5 +44,5 @@
         }
       }
     },
-  "required": [ "dataset_id", "vcf_path", "genome_build"]
+  "required": [ "dataset_id", "vcf_path", "assemblyId"]
 }

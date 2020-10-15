@@ -14,6 +14,33 @@ BASE_ARGS = "query?assemblyId=GRCh37&referenceName=1&referenceBases=TA"
 ################## TESTS FOR HANDLING WRONG REQUESTS ################
 
 
+def test_add_no_dataset(mock_app):
+    """Test receiving a variant add request missing one of the required params"""
+    data = dict(vcf_path="path/to/vcf", assemblyId="GRCh37")
+    # When a POST add request is missing dataset id param:
+    response = mock_app.test_client().post("/apiv1.0/add?", data=data)
+    # Then it should return error 422 (Unprocessable Entity)
+    assert response.status_code == 422
+
+
+def test_add_no_vcf_path(mock_app):
+    """Test receiving a variant add request missing one of the required params"""
+    data = dict(dataset_id="test_id", assemblyId="GRCh37")
+    # When a POST add request is missing dataset path to vcf file
+    response = mock_app.test_client().post("/apiv1.0/add?", data=data)
+    # Then it should return error 422 (Unprocessable Entity)
+    assert response.status_code == 422
+
+
+def test_add_wrong_assembly(mock_app):
+    """Test receiving a variant add request missing one of the required params"""
+    data = dict(dataset_id="test_id", vcf_path="path/to/vcf", assemblyId="FOO")
+    # When a POST add request is sent with a non valid assembly id
+    response = mock_app.test_client().post("/apiv1.0/add?", data=data)
+    # Then it should return error 422 (Unprocessable Entity)
+    assert response.status_code == 422
+
+
 def test_post_empty_query(mock_app):
     """Test receiving an empty POST query"""
 
@@ -52,9 +79,7 @@ def test_query_get_request_build_mismatch(mock_app, public_dataset):
 
     # When a request with genome build GRCh37 and detasetIds with genome build GRCh38 is sent to the server:
     query_string = "&".join([BASE_ARGS, f"datasetIds={public_dataset['_id']}"])
-    response = mock_app.test_client().get(
-        "".join(["/apiv1.0/", query_string]), headers=HEADERS
-    )
+    response = mock_app.test_client().get("".join(["/apiv1.0/", query_string]), headers=HEADERS)
 
     # Then it should return error
     assert response.status_code == 400
@@ -68,9 +93,7 @@ def test_query_get_request_missing_secondary_params(mock_app):
     """
     # When a request missing alternateBases or variantType params is sent to the server
     query_string = BASE_ARGS
-    response = mock_app.test_client().get(
-        "".join(["/apiv1.0/", query_string]), headers=HEADERS
-    )
+    response = mock_app.test_client().get("".join(["/apiv1.0/", query_string]), headers=HEADERS)
 
     # Then it should return error
     assert response.status_code == 400
@@ -83,9 +106,7 @@ def test_query_get_request_non_numerical_sv_coordinates(mock_app):
 
     query_string = "&".join([BASE_ARGS, "start=FOO&end=70600&variantType=DUP"])
     # When a request has a non-numerical start or stop position
-    response = mock_app.test_client().get(
-        "".join(["/apiv1.0/", query_string]), headers=HEADERS
-    )
+    response = mock_app.test_client().get("".join(["/apiv1.0/", query_string]), headers=HEADERS)
     data = json.loads(response.data)
     # Then it should return error
     assert response.status_code == 400
@@ -94,14 +115,12 @@ def test_query_get_request_non_numerical_sv_coordinates(mock_app):
 
 def test_query_get_request_missing_positions_params(mock_app):
     """Test the query endpoint by sending a request missing coordinate params:
-        Either start or any range coordinate
+    Either start or any range coordinate
 
     """
     # When a request missing start position and all the 4 range position coordinates (startMin, startMax, endMin, endMax)
     query_string = "&".join([BASE_ARGS, "alternateBases=T"])
-    response = mock_app.test_client().get(
-        "".join(["/apiv1.0/", query_string]), headers=HEADERS
-    )
+    response = mock_app.test_client().get("".join(["/apiv1.0/", query_string]), headers=HEADERS)
     data = json.loads(response.data)
     # Then it should return error
     assert response.status_code == 400
@@ -115,9 +134,7 @@ def test_query_get_request_non_numerical_range_coordinates(mock_app):
     query_string = "&".join([BASE_ARGS, range_coords])
 
     # When a request for range coordinates doesn't contain integers
-    response = mock_app.test_client().get(
-        "".join(["/apiv1.0/", query_string]), headers=HEADERS
-    )
+    response = mock_app.test_client().get("".join(["/apiv1.0/", query_string]), headers=HEADERS)
     data = json.loads(response.data)
     # Then it should return error
     assert response.status_code == 400
