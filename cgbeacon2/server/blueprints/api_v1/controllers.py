@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 import logging
-from flask import request, current_app
+from flask import request, current_app, jsonify
 from cgbeacon2.constants import (
     NO_MANDATORY_PARAMS,
     NO_SECONDARY_PARAMS,
@@ -10,6 +10,13 @@ from cgbeacon2.constants import (
     QUERY_PARAMS_API_V1,
 )
 from cgbeacon2.models import DatasetAlleleResponse
+from cgbeacon2.utils.add import add_variants as variants_loader
+from cgbeacon2.utils.parse import (
+    get_vcf_samples,
+    genes_to_bedtool,
+    extract_variants,
+    count_variants,
+)
 from cgbeacon2.utils.md5 import md5_key
 
 RANGE_COORDINATES = ("startMin", "startMax", "endMin", "endMax")
@@ -25,12 +32,81 @@ def add_variants(req):
     Returns:
         response_dict(dict): A dictionary containing info about actions performed
     """
-    message = {}
-    dataset_id = req.json.get("dataset_id")
-    dataset = current_app.db["dataset"].find_one({"_id": dataset_id})
+    resp = None
+    message = None
+    req_data = req.json
+    assembly = req_data.get("assemblyId")
+    dataset_id = req_data.get("dataset_id")
+    # Check if provided dataset exists on the server
+    db = current_app.db
+    dataset = db["dataset"].find_one({"_id": dataset_id, "assembly_id": assembly})
     if dataset is None:
         message = {"message": f"Provided dataset '{dataset_id}' was not found on the server"}
-        return message
+        resp = jsonify(message)
+        resp.status_code = 422
+        return resp
+    # Check if provided file can be parsed
+    vcf_samples = get_vcf_samples(req_data.get("vcf_path"))
+    if vcf_samples == []:
+        message = {"message": f"Error extracting info from VCF file, please check path to VCF"}
+        resp = jsonify(message)
+        resp.status_code = 422
+        return resp
+    # Chech that eventual samples provided by user are present in the VCF file
+    samples = req_data.get("samples")
+    if samples and all(samplen in vcf_samples for samplen in samples) is False:
+        message = {
+            "message": f"One or more provided samples were not found in VCF. VCF samples:{vcf_samples}"
+        }
+        resp = jsonify(message)
+        resp.status_code = 422
+        return resp
+    filter_intervals = None
+    if req_data.get("genes"):
+        hgnc_ids = None
+        ensembl_ids = None
+        if req_data["genes"].get("id_type") not in ["HGNC", "Ensembl"]:
+            message = {
+                "message": "Please provide id_type (HGNC or Ensembl) for the given list of genes"
+            }
+            resp = jsonify(message)
+            resp.status_code = 422
+            return resp
+        if req_data["genes"]["id_type"] == "HGNC":
+            hgnc_ids = req_data["genes"]["ids"]
+        else:
+            ensembl_ids = req_data["genes"]["ids"]
+        # retrieve gene intervals in BedTool format
+        filter_intervals = genes_to_bedtool(db["gene"], hgnc_ids, ensembl_ids, assembly)
+
+    # No valid intervals for the provided genes were found in the VCF, do not save any variant
+    if filter_intervals and len(filter_intervals) == 0:
+        message = {
+            "message": f"Could not extract any valid gene interval using the provided gene list"
+        }
+        resp = jsonify(message)
+        resp.status_code = 200
+        return resp
+
+    vcf_obj = extract_variants(
+        vcf_file=req_data.get("vcf_path"), samples=samples, filter=filter_intervals
+    )
+    nr_variants = count_variants(vcf_obj)
+    vcf_obj = extract_variants(
+        vcf_file=req_data.get("vcf_path"), samples=samples, filter=filter_intervals
+    )
+    added = variants_loader(
+        database=db,
+        vcf_obj=vcf_obj,
+        samples=set(samples),
+        assembly=assembly,
+        dataset_id=dataset_id,
+        nr_variants=nr_variants,
+    )
+    message = {"message": f"Number of inserted variants for samples:{samples}:{added}"}
+    resp = jsonify(message)
+    resp.status_code = 200
+    return resp
 
 
 def create_allele_query(resp_obj, req):

@@ -104,21 +104,21 @@ def add():
     ########### POST request ###########
     curl -X POST \
     -H 'Content-Type: application/json' \
-    -d '{"dataset_id": "FOO",
-    "vcf_path": "BAR",
+    -d '{"dataset_id": "test_public",
+    "vcf_path": "path/to/cgbeacon2/resources/demo/test_trio.vcf.gz",
+    "samples" : ["ADM1059A1", "ADM1059A2"],
     "assemblyId": "GRCh37"}' http://localhost:5000/apiv1.0/add
     """
-    # validate request content:
+
     resp = None
+    # validate request content:
     validate_request = validate_add_request(request)
-    if isinstance(validate_request, dict):
+    if isinstance(validate_request, dict):  # If validation failed, return error response
         resp = jsonify(validate_request)
         resp.status_code = 422  # Unprocessable Entity
         return resp
-    # Validation of request is OK, load aventual variants to db
-    result = add_variants(request)
-    resp = jsonify(result)
-    resp.status_code = 200
+    # Validation of request is OK, load eventual variants to db
+    resp = add_variants(request)
     return resp
 
 

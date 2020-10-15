@@ -3,18 +3,50 @@ import json
 
 from cgbeacon2.cli.commands import cli
 from cgbeacon2.resources import test_bnd_vcf_path
+from cgbeacon2.resources import test_snv_vcf_path
 
 HEADERS = {"Content-type": "application/json", "Accept": "application/json"}
-
 
 BASE_ARGS = "query?assemblyId=GRCh37&referenceName=1&referenceBases=TA"
 COORDS_ARGS = "start=235826381&end=235826383"
 ALT_ARG = "alternateBases=T"
 
 
-def test_post_range_coords_BND_SV_found(
-    mock_app, public_dataset, database, test_bnd_sv
-):
+def test_add_variants_api(mock_app, public_dataset, database):
+    """Test receiving a variants add API with valid parameters"""
+
+    # GIVEN a database containing a public dataset
+    database["dataset"].insert_one(public_dataset)
+
+    test_gene = {
+        "_id": "5f8815f638049161e6ee429c",
+        "ensembl_id": "ENSG00000128513",
+        "hgnc_id": 17284,
+        "symbol": "POT1",
+        "build": "GRCh37",
+        "chromosome": "7",
+        "start": 124462440,
+        "end": 124570037,
+    }
+    # And a test gene:
+    database["gene"].insert_one(test_gene)
+
+    # WHEN the add endpoint receives a POST request with valid data
+    data = {
+        "dataset_id": public_dataset["_id"],
+        "vcf_path": test_snv_vcf_path,
+        "assemblyId": "GRCh37",
+        "samples": ["ADM1059A1"],
+        "genes": {"ids": [17284], "id_type": "HGNC"},
+    }
+    response = mock_app.test_client().post("/apiv1.0/add?", json=data, headers=HEADERS)
+    # Then it should return a success response
+    assert response.status_code == 200
+    resp_data = json.loads(response.data)
+    assert "inserted variants for samples" in resp_data["message"]
+
+
+def test_post_range_coords_BND_SV_found(mock_app, public_dataset, database, test_bnd_sv):
     """Test a POST request to search for an existing BND structural variant
 
     curl -X POST \
@@ -147,9 +179,7 @@ def test_get_request_exact_position_snv_return_ALL(
     ds_reponse_type = "includeDatasetResponses=ALL"
     query_string = "&".join([BASE_ARGS, COORDS_ARGS, ALT_ARG, ds_reponse_type])
 
-    response = mock_app.test_client().get(
-        "".join(["/apiv1.0/", query_string]), headers=HEADERS
-    )
+    response = mock_app.test_client().get("".join(["/apiv1.0/", query_string]), headers=HEADERS)
     data = json.loads(response.data)
 
     # No error should be returned
@@ -208,9 +238,7 @@ def test_get_request_exact_position_snv_return_HIT(
     ds_reponse_type = "includeDatasetResponses=HIT"
     query_string = "&".join([BASE_ARGS, COORDS_ARGS, ALT_ARG, ds_reponse_type])
 
-    response = mock_app.test_client().get(
-        "".join(["/apiv1.0/", query_string]), headers=HEADERS
-    )
+    response = mock_app.test_client().get("".join(["/apiv1.0/", query_string]), headers=HEADERS)
     data = json.loads(response.data)
 
     # No error should be returned
@@ -241,9 +269,7 @@ def test_get_request_exact_position_snv_return_MISS(
     ds_reponse_type = "includeDatasetResponses=MISS"
     query_string = "&".join([BASE_ARGS, COORDS_ARGS, ALT_ARG, ds_reponse_type])
 
-    response = mock_app.test_client().get(
-        "".join(["/apiv1.0/", query_string]), headers=HEADERS
-    )
+    response = mock_app.test_client().get("".join(["/apiv1.0/", query_string]), headers=HEADERS)
     data = json.loads(response.data)
 
     # No error should be returned
@@ -252,10 +278,7 @@ def test_get_request_exact_position_snv_return_MISS(
 
     # And only the dataset with NO hits should be returned
     assert len(data["datasetAlleleResponses"]) == 1
-    assert (
-        data["datasetAlleleResponses"][0]["datasetId"]
-        == public_dataset_no_variants["_id"]
-    )
+    assert data["datasetAlleleResponses"][0]["datasetId"] == public_dataset_no_variants["_id"]
     assert data["datasetAlleleResponses"][0]["exists"] == False
 
 
@@ -271,9 +294,7 @@ def test_get_request_snv_return_NONE(mock_app, test_snv, public_dataset):
 
     # when providing the required parameters in a SNV query with includeDatasetResponses=NONE (or omitting the param)
     query_string = "&".join([BASE_ARGS, "start=235826381", ALT_ARG])
-    response = mock_app.test_client().get(
-        "".join(["/apiv1.0/", query_string]), headers=HEADERS
-    )
+    response = mock_app.test_client().get("".join(["/apiv1.0/", query_string]), headers=HEADERS)
     data = json.loads(response.data)
 
     # No error should be returned
@@ -294,9 +315,7 @@ def test_get_snv_query_variant_not_found(mock_app, public_dataset):
 
     # when querying for a variant
     query_string = "&".join([BASE_ARGS, "start=235826381", ALT_ARG])
-    response = mock_app.test_client().get(
-        "".join(["/apiv1.0/", query_string]), headers=HEADERS
-    )
+    response = mock_app.test_client().get("".join(["/apiv1.0/", query_string]), headers=HEADERS)
     data = json.loads(response.data)
 
     # No error should be returned
@@ -330,9 +349,7 @@ def test_get_request_svs_range_coordinates(mock_app, test_sv, public_dataset):
     build = test_sv["assemblyId"]
     chrom = test_sv["referenceName"]
     ref = test_sv["referenceBases"]
-    base_sv_coords = (
-        f"query?assemblyId={build}&referenceName={chrom}&referenceBases={ref}"
-    )
+    base_sv_coords = f"query?assemblyId={build}&referenceName={chrom}&referenceBases={ref}"
 
     type = f"variantType={test_sv['variantType']}"
 
@@ -341,15 +358,11 @@ def test_get_request_svs_range_coordinates(mock_app, test_sv, public_dataset):
     start_max = test_sv["start"] + 5
     end_min = test_sv["end"] - 5
     end_max = test_sv["end"] + 5
-    range_coords = (
-        f"startMin={start_min}&startMax={start_max}&endMin={end_min}&endMax={end_max}"
-    )
+    range_coords = f"startMin={start_min}&startMax={start_max}&endMin={end_min}&endMax={end_max}"
 
     query_string = "&".join([base_sv_coords, range_coords, type])
 
-    response = mock_app.test_client().get(
-        "".join(["/apiv1.0/", query_string]), headers=HEADERS
-    )
+    response = mock_app.test_client().get("".join(["/apiv1.0/", query_string]), headers=HEADERS)
 
     data = json.loads(response.data)
     # No error should be returned
