@@ -11,6 +11,8 @@ from cgbeacon2.constants import (
 )
 from cgbeacon2.models import DatasetAlleleResponse
 from cgbeacon2.utils.add import add_variants as variants_loader
+from cgbeacon2.utils.delete import delete_variants as variant_deleter
+from cgbeacon2.utils.update import update_dataset
 from cgbeacon2.utils.parse import (
     get_vcf_samples,
     genes_to_bedtool,
@@ -21,6 +23,67 @@ from cgbeacon2.utils.md5 import md5_key
 
 RANGE_COORDINATES = ("startMin", "startMax", "endMin", "endMax")
 LOG = logging.getLogger(__name__)
+
+
+def overlapping_samples(dataset_samples, request_samples):
+    """Check that at least one sample in a list is contained in a dataset
+
+    Accepts:
+        dataset_samples(list): the list of samples contained in the dataset
+        request_samples(list): the list of samples provided by user
+
+    Returns:
+        bool: True if there is at least a shared samples in the 2 lists, else False
+    """
+    ds_sampleset = set(dataset_samples)
+    sampleset = set(request_samples)
+    return bool(sampleset.intersection(ds_sampleset))
+
+
+def delete_variants(req):
+    """Delete variants for one or more sample according to parameters specified in request data.
+
+    Accepts:
+        req(flask.request): request received by server
+
+    Returns:
+        resp(json object): A json response from the server, containing a message and a status_code
+    """
+    resp = None
+    message = None
+    db = current_app.db
+    req_data = req.json
+    dataset_id = req_data.get("dataset_id")
+    dataset = db["dataset"].find_one({"_id": dataset_id})
+    samples = req_data.get("samples")
+
+    # Check that request params contain a valid dataset id
+    if dataset_id is None or dataset_id == "":
+        message = {"message": "Invalid request. Please specify a valid dataset ID"}
+    # Check that dataset exists on the server
+    elif dataset is None:
+        message = {"message": f"Provided dataset '{dataset_id}' was not found on the server"}
+    # Check that request params contain a valid list of samples
+    elif isinstance(samples, list) is False or samples == []:
+        message = {"message": "Please provide a valid list of samples"}
+    elif overlapping_samples(dataset.get("samples", []), samples) is False:
+        message = {"message": "None of the provided samples was found in the dataset"}
+    if message:
+        resp = jsonify(message)
+        resp.status_code = 422
+        return resp
+
+    updated, removed = variant_deleter(current_app.db, dataset_id, samples)
+    if updated + removed > 0:
+        result = update_dataset(
+            database=current_app.db, dataset_id=dataset_id, samples=samples, add=False
+        )
+    message = {
+        "message": f"Number of updated variants:{updated}. Number of deleted variants:{removed}"
+    }
+    resp = jsonify(message)
+    resp.status_code = 200
+    return resp
 
 
 def add_variants(req):
@@ -37,30 +100,26 @@ def add_variants(req):
     req_data = req.json
     assembly = req_data.get("assemblyId")
     dataset_id = req_data.get("dataset_id")
+    vcf_samples = get_vcf_samples(req_data.get("vcf_path"))
+    samples = req_data.get("samples")
     # Check if provided dataset exists on the server
     db = current_app.db
     dataset = db["dataset"].find_one({"_id": dataset_id, "assembly_id": assembly})
     if dataset is None:
         message = {"message": f"Provided dataset '{dataset_id}' was not found on the server"}
-        resp = jsonify(message)
-        resp.status_code = 422
-        return resp
     # Check if provided file can be parsed
-    vcf_samples = get_vcf_samples(req_data.get("vcf_path"))
-    if vcf_samples == []:
+    elif vcf_samples == []:
         message = {"message": f"Error extracting info from VCF file, please check path to VCF"}
-        resp = jsonify(message)
-        resp.status_code = 422
-        return resp
     # Chech that eventual samples provided by user are present in the VCF file
-    samples = req_data.get("samples")
-    if samples and all(samplen in vcf_samples for samplen in samples) is False:
+    elif samples and all(samplen in vcf_samples for samplen in samples) is False:
         message = {
             "message": f"One or more provided samples were not found in VCF. VCF samples:{vcf_samples}"
         }
+    if message:
         resp = jsonify(message)
         resp.status_code = 422
         return resp
+
     filter_intervals = None
     if req_data.get("genes"):
         hgnc_ids = None
@@ -101,6 +160,11 @@ def add_variants(req):
         dataset_id=dataset_id,
         nr_variants=nr_variants,
     )
+
+    if added > 0:
+        # Update dataset object accordingly
+        update_dataset(database=db, dataset_id=dataset_id, samples=samples, add=True)
+
     message = {"message": f"Number of inserted variants for samples:{samples}:{added}"}
     resp = jsonify(message)
     resp.status_code = 200

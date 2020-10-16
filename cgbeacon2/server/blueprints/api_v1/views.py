@@ -14,7 +14,7 @@ from cgbeacon2.constants import CHROMOSOMES
 from cgbeacon2.models import Beacon
 from cgbeacon2.utils.auth import authlevel
 from cgbeacon2.utils.parse import validate_add_request
-from .controllers import create_allele_query, dispatch_query, add_variants
+from .controllers import create_allele_query, dispatch_query, add_variants, delete_variants
 
 API_VERSION = "1.0.0"
 LOG = logging.getLogger(__name__)
@@ -119,6 +119,21 @@ def add():
         return resp
     # Validation of request is OK, load eventual variants to db
     resp = add_variants(request)
+    return resp
+
+
+@consumes("application/json")
+@api1_bp.route("/apiv1.0/delete", methods=["POST"])
+def delete():
+    """Endpoint accepting json data from POST requests. Delete from database variants from one or more dataset samples according user request.
+    Example:
+    ########### POST request ###########
+    curl -X POST \
+    -H 'Content-Type: application/json' \
+    -d '{"dataset_id": "test_public",
+    "samples" : ["ADM1059A1", "ADM1059A2"]' http://localhost:5000/apiv1.0/delete
+    """
+    resp = delete_variants(request)
     return resp
 
 
