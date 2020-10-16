@@ -12,6 +12,58 @@ COORDS_ARGS = "start=235826381&end=235826383"
 ALT_ARG = "alternateBases=T"
 
 
+def test_delete_variants_api(mock_app, public_dataset, database):
+    """Test the API that deletes variants according to params specified in user's request"""
+
+    # GIVEN a database containing a public dataset
+    database["dataset"].insert_one(public_dataset)
+
+    test_gene = {
+        "_id": "5f8815f638049161e6ee429c",
+        "ensembl_id": "ENSG00000128513",
+        "hgnc_id": 17284,
+        "symbol": "POT1",
+        "build": "GRCh37",
+        "chromosome": "7",
+        "start": 124462440,
+        "end": 124570037,
+    }
+    # A test gene
+    database["gene"].insert_one(test_gene)
+
+    # And some variants for a couple of samples
+    data = {
+        "dataset_id": public_dataset["_id"],
+        "vcf_path": test_snv_vcf_path,
+        "assemblyId": "GRCh37",
+        "samples": ["ADM1059A1", "ADM1059A2"],
+        "genes": {"ids": [17284], "id_type": "HGNC"},
+    }
+    response = mock_app.test_client().post("/apiv1.0/add", json=data, headers=HEADERS)
+    n_inserted = len(list(database["variant"].find()))
+    assert n_inserted > 0
+
+    updated_ds = database["dataset"].find_one()
+    assert len(updated_ds["samples"]) == len(data["samples"])  # 2
+
+    # When the delete variants API is used to remove variants for one sample
+    data = {"dataset_id": public_dataset["_id"], "samples": ["ADM1059A2"]}
+    response = mock_app.test_client().post("/apiv1.0/delete", json=data, headers=HEADERS)
+    # Then the response should return success
+    assert response.status_code == 200
+    resp_data = json.loads(response.data)
+    # Should contain the number of variants updates/removed
+    assert "Number of updated variants" in resp_data["message"]
+
+    # Number of variants on server should change
+    n_variants = len(list(database["variant"].find()))
+    assert n_variants < n_inserted
+
+    # And dataset object should have been updated
+    updated_ds = database["dataset"].find_one()
+    assert "ADM1059A2" not in updated_ds["samples"]
+
+
 def test_add_variants_api_empty_gene_collection(mock_app, public_dataset, database):
     """Test the add variants API providing a gene list when genes are not found in database"""
 
@@ -27,7 +79,7 @@ def test_add_variants_api_empty_gene_collection(mock_app, public_dataset, databa
         "samples": ["ADM1059A1"],
         "genes": {"ids": [17284], "id_type": "HGNC"},
     }
-    response = mock_app.test_client().post("/apiv1.0/add?", json=data, headers=HEADERS)
+    response = mock_app.test_client().post("/apiv1.0/add", json=data, headers=HEADERS)
     # Then it should return a success response
     assert response.status_code == 200
     resp_data = json.loads(response.data)
@@ -62,7 +114,7 @@ def test_add_variants_api_hgnc_genes(mock_app, public_dataset, database):
         "samples": ["ADM1059A1"],
         "genes": {"ids": [17284], "id_type": "HGNC"},
     }
-    response = mock_app.test_client().post("/apiv1.0/add?", json=data, headers=HEADERS)
+    response = mock_app.test_client().post("/apiv1.0/add", json=data, headers=HEADERS)
     # Then it should return a success response
     assert response.status_code == 200
     resp_data = json.loads(response.data)

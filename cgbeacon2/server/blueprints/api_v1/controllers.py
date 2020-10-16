@@ -11,7 +11,7 @@ from cgbeacon2.constants import (
 )
 from cgbeacon2.models import DatasetAlleleResponse
 from cgbeacon2.utils.add import add_variants as variants_loader
-from cgbeacon2.utils.delete import delete_variants
+from cgbeacon2.utils.delete import delete_variants as variant_deleter
 from cgbeacon2.utils.update import update_dataset
 from cgbeacon2.utils.parse import (
     get_vcf_samples,
@@ -73,12 +73,15 @@ def delete_variants(req):
         resp.status_code = 422
         return resp
 
-    updated, removed = delete_variants(current_app.db, dataset_id, sample)
+    updated, removed = variant_deleter(current_app.db, dataset_id, samples)
     if updated + removed > 0:
         result = update_dataset(
             database=current_app.db, dataset_id=dataset_id, samples=samples, add=False
         )
-    message = {f"Number of updated variants:{updated}. Number of deleted variants:{removed}"}
+    message = {
+        "message": f"Number of updated variants:{updated}. Number of deleted variants:{removed}"
+    }
+    resp = jsonify(message)
     resp.status_code = 200
     return resp
 
@@ -157,6 +160,11 @@ def add_variants(req):
         dataset_id=dataset_id,
         nr_variants=nr_variants,
     )
+
+    if added > 0:
+        # Update dataset object accordingly
+        update_dataset(database=db, dataset_id=dataset_id, samples=samples, add=True)
+
     message = {"message": f"Number of inserted variants for samples:{samples}:{added}"}
     resp = jsonify(message)
     resp.status_code = 200
