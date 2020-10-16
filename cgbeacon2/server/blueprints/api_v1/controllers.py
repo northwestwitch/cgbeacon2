@@ -33,7 +33,7 @@ def overlapping_samples(dataset_samples, request_samples):
         request_samples(list): the list of samples provided by user
 
     Returns:
-        bool: if there is at least a shared samples in the 2 lists
+        bool: True if there is at least a shared samples in the 2 lists, else False
     """
     ds_sampleset = set(dataset_samples)
     sampleset = set(request_samples)
