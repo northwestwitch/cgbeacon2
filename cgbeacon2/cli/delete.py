@@ -59,16 +59,13 @@ def variants(ds, sample):
 
     for s in sample:
         if s not in dataset.get("samples", []):
-            click.echo(
-                f"Couldn't find any sample '{s}' in the sample list of dataset 'dataset'"
-            )
+            click.echo(f"Couldn't find any sample '{s}' in the sample list of dataset 'dataset'")
             raise click.Abort()
 
     updated, removed = delete_variants(current_app.db, ds, sample)
     click.echo(f"Number of variants updated:{updated}, removed:{removed}")
 
     if updated + removed > 0:
-
         # remove sample(s) from dataset
         result = update_dataset(
             database=current_app.db, dataset_id=ds, samples=list(sample), add=False
