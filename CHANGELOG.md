@@ -1,4 +1,4 @@
-## [] -
+## [1.2] - 2020.10.19
 
 ### Fixed
 - Added an init file inside the demo resources folder
