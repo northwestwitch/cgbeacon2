@@ -9,6 +9,7 @@ progress
 flask
 requests
 flask_negotiate
+werkzeug
 
 # security
 authlib

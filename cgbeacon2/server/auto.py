@@ -1,4 +1,4 @@
-from werkzeug.contrib.fixers import ProxyFix
+from werkzeug.middleware.proxy_fix import ProxyFix
 from cgbeacon2.server import create_app
 
 app = create_app()
