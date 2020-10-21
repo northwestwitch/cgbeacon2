@@ -1,6 +1,7 @@
 ## [] -
 ### Added
 - Created deployment WSGI file
+- Cython requirement
 
 
 ## [1.2] - 2020.10.19
