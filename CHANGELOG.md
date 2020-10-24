@@ -2,6 +2,10 @@
 ### Added
 - Created deployment WSGI file
 - Cython requirement
+- Dockerfiles
+
+### Changed
+- Cython requirement removed
 
 
 ## [1.2] - 2020.10.19
