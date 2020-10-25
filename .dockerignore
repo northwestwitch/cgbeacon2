@@ -1,0 +1,8 @@
+.git
+.github
+.gitignore
+.travis.yml
+mkdocs.yml
+docs
+tests
+Dockerfile

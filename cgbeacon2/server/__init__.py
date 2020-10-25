@@ -41,7 +41,13 @@ def create_app():
         LOG.warning("Please add database settings param in your config file.")
         quit()
 
-    client = MongoClient(app.config["DB_URI"])
+    # If app is runned from inside a container, override host port
+    db_uri = app.config["DB_URI"]
+    if os.getenv("MONGODB_HOST"):
+        db_uri=f"mongodb://{os.getenv('MONGODB_HOST')}:{'27017'}/{'cgbeacon2'}"
+        LOG.error(f"app is being used from inside a container, setting db connection string to {db_uri}")
+
+    client = MongoClient(db_uri)
     app.db = client[app.config["DB_NAME"]]
     LOG.info("database connection info:{}".format(app.db))
 

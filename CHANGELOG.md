@@ -1,11 +1,7 @@
-## [] -
+## [1.3] - 2020.10.25
 ### Added
 - Created deployment WSGI file
-- Cython requirement
-- Dockerfiles
-
-### Changed
-- Cython requirement removed
+- Dockerfiles for backend and frontend
 
 
 ## [1.2] - 2020.10.19
