@@ -6,7 +6,7 @@ jobs:
     name: Quality check
     runs-on: ubuntu-18.04
     steps:
-      - uses: actions/checkout@v1
+      - uses: actions/checkout@v2
       - name: Install missing linux libraries
         run: |
           sudo apt-get install curl libcurl4 libcurl4-openssl-dev gcc
@@ -15,8 +15,8 @@ jobs:
         with:
           python-version: 3.8
       - name: Run unit tests
-        env:
-          CGBEACON2_CONFIG: '/home/runner/work/cgbeacon2/cgbeacon2/instance/config.py'
+        run: |
+          pwd
         run: |
           pip install -r requirements.txt
           pip install -r requirements-dev.txt
