@@ -1,4 +1,6 @@
-## [] - 
+## [] -
+### Fixed
+- Broken githut actions test
 ### Added
 - Codecov and CodeFactor github actions
 - Created deployment WSGI file
