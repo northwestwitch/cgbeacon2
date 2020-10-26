@@ -20,7 +20,7 @@ Table of Contents:
 <a name="docker"></a>
 ## Installing and running the app using Docker
 
-A demo instance of the app containing data can be runned from the docker-compose file using this command:
+A demo instance of the app containing teest data can be runned from the docker-compose file using this command:
 ```
 docker-compose up -d
 ```
@@ -41,7 +41,7 @@ More info on how to set up a server containing app backend and frontend is avail
 <a name="installation"></a>
 ## Installation
 
-# Prerequisites
+### Prerequisites
 Python 3.6+
 - A working instance of **MongoDB**. From the mongo shell you can create a database using this syntax:
 ```
