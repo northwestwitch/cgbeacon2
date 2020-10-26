@@ -16,7 +16,7 @@ def test_create_app_from_envar(monkeypatch):
 
 
 def test_create_app_in_container(monkeypatch):
-    """Test creating app from inside a container, when an env varianble named 'MONGODB_HOST' is present to modify the hosr provided in config file"""
+    """Test creating app from inside a container, when an env varianble named 'MONGODB_HOST' ovverides the host provided in config file"""
 
     # GIVEN an env var named MONGODB_HOST
     monkeypatch.setenv("MONGODB_HOST", "mongodb")
