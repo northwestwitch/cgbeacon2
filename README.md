@@ -8,8 +8,8 @@ An updated beacon supporting [ GA4GH API 1.0 ][ga4gh_api1]
 This README only gives a brief overview of the tool, for a more complete reference, please check out our docs: www.clinicalgenomics.se/cgbeacon2
 
 Table of Contents:
-1. [Installing and running the app using Docker](#docker)
-2. [ Installation using pip ](#installation)
+1. [ Running the app using Docker ](#docker)
+2. [ Installation using pip in a vurtual environment](#installation)
 3. [ Loading demo data into the database ](#Loading)
 4. [ Server endpoints ](#endpoints)
     - [ Obtaining beacon info ](#info)
@@ -20,7 +20,7 @@ Table of Contents:
 <a name="docker"></a>
 ## Installing and running the app using Docker
 
-A demo instance of the app containing teest data can be runned from the docker-compose file using this command:
+A demo instance of the app containing test data can be started from the docker-compose file using this command:
 ```
 docker-compose up -d
 ```

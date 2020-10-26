@@ -4,6 +4,7 @@ The beacon app is consisting of a **backend** that is used for:
 - Creating and removing datasets
 - Adding or removing variants for one of more samples of a dataset
 - Loading demo data (not used in production, just in a test server)
+- Updating the genes in the database
 
 At the same time, the command `cgbeacon run` starts a **frontend** server with the following API endpoints:
 ```
@@ -25,12 +26,12 @@ A local image of the repository can be created by moving the Dockerfile in the r
 docker build -t cgbeacon2 .
 ```
 
-The container with the docker image contains only the beacon app and its required libraries. In order to work the container must be connected with at least one other container containing a running mongodb instance.
+The container with the docker image contains only the beacon app and its required libraries. In order to work the container must be connected with at least one other container hosting a running mongodb instance.
 
 
 ## Setting up the app backend:
 
-A simple running instance of the app backend connected to the database and ready to execute commands could be created in different ways. This is an example docker-composer:
+A simple running instance of the app backend connected to the database and ready to execute commands could be created in different ways. This is an example using docker-compose:
 
 Create a file docker-compose.yml containing the following code:
 
@@ -68,7 +69,7 @@ Exit from the execution of the images by typing `exit`
 
 ## Starting an app server connected to the database
 
-An app server instance connected to the server might be started in a similar way using Docker compose. This is an example of a such server, listening for incoming requests on port 5000, from hosts outside the container.
+An app server instance connected to the server might be started in a similar way using Docker Compose. This is an example of a such server, listening for incoming requests on port 5000, from hosts outside the container.
 
 Example of docker-compose.yml file:
 
@@ -98,9 +99,14 @@ services:
     command: bash -c 'cgbeacon2 run --host 0.0.0.0'
 ```
 
-Run the server in as a service (detached mode) by typing
+Run the server as a service (detached mode) by typing
 ```
 docker.compose up -d
+```
+
+The server should be now listing for requests. Test that it is working by sending a request to the beacon info endpoint from another terminal window:
+```
+curl -X GET 'http://127.0.0.1:5000/apiv1.0/'
 ```
 
 Stop the server by typing:
