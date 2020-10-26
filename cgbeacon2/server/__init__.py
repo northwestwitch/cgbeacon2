@@ -31,9 +31,8 @@ def create_app():
             os.path.join(instance_path, "config.py")
         ):  # running app from tests
             instance_path = os.path.join(app_root, "cgbeacon2", "cgbeacon2", "instance")
-
         app = Flask(
-            __name__, instance_path=instance_path, instance_relative_config=True
+            __name__, instance_path=instance_path
         )
         app.config.from_pyfile("config.py")
 
