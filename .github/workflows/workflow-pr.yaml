@@ -7,9 +7,9 @@ jobs:
     runs-on: ubuntu-18.04
     steps:
       - uses: actions/checkout@v1
-      - name: install missing linux libraries
+      - name: Install missing linux libraries
         run: |
-          sudo apt-get install curl gcc
+          sudo apt-get install curl libcurl curl-dev gcc
       - name: Set up Python
         uses: actions/setup-python@master
         with:
