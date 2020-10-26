@@ -27,12 +27,10 @@ def create_app():
 
         # check if config file exists under ../instance:
         instance_path = os.path.join(app_root, "cgbeacon2", "instance")
-        """
         if not os.path.isfile(
             os.path.join(instance_path, "config.py")
         ):  # running app from tests
             instance_path = os.path.join(app_root, "cgbeacon2", "cgbeacon2", "instance")
-        """
         app = Flask(
             __name__, instance_path=instance_path
         )

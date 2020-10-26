@@ -5,6 +5,8 @@ jobs:
   qa:
     name: Quality check
     runs-on: ubuntu-18.04
+    env:
+      CGBEACON2_CONFIG: instance/config.py
     steps:
       - uses: actions/checkout@v2
       - name: Install missing linux libraries
