@@ -14,7 +14,7 @@ services:
   beacon-cli:
     environment:
       MONGODB_HOST: mongodb
-    image: cgbeacon2:latest
+    image: northwestwitch/cgbeacon2
     container_name: beacon-cli
     links:
       - mongodb
@@ -23,7 +23,7 @@ services:
   beacon-web:
     environment:
       MONGODB_HOST: mongodb
-    image: cgbeacon2:latest
+    image: northwestwitch/cgbeacon2
     container_name: beacon-web
     links:
       - mongodb

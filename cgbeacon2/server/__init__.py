@@ -45,7 +45,6 @@ def create_app():
     db_uri = app.config["DB_URI"]
     if os.getenv("MONGODB_HOST"):
         db_uri=f"mongodb://{os.getenv('MONGODB_HOST')}:{'27017'}/{'cgbeacon2'}"
-        LOG.error(f"app is being used from inside a container, setting db connection string to {db_uri}")
 
     client = MongoClient(db_uri)
     app.db = client[app.config["DB_NAME"]]

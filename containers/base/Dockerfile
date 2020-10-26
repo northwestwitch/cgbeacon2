@@ -5,12 +5,14 @@ MAINTAINER Chiara Rasi
 RUN apk update
 RUN apk add make automake gcc g++ linux-headers curl libcurl curl-dev \
   zlib-dev bzip2-dev xz-dev libffi-dev curl libressl-dev bash \
-  && rm -rf /var/cache/apk/*
+  && rm -rf /var/cache/apk/*s
 
-COPY requirements.txt /
-RUN pip install -r /requirements.txt
+WORKDIR /home/worker/app
+COPY . /home/worker/app
 
-WORKDIR /app
-ADD . /app
-
+RUN pip install -r requirements.txt
 RUN pip install -e .
+
+RUN adduser -D worker
+RUN chown worker:worker -R /home/worker
+USER worker
