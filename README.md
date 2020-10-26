@@ -9,7 +9,7 @@ This README only gives a brief overview of the tool, for a more complete referen
 
 Table of Contents:
 1. [ Running the app using Docker ](#docker)
-2. [ Installation using pip in a vurtual environment](#installation)
+2. [ Installation using pip in a virtual environment](#installation)
 3. [ Loading demo data into the database ](#Loading)
 4. [ Server endpoints ](#endpoints)
     - [ Obtaining beacon info ](#info)

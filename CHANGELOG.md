@@ -1,4 +1,4 @@
-## [1.3] - 2020.10.25
+## [1.3] - 2020.10.27
 ### Added
 - Created deployment WSGI file
 - Dockerfiles for backend and frontend
