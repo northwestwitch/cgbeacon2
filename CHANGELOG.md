@@ -1,5 +1,6 @@
 ## [] -
 ### Added
+- Codecov and CodeFactor github actions
 - Created deployment WSGI file
 - Cython requirement
 
