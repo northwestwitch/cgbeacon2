@@ -9,7 +9,7 @@ jobs:
       - uses: actions/checkout@v1
       - name: install missing linux libraries
         run: |
-          sudo apt-get install curl
+          sudo apt-get install curl gcc
       - name: Set up Python
         uses: actions/setup-python@master
         with:
