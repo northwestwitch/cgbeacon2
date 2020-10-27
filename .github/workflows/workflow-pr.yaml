@@ -28,11 +28,10 @@ jobs:
         coveralls
       env:
         GITHUB_TOKEN: ${{ github.token }}
-
   code_quality:
     - name: wemake-python-styleguide
-      uses: wemake-services/wemake-python-styleguide
-      with:
-        reporter: 'github-pr-review'
-      env:
-        GITHUB_TOKEN: ${{ secrets.github_token }}
+        uses: wemake-services/wemake-python-styleguide
+        with:
+          reporter: 'github-pr-review'
+        env:
+          GITHUB_TOKEN: ${{ secrets.github_token }}
