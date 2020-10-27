@@ -1,8 +1,8 @@
 name: Python Pull Request Workflow
-on: [push, pull_request]
+on: [pull_request]
 
 jobs:
-  unit_testing:
+  Pytest & coverage:
     runs-on: ubuntu-18.04
     env:
       CGBEACON2_CONFIG: ../instance/config.py
@@ -15,23 +15,16 @@ jobs:
     - name: Install missing linux libraries
       run: |
         sudo apt-get install curl libcurl4 libcurl4-openssl-dev gcc bedtools
-    - name: Run unit tests
+    - name: Install repo and its dependencies
       run: |
         pip install -r requirements.txt
         pip install -r requirements-dev.txt
         pip install -e .
         pip install pytest
-        pytest
-    - name: Coveralls
-      uses: AndreMiras/coveralls-python-action@develop
-      with:
-        parallel: true
-
-  coveralls_finish:
-    needs: unit_testing
-    runs-on: ubuntu-latest
-    steps:
-    - name: Coveralls Finished
-      uses: AndreMiras/coveralls-python-action@develop
-      with:
-        parallel-finished: true
+        pip install coveralls
+    - name: Run pytest and coveralls
+      run: |
+        pytest --cov=./
+        coveralls
+      env:
+        COVERALLS_REPO_TOKEN: ${{ secrets.COVERALLS_REPO_TOKEN }}
