@@ -24,7 +24,7 @@ jobs:
         pip install coveralls
     - name: Run pytest and coveralls
       run: |
-        pytest --cov=./
+        pytest --cov=cgbeacon2 tests/
         coveralls
       env:
         GITHUB_TOKEN: ${{ github.token }}
