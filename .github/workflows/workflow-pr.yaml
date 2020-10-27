@@ -30,10 +30,12 @@ jobs:
         GITHUB_TOKEN: ${{ github.token }}
 
   wemake-styleguide:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-18.04
     steps:
       - name: Wemake Python Stylguide
         uses: wemake-services/wemake-python-styleguide@0.14.1
+        run: |
+          sudo apt-get install git-all
         with:
           reporter: 'github-pr-review'
         env:
