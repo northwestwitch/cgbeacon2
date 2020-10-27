@@ -29,12 +29,12 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ github.token }}
 
-  wemake-styleguide:
-    runs-on: python:3.8.6-alpine
+  wemake-stylguide:
+    runs-on: ubuntu-18.04
     steps:
-      - name: Wemake Python Stylguide
+      - name: wemake-python-styleguide
         uses: wemake-services/wemake-python-styleguide@0.14.1
-        with:
-          reporter: 'github-pr-review'
         env:
           GITHUB_TOKEN: ${{ secrets.github_token }}
+        with:
+          reporter: 'github-pr-review'
