@@ -1,6 +1,5 @@
-name: Pull Request Workflow
+name: Tests and coverage
 on: [pull_request]
-
 jobs:
   Pytest_Coveralls:
     runs-on: ubuntu-18.04
