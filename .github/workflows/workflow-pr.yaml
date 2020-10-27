@@ -2,7 +2,7 @@ name: Python Pull Request Workflow
 on: [pull_request]
 
 jobs:
-  Pytest & coverage:
+  Pytest_Coveralls:
     runs-on: ubuntu-18.04
     env:
       CGBEACON2_CONFIG: ../instance/config.py
