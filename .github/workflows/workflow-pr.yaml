@@ -30,16 +30,8 @@ jobs:
         GITHUB_TOKEN: ${{ github.token }}
 
   wemake-styleguide:
-    runs-on: ubuntu-18.04
-    steps:
-      - name: Install required linux libs
-        run: |
-          sudo apt-get update
-          sudo apt-get upgrade -y
-          sudo apt-get install -y git
-      - name: Wemake Python Stylguide
-        uses: wemake-services/wemake-python-styleguide@0.14.1
-        with:
-          reporter: 'github-pr-review'
-        env:
-          GITHUB_TOKEN: ${{ secrets.github_token }}
+    uses: wemake-services/wemake-python-styleguide@0.14.1
+    with:
+      reporter: 'github-pr-review'
+    env:
+      GITHUB_TOKEN: ${{ secrets.github_token }}
