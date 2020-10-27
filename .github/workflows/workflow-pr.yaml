@@ -12,7 +12,7 @@ jobs:
       uses: actions/setup-python@master
       with:
         python-version: 3.8
-    - name: Install missing linux libraries
+    - name: Install required linux libs
       run: |
         sudo apt-get install curl libcurl4 libcurl4-openssl-dev gcc bedtools
     - name: Install repo and its dependencies
@@ -32,10 +32,11 @@ jobs:
   wemake-styleguide:
     runs-on: ubuntu-18.04
     steps:
-      - name: Wemake Python Stylguide
-        uses: wemake-services/wemake-python-styleguide@0.14.1
+      - name: Install required linux libs
         run: |
           sudo apt-get install git-all
+      - name: Wemake Python Stylguide
+        uses: wemake-services/wemake-python-styleguide@0.14.1
         with:
           reporter: 'github-pr-review'
         env:
