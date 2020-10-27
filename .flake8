@@ -1,0 +1,7 @@
+max-line-length = 100
+exclude =
+    config.py,
+    .venv/,
+    docs
+    .github
+    README.md
