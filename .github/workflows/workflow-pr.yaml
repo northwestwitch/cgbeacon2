@@ -32,8 +32,8 @@ jobs:
   wemake-styleguide:
     runs-on: ubuntu-18.04
     steps:
-      - name: wemake-python-styleguide
-        uses: wemake-services/wemake-python-styleguide
+      - name: Wemake Python Stylguide
+        uses: wemake-services/wemake-python-styleguide@0.14.1
         with:
           reporter: 'github-pr-review'
         env:
