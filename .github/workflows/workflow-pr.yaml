@@ -1,5 +1,5 @@
-name: push
-on: [push, pull_request]
+name: Python Pull Request Workflow
+on: [pull_request]
 
 jobs:
   unit_testing:
