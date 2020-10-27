@@ -1,33 +1,46 @@
-name: Python Pull Request Workflow
-on: [pull_request]
-jobs:
+name: push
+on: [push, pull_request]
 
-  qa:
-    name: Quality check
+jobs:
+  unit_testing:
     runs-on: ubuntu-18.04
+    env:
+      CGBEACON2_CONFIG: ../instance/config.py
     steps:
-      - uses: actions/checkout@v2
-      - name: Install missing linux libraries
-        run: |
-          sudo apt-get install curl libcurl4 libcurl4-openssl-dev gcc bedtools
-      - name: Set up Python
-        uses: actions/setup-python@master
-        with:
-          python-version: 3.8
-      - name: Run unit tests
-        run: |
-          pip install -r requirements.txt
-          pip install -r requirements-dev.txt
-          pip install -e .
-          pip install pytest
-          pytest
-        env:
-          CGBEACON2_CONFIG: ../instance/config.py
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      - name: Wemake Python Stylguide
-        uses: wemake-services/wemake-python-styleguide@0.14.1
-        continue-on-error: true
-        with:
-          reporter: 'github-pr-review'
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    - uses: actions/checkout@v2
+    - name: Set up Python
+      uses: actions/setup-python@master
+      with:
+        python-version: 3.8
+    - name: Install missing linux libraries
+      run: |
+        sudo apt-get install curl libcurl4 libcurl4-openssl-dev gcc bedtools
+    - name: Run unit tests
+      run: |
+        pip install -r requirements.txt
+        pip install -r requirements-dev.txt
+        pip install -e .
+        pip install pytest
+        pytest
+
+    - name: Coveralls
+      uses: AndreMiras/coveralls-python-action@develop
+      with:
+        parallel: true
+
+  coveralls_finish:
+    needs: unit_testing
+    runs-on: ubuntu-latest
+    steps:
+    - name: Coveralls Finished
+      uses: AndreMiras/coveralls-python-action@develop
+      with:
+        parallel-finished: true
+
+  wemake_services:
+    uses: wemake-services/wemake-python-styleguide@0.14.1
+    continue-on-error: true
+    with:
+      reporter: 'github-pr-review'
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
