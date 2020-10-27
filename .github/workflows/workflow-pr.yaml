@@ -1,5 +1,5 @@
 name: Python Pull Request Workflow
-on: [pull_request]
+on: [push, pull_request]
 
 jobs:
   unit_testing:
@@ -22,7 +22,6 @@ jobs:
         pip install -e .
         pip install pytest
         pytest
-
     - name: Coveralls
       uses: AndreMiras/coveralls-python-action@develop
       with:
