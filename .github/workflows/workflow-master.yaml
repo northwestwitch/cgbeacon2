@@ -7,15 +7,22 @@ jobs:
   codecov:
     name: Codecov Workflow
     runs-on: ubuntu-18.04
-
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
-      - uses: actions/checkout@v1
+      - uses: actions/checkout@v2
+      - name: Install missing linux libraries
+        run: |
+          sudo apt-get install curl libcurl4 libcurl4-openssl-dev gcc bedtools
       - name: Set up Python
         uses: actions/setup-python@master
         with:
           python-version: 3.8
       - name: Generate coverage report
         run: |
+          pip install -r requirements.txt
+          pip install -r requirements-dev.txt
+          pip install -e .
           pip install pytest
           pip install pytest-cov
           pytest --cov=./ --cov-report=xml
