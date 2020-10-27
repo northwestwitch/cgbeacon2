@@ -29,7 +29,8 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ github.token }}
 
-  code_quality:
+  wemake-styleguide:
+    runs-on: ubuntu-18.04
     steps:
       - name: wemake-python-styleguide
         uses: wemake-services/wemake-python-styleguide
