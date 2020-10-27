@@ -1,7 +1,7 @@
-name: Flake8
-on: pull_request
-  paths:
-      - "**.py"
+name: flake8 Lint
+
+on: [push, pull_request]
+
 jobs:
   flake8-lint:
     runs-on: ubuntu-latest
