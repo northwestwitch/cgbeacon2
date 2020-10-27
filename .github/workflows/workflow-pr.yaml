@@ -34,7 +34,9 @@ jobs:
     steps:
       - name: Install required linux libs
         run: |
-          sudo apt-get install git-all
+          apt-get update
+          apt-get upgrade -y
+          apt-get install -y git
       - name: Wemake Python Stylguide
         uses: wemake-services/wemake-python-styleguide@0.14.1
         with:
